@@ -1,0 +1,331 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, User, Loader2, AlertTriangle, CheckCircle, UserPlus, XCircle } from 'lucide-react';
+import { authService } from '../../services/api';
+
+const CadastroNovo = () => {
+  const navigate = useNavigate();
+  const [carregando, setCarregando] = useState(false);
+  const [sucesso, setSucesso] = useState(false);
+  const [erro, setErro] = useState('');
+  const [erroDetalhado, setErroDetalhado] = useState(null);
+  const [senhaTemporaria, setSenhaTemporaria] = useState('');
+  const [formulario, setFormulario] = useState({
+    nome: '',
+    email: ''
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormulario({ ...formulario, [name]: value });
+    setErro('');
+    setErroDetalhado(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErro('');
+    setErroDetalhado(null);
+
+    // Validações
+    if (!formulario.nome || !formulario.email) {
+      setErro('Preencha todos os campos');
+      return;
+    }
+
+    if (formulario.nome.trim().split(' ').length < 2) {
+      setErro('Digite seu nome completo (nome e sobrenome)');
+      return;
+    }
+
+    if (!formulario.email.includes('@')) {
+      setErro('E-mail inválido');
+      return;
+    }
+
+    setCarregando(true);
+
+    try {
+      console.log('📝 Tentando cadastrar...');
+      console.log('👤 Nome:', formulario.nome);
+      console.log('📧 E-mail:', formulario.email);
+      console.log('🌐 API URL:', import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+
+      const response = await authService.registrar(formulario);
+
+      console.log('📊 Resposta do cadastro:', response);
+
+      if (response.sucesso) {
+        console.log('✅ Cadastro bem-sucedido!');
+        setSucesso(true);
+        
+        // Armazenar senha temporária se fornecida (apenas em desenvolvimento)
+        if (response.dados.senhaTemporaria) {
+          console.log('🔑 Senha temporária:', response.dados.senhaTemporaria);
+          setSenhaTemporaria(response.dados.senhaTemporaria);
+        }
+      } else {
+        console.log('❌ Erro no cadastro:', response.mensagem);
+        setErro(response.mensagem || 'Erro ao cadastrar');
+      }
+    } catch (error) {
+      console.error('❌ ERRO COMPLETO:', error);
+      
+      let mensagemErro = 'Erro ao conectar com o servidor';
+      let detalhes = {};
+
+      // Identificar tipo de erro
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        mensagemErro = '🔴 Backend não está respondendo';
+        detalhes = {
+          problema: 'O servidor backend não está rodando ou não está acessível',
+          solucoes: [
+            '1. Abra um NOVO terminal',
+            '2. Execute: cd server',
+            '3. Execute: npm install',
+            '4. Execute: npm run dev',
+            '5. Aguarde ver: "🚀 Servidor rodando na porta 5000"',
+            '6. Tente cadastrar novamente'
+          ],
+          apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+          status: 'Backend não respondendo',
+          dica: 'O backend precisa estar rodando em paralelo com o frontend!'
+        };
+      } else if (error.message.includes('NetworkError')) {
+        mensagemErro = '🔴 Erro de conexão';
+        detalhes = {
+          problema: 'Não foi possível conectar ao servidor',
+          solucoes: [
+            '1. Verifique se o backend está rodando',
+            '2. Abra http://localhost:5000/api/health no navegador',
+            '3. Deve mostrar: {"status":"OK"}',
+            '4. Se não funcionar, inicie o backend'
+          ],
+          apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        };
+      } else {
+        detalhes = {
+          problema: error.message,
+          apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+          erro: error.toString()
+        };
+      }
+
+      setErro(mensagemErro);
+      setErroDetalhado(detalhes);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  if (sucesso) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+            <CheckCircle className="w-12 h-12 text-green-600" />
+          </div>
+          
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Cadastro Realizado!
+          </h2>
+          
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <p className="text-sm text-blue-800">
+              📧 Um e-mail foi enviado para <strong>{formulario.email}</strong> com sua senha temporária.
+            </p>
+          </div>
+
+          {senhaTemporaria && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
+              <p className="text-xs text-yellow-800 mb-2">
+                <strong>⚠️ Apenas para desenvolvimento:</strong>
+              </p>
+              <p className="text-sm text-yellow-900 font-mono bg-white p-3 rounded border border-yellow-300">
+                Senha: <strong className="text-lg">{senhaTemporaria}</strong>
+              </p>
+              <p className="text-xs text-yellow-700 mt-2">
+                💡 Copie esta senha para fazer login
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <p className="text-gray-600">
+              Você será <strong>obrigado a alterar</strong> esta senha no primeiro acesso por questões de segurança.
+            </p>
+
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              Ir para Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
+            <UserPlus className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Criar Conta</h2>
+          <p className="text-gray-600">Preencha os dados abaixo</p>
+        </div>
+
+        {/* Erro Simples */}
+        {erro && !erroDetalhado && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">{erro}</p>
+          </div>
+        )}
+
+        {/* Erro Detalhado */}
+        {erroDetalhado && (
+          <div className="mb-6 p-6 bg-red-50 border-2 border-red-500 rounded-lg">
+            <div className="flex items-start gap-3 mb-4">
+              <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-bold text-red-900 text-lg mb-2">{erro}</h3>
+                <p className="text-sm text-red-800 mb-3">{erroDetalhado.problema}</p>
+              </div>
+            </div>
+
+            {erroDetalhado.solucoes && (
+              <div className="bg-white p-4 rounded-lg border border-red-200 mb-3">
+                <p className="font-semibold text-red-900 text-sm mb-2">📋 Como resolver:</p>
+                <div className="space-y-1">
+                  {erroDetalhado.solucoes.map((solucao, index) => (
+                    <p key={index} className="text-xs text-red-800 font-mono bg-red-50 p-2 rounded">
+                      {solucao}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white p-3 rounded-lg border border-red-200 text-xs mb-3">
+              <p className="text-red-800 mb-1">
+                <strong>🌐 URL da API:</strong> {erroDetalhado.apiUrl}
+              </p>
+              {erroDetalhado.status && (
+                <p className="text-red-800">
+                  <strong>📊 Status:</strong> {erroDetalhado.status}
+                </p>
+              )}
+            </div>
+
+            {erroDetalhado.dica && (
+              <div className="p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+                <p className="text-xs text-yellow-800">
+                  <strong>💡 Dica:</strong> {erroDetalhado.dica}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Formulário */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Nome */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nome Completo
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                name="nome"
+                value={formulario.nome}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="João Silva"
+                disabled={carregando}
+              />
+            </div>
+          </div>
+
+          {/* E-mail */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              E-mail
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="email"
+                name="email"
+                value={formulario.email}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="joao@exemplo.com"
+                disabled={carregando}
+              />
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <p className="text-xs text-blue-800">
+              ℹ️ Uma senha temporária será gerada automaticamente e enviada para seu e-mail.
+            </p>
+          </div>
+
+          {/* Botão Cadastrar */}
+          <button
+            type="submit"
+            disabled={carregando}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+          >
+            {carregando ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Cadastrando...
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-5 h-5" />
+                Criar Conta
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-6 text-center">
+          <p className="text-gray-600 text-sm">
+            Já tem uma conta?{' '}
+            <button
+              onClick={() => navigate('/login')}
+              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+            >
+              Fazer login
+            </button>
+          </p>
+        </div>
+
+        {/* Informações de Debug */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-xs text-gray-600 mb-2">
+            <strong>ℹ️ Informações do Sistema:</strong>
+          </p>
+          <div className="space-y-1 text-xs text-gray-500">
+            <p>• Frontend: http://localhost:5173</p>
+            <p>• Backend esperado: http://localhost:5000</p>
+            <p>• API configurada: {import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CadastroNovo;

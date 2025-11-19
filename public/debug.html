@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Dashboard</title>
+</head>
+<body>
+    <h1>Debug Dashboard - Finanças Fácil</h1>
+    <div id="status"></div>
+    <div id="localstorage"></div>
+    <div id="dashboard-info"></div>
+    
+    <script>
+        // Verificar status de login
+        const statusDiv = document.getElementById('status');
+        const localStorageDiv = document.getElementById('localstorage');
+        const dashboardInfoDiv = document.getElementById('dashboard-info');
+        
+        function atualizarStatus() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            statusDiv.innerHTML = `
+                <h2>Status de Login:</h2>
+                <p>Token: ${token ? '✅ PRESENTE' : '❌ AUSENTE'}</p>
+                <p>User: ${user ? '✅ PRESENTE' : '❌ AUSENTE'}</p>
+                <p>Localização: ${window.location.href}</p>
+            `;
+            
+            localStorageDiv.innerHTML = `
+                <h2>LocalStorage Completo:</h2>
+                <pre>${JSON.stringify(localStorage, null, 2)}</pre>
+            `;
+        }
+        
+        // Função para testar API
+        async function testarAPI() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                dashboardInfoDiv.innerHTML = '<p>❌ Nenhum token encontrado. Faça login primeiro.</p>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/user/dados', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    dashboardInfoDiv.innerHTML = `
+                        <h2>✅ Dados do Dashboard:</h2>
+                        <p>Receitas: ${data.dados.receitas?.length || 0} itens</p>
+                        <p>Despesas: ${data.dados.despesas?.length || 0} itens</p>
+                        <p>Orçamentos: ${data.dados.orcamentos?.length || 0} itens</p>
+                        <h3>Primeiras receitas:</h3>
+                        <pre>${JSON.stringify(data.dados.receitas?.slice(0, 2), null, 2)}</pre>
+                    `;
+                } else {
+                    dashboardInfoDiv.innerHTML = `<p>❌ Erro na API: ${data.mensagem}</p>`;
+                }
+            } catch (error) {
+                dashboardInfoDiv.innerHTML = `<p>❌ Erro de conexão: ${error.message}</p>`;
+            }
+        }
+        
+        // Função para fazer login
+        async function fazerLogin() {
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'diogo.grunge@gmail.com',
+                        senha: 'diogo123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success || data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    alert('✅ Login realizado com sucesso!');
+                    atualizarStatus();
+                    testarAPI();
+                } else {
+                    alert(`❌ Erro no login: ${data.message}`);
+                }
+            } catch (error) {
+                alert(`❌ Erro de conexão: ${error.message}`);
+            }
+        }
+        
+        // Botões de ação
+        document.body.innerHTML += `
+            <div style="margin: 20px 0;">
+                <button onclick="fazerLogin()" style="margin-right: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    🔐 Fazer Login
+                </button>
+                <button onclick="testarAPI()" style="margin-right: 10px; padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    🔄 Testar API
+                </button>
+                <button onclick="localStorage.clear(); atualizarStatus();" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    🗑️ Limpar LocalStorage
+                </button>
+            </div>
+            <div>
+                <a href="/dashboard" style="padding: 10px 20px; background: #17a2b8; color: white; text-decoration: none; border-radius: 5px;">
+                    📊 Ir para Dashboard
+                </a>
+            </div>
+        `;
+        
+        // Atualizar status inicial
+        atualizarStatus();
+        
+        // Testar API automaticamente se houver token
+        if (localStorage.getItem('token')) {
+            testarAPI();
+        }
+    </script>
+</body>
+</html>

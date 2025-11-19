@@ -1,0 +1,103 @@
+h-12 mb-2" />
+            <p>Configure o orçamento para visualizar este gráfico</p>
+            <p className="text-sm mt-2">
+              Renda prevista: {orcamentoCompleto ? formatarMoeda(parseFloat(orcamentoCompleto.rendaPrevista || 0)) : 'R$ 0,00'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Gráficos Originais */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <BarChart3 className="w-6 h-6 text-blue-600" />
+            Receitas vs Despesas por Categoria
+          </h3>
+          {dadosPorCategoria.length > 0 ? (
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={dadosPorCategoria} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="categoria"
+                  tick={renderCustomAxisTick}
+                  interval={0}
+                  height={80}
+                />
+                <YAxis />
+                <Tooltip formatter={(value) => formatarMoeda(value)} />
+                <Legend />
+                <Bar dataKey="receitas" fill="#10B981" name="Receitas" />
+                <Bar dataKey="despesas" fill="#EF4444" name="Despesas" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-400">
+              <p>Nenhum dado disponível para o período selecionado</p>
+            </div>
+          )}
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <PieChartIcon className="w-6 h-6 text-purple-600" />
+            Distribuição Geral
+          </h3>
+          {dadosPizza.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={dadosPizza}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {dadosPizza.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatarMoeda(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-400">
+              <p>Nenhum dado disponível para o período selecionado</p>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <TrendingUp className="w-6 h-6 text-green-600" />
+          Evolução Temporal
+        </h3>
+        {dadosPorCategoria.length > 0 ? (
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart data={dadosPorCategoria} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="categoria"
+                tick={renderCustomAxisTick}
+                interval={0}
+                height={80}
+              />
+              <YAxis />
+              <Tooltip formatter={(value) => formatarMoeda(value)} />
+              <Legend />
+              <Line type="monotone" dataKey="receitas" stroke="#10B981" strokeWidth={2} name="Receitas" />
+              <Line type="monotone" dataKey="despesas" stroke="#EF4444" strokeWidth={2} name="Despesas" />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-64 text-gray-400">
+            <p>Nenhum dado disponível para o período selecionado</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+export default Relatorios;

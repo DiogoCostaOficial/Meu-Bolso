@@ -1,0 +1,219 @@
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const DB_PATH = path.join(__dirname, '../data/database.json');
+
+// Estrutura inicial do banco de dados
+const estruturaInicial = {
+  usuarios: [],
+  admin: {
+    email: 'admin',
+    senha: '', // Será definido no primeiro acesso
+    nome: 'Administrador',
+    tipo: 'admin',
+    primeiroAcesso: true,
+    dataCriacao: new Date().toISOString()
+  }
+};
+
+/**
+ * Inicializa o banco de dados se não existir
+ */
+export const inicializarDB = async () => {
+  try {
+    await fs.access(DB_PATH);
+  } catch {
+    // Arquivo não existe, criar
+    await fs.writeFile(DB_PATH, JSON.stringify(estruturaInicial, null, 2));
+    console.log('✅ Banco de dados inicializado');
+  }
+};
+
+/**
+ * Lê o banco de dados
+ */
+export const lerDB = async () => {
+  try {
+    const data = await fs.readFile(DB_PATH, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Erro ao ler banco de dados:', error);
+    return estruturaInicial;
+  }
+};
+
+/**
+ * Escreve no banco de dados
+ */
+export const escreverDB = async (data) => {
+  try {
+    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Erro ao escrever no banco de dados:', error);
+    return false;
+  }
+};
+
+/**
+ * Busca usuário por email
+ */
+export const buscarUsuarioPorEmail = async (email) => {
+  const db = await lerDB();
+  
+  // Verificar se é admin
+  if (email === 'admin') {
+    return db.admin;
+  }
+  
+  return db.usuarios.find(u => u.email === email);
+};
+
+/**
+ * Busca usuário por ID
+ */
+export const buscarUsuarioPorId = async (id) => {
+  const db = await lerDB();
+  return db.usuarios.find(u => u.id === id);
+};
+
+/**
+ * Cria novo usuário
+ */
+export const criarUsuario = async (dadosUsuario) => {
+  const db = await lerDB();
+  
+  // Verificar se email já existe
+  if (db.usuarios.some(u => u.email === dadosUsuario.email)) {
+    throw new Error('E-mail já cadastrado');
+  }
+  
+  const novoUsuario = {
+    id: Date.now().toString(),
+    ...dadosUsuario,
+    dataCriacao: new Date().toISOString(),
+    ultimoAcesso: null
+  };
+  
+  db.usuarios.push(novoUsuario);
+  await escreverDB(db);
+  
+  return novoUsuario;
+};
+
+/**
+ * Atualiza usuário
+ */
+export const atualizarUsuario = async (id, dadosAtualizados) => {
+  const db = await lerDB();
+  
+  // Se for admin
+  if (id === 'admin') {
+    db.admin = { ...db.admin, ...dadosAtualizados };
+    await escreverDB(db);
+    return db.admin;
+  }
+  
+  const index = db.usuarios.findIndex(u => u.id === id);
+  if (index === -1) {
+    throw new Error('Usuário não encontrado');
+  }
+  
+  db.usuarios[index] = { ...db.usuarios[index], ...dadosAtualizados };
+  await escreverDB(db);
+  
+  return db.usuarios[index];
+};
+
+/**
+ * Atualiza último acesso do usuário
+ */
+export const atualizarUltimoAcesso = async (id) => {
+  return await atualizarUsuario(id, { 
+    ultimoAcesso: new Date().toISOString() 
+  });
+};
+
+/**
+ * Lista todos os usuários (apenas admin)
+ */
+export const listarUsuarios = async () => {
+  const db = await lerDB();
+  return db.usuarios.map(u => ({
+    id: u.id,
+    nome: u.nome,
+    email: u.email,
+    dataCriacao: u.dataCriacao,
+    ultimoAcesso: u.ultimoAcesso,
+    primeiroAcesso: u.primeiroAcesso
+  }));
+};
+
+/**
+ * Conta usuários ativos
+ */
+export const contarUsuariosAtivos = async () => {
+  const db = await lerDB();
+  return db.usuarios.length;
+};
+
+/**
+ * Busca dados do perfil do usuário
+ */
+export const buscarDadosUsuario = async (userId) => {
+  const db = await lerDB();
+  
+  // Buscar no localStorage simulado por usuário
+  const chaveStorage = `USER_DATA_${userId}`;
+  try {
+    const dadosPath = path.join(__dirname, `../data/${chaveStorage}.json`);
+    const dados = await fs.readFile(dadosPath, 'utf8');
+    return JSON.parse(dados);
+  } catch {
+    // Retornar estrutura vazia se não existir
+    return {
+      receitas: [],
+      despesas: [],
+      categorias: [],
+      orcamentos: []
+    };
+  }
+};
+
+/**
+ * Salva dados do perfil do usuário
+ */
+export const salvarDadosUsuario = async (userId, dados) => {
+  const chaveStorage = `USER_DATA_${userId}`;
+  const dadosPath = path.join(__dirname, `../data/${chaveStorage}.json`);
+  
+  try {
+    await fs.writeFile(dadosPath, JSON.stringify(dados, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar dados do usuário:', error);
+    return false;
+  }
+};
+
+// Inicializar DB na importação
+inicializarDB();
+
+export default {
+  inicializarDB,
+  lerDB,
+  escreverDB,
+  buscarUsuarioPorEmail,
+  buscarUsuarioPorId,
+  criarUsuario,
+  atualizarUsuario,
+  atualizarUltimoAcesso,
+  listarUsuarios,
+  contarUsuariosAtivos,
+  buscarDadosUsuario,
+  salvarDadosUsuario
+};

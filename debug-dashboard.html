@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Dashboard - Finanças Fácil</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .data-preview { background: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug Dashboard - Finanças Fácil</h1>
+    
+    <div class="debug-section">
+        <h2>1. Teste de Login</h2>
+        <button onclick="testarLogin()">Testar Login</button>
+        <div id="login-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>2. Teste de Dados do Dashboard</h2>
+        <button onclick="testarDashboard()">Testar Dashboard</button>
+        <div id="dashboard-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>3. Análise de Dados</h2>
+        <div id="data-analysis"></div>
+    </div>
+
+    <script>
+        let authToken = null;
+        let userData = null;
+
+        async function testarLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = 'Testando login...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'diogo.grunge@gmail.com',
+                        senha: 'diogo123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.dados.token;
+                    resultDiv.innerHTML = `<span class="success">✅ Login bem-sucedido! Token: ${authToken.substring(0, 20)}...</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Login falhou: ${data.mensagem}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Erro de rede: ${error.message}</span>`;
+            }
+        }
+
+        async function testarDashboard() {
+            const resultDiv = document.getElementById('dashboard-result');
+            
+            if (!authToken) {
+                resultDiv.innerHTML = '<span class="error">❌ Faça login primeiro!</span>';
+                return;
+            }
+            
+            resultDiv.innerHTML = 'Buscando dados do dashboard...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/user/dados', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    userData = data.dados;
+                    resultDiv.innerHTML = `<span class="success">✅ Dados obtidos com sucesso!</span>`;
+                    
+                    // Mostrar preview dos dados
+                    const preview = `
+                        <h3>Resumo dos Dados:</h3>
+                        <p>Receitas: ${userData.receitas?.length || 0} itens</p>
+                        <p>Despesas: ${userData.despesas?.length || 0} itens</p>
+                        <div class="data-preview">
+                            <strong>Primeira receita:</strong><br>
+                            ${userData.receitas?.length > 0 ? JSON.stringify(userData.receitas[0], null, 2) : 'Nenhuma receita'}
+                        </div>
+                        <div class="data-preview">
+                            <strong>Primeira despesa:</strong><br>
+                            ${userData.despesas?.length > 0 ? JSON.stringify(userData.despesas[0], null, 2) : 'Nenhuma despesa'}
+                        </div>
+                    `;
+                    
+                    document.getElementById('data-analysis').innerHTML = preview;
+                    
+                    // Calcular e mostrar análise detalhada
+                    analisarDados(userData);
+                    
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Erro ao buscar dados: ${data.mensagem}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Erro de rede: ${error.message}</span>`;
+            }
+        }
+
+        function analisarDados(data) {
+            const analysisDiv = document.getElementById('data-analysis');
+            
+            if (!data.receitas || !data.despesas) {
+                analysisDiv.innerHTML += '<p class="error">❌ Dados incompletos!</p>';
+                return;
+            }
+            
+            // Simular o filtro de ano como no dashboard
+            const anoSelecionado = '2025';
+            
+            const filtrarPorAno = (dados) => {
+                if (!Array.isArray(dados)) return [];
+                
+                return dados.filter(item => {
+                    if (!item.data) return false;
+                    const [ano] = item.data.split('-');
+                    return ano === anoSelecionado;
+                });
+            };
+            
+            const receitasFiltradas = filtrarPorAno(data.receitas);
+            const despesasFiltradas = filtrarPorAno(data.despesas);
+            
+            const calculateTotal = (items) => {
+                if (!Array.isArray(items)) return 0;
+                return items.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0);
+            };
+            
+            const totalReceitas = calculateTotal(receitasFiltradas);
+            const totalDespesas = calculateTotal(despesasFiltradas);
+            const saldoFinal = totalReceitas - totalDespesas;
+            const percentualSobra = totalReceitas > 0 ? ((saldoFinal / totalReceitas) * 100) : 0;
+            
+            const analysis = `
+                <h3>📊 Análise dos Dados (Ano ${anoSelecionado}):</h3>
+                <p>📈 Receitas filtradas: ${receitasFiltradas.length} itens</p>
+                <p>📉 Despesas filtradas: ${despesasFiltradas.length} itens</p>
+                <p><strong>💰 Total Receitas: R$ ${totalReceitas.toFixed(2)}</strong></p>
+                <p><strong>💸 Total Despesas: R$ ${totalDespesas.toFixed(2)}</strong></p>
+                <p><strong>💵 Saldo Final: R$ ${saldoFinal.toFixed(2)}</strong></p>
+                <p><strong>📊 Percentual Sobra: ${percentualSobra.toFixed(1)}%</strong></p>
+                
+                ${receitasFiltradas.length === 0 && despesasFiltradas.length === 0 ? 
+                    '<p class="error">⚠️  ATENÇÃO: Nenhum dado para o ano selecionado!</p>' : 
+                    '<p class="success">✅ Dados encontrados para o ano selecionado!</p>'}
+            `;
+            
+            analysisDiv.innerHTML += analysis;
+        }
+    </script>
+</body>
+</html>

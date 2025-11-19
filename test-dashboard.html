@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard - Finanças Fácil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .data-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Test Dashboard - Finanças Fácil</h1>
+        
+        <div id="status-auth" class="status info">
+            <strong>Status da Autenticação:</strong> Verificando...
+        </div>
+        
+        <div id="status-connection" class="status info">
+            <strong>Status da Conexão:</strong> Verificando...
+        </div>
+        
+        <div class="data-section">
+            <h3>🔧 Ações de Teste</h3>
+            <button onclick="testarLogin()">🔑 Testar Login</button>
+            <button onclick="testarAPI()">📡 Testar API</button>
+            <button onclick="verificarLocalStorage()">💾 Verificar LocalStorage</button>
+            <button onclick="limparCache()">🗑️ Limpar Cache</button>
+            <button onclick="redirecionarDashboard()">📊 Ir para Dashboard</button>
+        </div>
+        
+        <div class="data-section">
+            <h3>📋 Logs de Debug</h3>
+            <div id="logs" class="log"></div>
+        </div>
+        
+        <div class="data-section">
+            <h3>📊 Dados do Dashboard</h3>
+            <div id="dados-dashboard" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let token = null;
+        let user = null;
+        
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logs.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function atualizarStatus() {
+            // Verificar autenticação
+            token = localStorage.getItem('token');
+            user = localStorage.getItem('user');
+            
+            const statusAuth = document.getElementById('status-auth');
+            if (token && user) {
+                statusAuth.className = 'status success';
+                statusAuth.innerHTML = '<strong>Status da Autenticação:</strong> ✅ Usuário autenticado';
+                try {
+                    const userData = JSON.parse(user);
+                    addLog(`Usuário autenticado: ${userData.nome} (${userData.email})`, 'success');
+                } catch (e) {
+                    addLog(`Erro ao parsear dados do usuário: ${e.message}`, 'error');
+                }
+            } else {
+                statusAuth.className = 'status error';
+                statusAuth.innerHTML = '<strong>Status da Autenticação:</strong> ❌ Usuário não autenticado';
+                addLog('Usuário não autenticado', 'warning');
+            }
+            
+            // Verificar conexão com backend
+            testarConexaoBackend();
+        }
+        
+        async function testarConexaoBackend() {
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                const statusConnection = document.getElementById('status-connection');
+                if (response.ok) {
+                    statusConnection.className = 'status success';
+                    statusConnection.innerHTML = '<strong>Status da Conexão:</strong> ✅ Backend online';
+                    addLog('Backend está online', 'success');
+                } else {
+                    statusConnection.className = 'status error';
+                    statusConnection.innerHTML = '<strong>Status da Conexão:</strong> ❌ Backend offline';
+                    addLog('Backend está offline', 'error');
+                }
+            } catch (error) {
+                const statusConnection = document.getElementById('status-connection');
+                statusConnection.className = 'status error';
+                statusConnection.innerHTML = '<strong>Status da Conexão:</strong> ❌ Erro de conexão';
+                addLog(`Erro ao conectar ao backend: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testarLogin() {
+            addLog('Iniciando teste de login...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'diogo.grunge@gmail.com',
+                        senha: 'diogo123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && (data.success || data.token)) {
+                    addLog('✅ Login realizado com sucesso!', 'success');
+                    addLog(`Token recebido: ${data.token.substring(0, 30)}...`, 'success');
+                    addLog(`Usuário: ${data.user.nome} (${data.user.email})`, 'success');
+                    
+                    // Salvar no localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    atualizarStatus();
+                    
+                    // Testar API com novo token
+                    setTimeout(() => testarAPI(), 1000);
+                    
+                } else {
+                    addLog(`❌ Erro no login: ${data.message || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testarAPI() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                addLog('❌ Nenhum token encontrado. Faça login primeiro.', 'error');
+                return;
+            }
+            
+            addLog('Testando API com token...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/user/dados', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.sucesso) {
+                    addLog('✅ API respondendo corretamente!', 'success');
+                    addLog(`📊 Receitas: ${data.dados.receitas.length}`, 'success');
+                    addLog(`📉 Despesas: ${data.dados.despesas.length}`, 'success');
+                    addLog(`📋 Orçamentos: ${data.dados.orcamentos.length}`, 'success');
+                    
+                    // Calcular valores para 2025
+                    const anoSelecionado = '2025';
+                    const receitas = data.dados.receitas.filter(r => {
+                        const [ano] = r.data.split('-');
+                        return ano === anoSelecionado;
+                    });
+                    
+                    const despesas = data.dados.despesas.filter(d => {
+                        const [ano] = d.data.split('-');
+                        return ano === anoSelecionado;
+                    });
+                    
+                    const totalReceitas = receitas.reduce((sum, r) => sum + parseFloat(r.valor), 0);
+                    const totalDespesas = despesas.reduce((sum, d) => sum + parseFloat(d.valor), 0);
+                    const saldoFinal = totalReceitas - totalDespesas;
+                    
+                    addLog(`\n💰 CÁLCULOS DO DASHBOARD:`, 'success');
+                    addLog(`   💸 Total Receitas: R$ ${totalReceitas.toFixed(2)}`, 'success');
+                    addLog(`   💳 Total Despesas: R$ ${totalDespesas.toFixed(2)}`, 'success');
+                    addLog(`   💵 Saldo Final: R$ ${saldoFinal.toFixed(2)}`, 'success');
+                    
+                    // Mostrar dados detalhados
+                    mostrarDadosDashboard(data.dados);
+                    
+                } else {
+                    addLog(`❌ Erro na API: ${data.mensagem || 'Erro desconhecido'}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Erro ao testar API: ${error.message}`, 'error');
+            }
+        }
+        
+        function mostrarDadosDashboard(dados) {
+            const dadosDiv = document.getElementById('dados-dashboard');
+            dadosDiv.innerHTML = `
+                <strong>📊 RESUMO DOS DADOS:</strong><br>
+                💸 Receitas: ${dados.receitas.length} registros<br>
+                📉 Despesas: ${dados.despesas.length} registros<br>
+                📋 Orçamentos: ${dados.orcamentos.length} registros<br>
+                🏷️ Categorias: ${dados.categorias.length} registros<br><br>
+                
+                <strong>📄 AMOSTRA DE RECEITAS:</strong><br>
+                ${dados.receitas.slice(0, 3).map(r => `• ${r.descricao}: R$ ${r.valor} (${r.data})`).join('<br>')}<br><br>
+                
+                <strong>📄 AMOSTRA DE DESPESAS:</strong><br>
+                ${dados.despesas.slice(0, 3).map(d => `• ${d.descricao}: R$ ${d.valor} (${d.data})`).join('<br>')}
+            `;
+        }
+        
+        function verificarLocalStorage() {
+            addLog('Verificando localStorage...', 'info');
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                addLog(`${key}: ${value.substring(0, 50)}${value.length > 50 ? '...' : ''}`, 'info');
+            }
+            
+            if (localStorage.length === 0) {
+                addLog('localStorage está vazio', 'warning');
+            }
+        }
+        
+        function limparCache() {
+            addLog('Limpando cache...', 'info');
+            localStorage.clear();
+            addLog('✅ Cache limpo com sucesso!', 'success');
+            atualizarStatus();
+        }
+        
+        function redirecionarDashboard() {
+            addLog('Redirecionando para dashboard...', 'info');
+            window.location.href = '/dashboard';
+        }
+        
+        // Inicializar
+        window.onload = function() {
+            addLog('🚀 Sistema de teste inicializado', 'success');
+            atualizarStatus();
+        };
+    </script>
+</body>
+</html>

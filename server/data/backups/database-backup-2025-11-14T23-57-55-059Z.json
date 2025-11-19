@@ -1,0 +1,144 @@
+{
+  "usuarios": [
+    {
+      "id": "admin-001",
+      "nome": "Administrador",
+      "email": "admin@admin.com",
+      "senha": "$2a$10$ROsz/r5tEglIKCZCb21lL.20h4b02aR4KWocQgxgLphUMP1n3cem.",
+      "tipo": "admin",
+      "ativo": true,
+      "verificado": true,
+      "primeiroAcesso": false,
+      "dataCriacao": "2025-01-01T00:00:00.000Z",
+      "ultimoAcesso": "2025-11-14T23:17:41.431Z",
+      "configuracoes": {
+        "notificacoesEmail": true,
+        "tema": "light",
+        "idioma": "pt-BR"
+      }
+    },
+    {
+      "id": "user-1763161760176",
+      "nome": "Teste",
+      "email": "teste@teste.com",
+      "senha": "$2a$10$qicDgLZeCArSdITv7VLFV.u/kfp.pgFRWpehzwNUPtYPv4UcX3uFW",
+      "tipo": "usuario",
+      "ativo": true,
+      "primeiroAcesso": false,
+      "verificado": true,
+      "otpCodigo": null,
+      "otpExpira": null,
+      "dataCriacao": "2025-11-14T23:09:20.176Z",
+      "ultimoAcesso": "2025-11-14T23:09:49.128Z"
+    },
+    {
+      "id": "user-1763162160964",
+      "nome": "Diogo",
+      "email": "diogo.grunge@gmail.com",
+      "senha": "$2a$10$o4b.jpa0v.Kne.i.1dzHOe1efm08E8J3ZnxeRjEq5.VUZSf2WQ1tC",
+      "tipo": "usuario",
+      "ativo": true,
+      "primeiroAcesso": false,
+      "verificado": true,
+      "otpCodigo": null,
+      "otpExpira": null,
+      "dataCriacao": "2025-11-14T23:16:00.964Z",
+      "ultimoAcesso": "2025-11-14T23:40:03.675Z"
+    },
+    {
+      "id": "user-1763162413087",
+      "nome": "Diogo Costa da Silva",
+      "email": "diogo-costa@outlook.com",
+      "senha": "$2a$10$2FDxD.L1wpINPoI2VrGbU.OdEE/edBn5pRaXNOSoNahb5JPjYZAly",
+      "tipo": "usuario",
+      "ativo": true,
+      "primeiroAcesso": false,
+      "verificado": true,
+      "otpCodigo": null,
+      "otpExpira": null,
+      "dataCriacao": "2025-11-14T23:20:13.087Z",
+      "ultimoAcesso": "2025-11-14T23:54:03.503Z"
+    }
+  ],
+  "receitas": [],
+  "despesas": [],
+  "categorias": [
+    {
+      "id": "cat-001",
+      "nome": "Salário",
+      "tipo": "receita",
+      "cor": "#10b981",
+      "icone": "💰"
+    },
+    {
+      "id": "cat-002",
+      "nome": "Freelance",
+      "tipo": "receita",
+      "cor": "#3b82f6",
+      "icone": "💼"
+    },
+    {
+      "id": "cat-003",
+      "nome": "Investimentos",
+      "tipo": "receita",
+      "cor": "#8b5cf6",
+      "icone": "📈"
+    },
+    {
+      "id": "cat-004",
+      "nome": "Alimentação",
+      "tipo": "despesa",
+      "cor": "#ef4444",
+      "icone": "🍔"
+    },
+    {
+      "id": "cat-005",
+      "nome": "Transporte",
+      "tipo": "despesa",
+      "cor": "#f59e0b",
+      "icone": "🚗"
+    },
+    {
+      "id": "cat-006",
+      "nome": "Moradia",
+      "tipo": "despesa",
+      "cor": "#ec4899",
+      "icone": "🏠"
+    },
+    {
+      "id": "cat-007",
+      "nome": "Saúde",
+      "tipo": "despesa",
+      "cor": "#06b6d4",
+      "icone": "🏥"
+    },
+    {
+      "id": "cat-008",
+      "nome": "Educação",
+      "tipo": "despesa",
+      "cor": "#8b5cf6",
+      "icone": "📚"
+    },
+    {
+      "id": "cat-009",
+      "nome": "Lazer",
+      "tipo": "despesa",
+      "cor": "#f97316",
+      "icone": "🎮"
+    },
+    {
+      "id": "cat-010",
+      "nome": "Outros",
+      "tipo": "despesa",
+      "cor": "#6b7280",
+      "icone": "📦"
+    }
+  ],
+  "orcamentos": [],
+  "metas": [],
+  "configuracoes": {
+    "versao": "1.0.0",
+    "ultimaAtualizacao": "2025-01-01T00:00:00.000Z",
+    "manutencao": false
+  }
+}

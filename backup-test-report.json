@@ -1,0 +1,447 @@
+{
+  "timestamp": "2025-11-15T13:06:53.875Z",
+  "summary": {
+    "totalTests": 20,
+    "totalPassed": 20,
+    "totalFailed": 0,
+    "successRate": "100.00%"
+  },
+  "usersTested": [
+    {
+      "email": "diogo.grunge@gmail.com",
+      "tipo": "usuario",
+      "active": true,
+      "verified": true
+    },
+    {
+      "email": "admin@teste.com",
+      "tipo": "admin",
+      "active": true,
+      "verified": true
+    },
+    {
+      "email": "usuario@teste.com",
+      "tipo": "usuario",
+      "active": true,
+      "verified": false
+    },
+    {
+      "email": "inativo@teste.com",
+      "tipo": "usuario",
+      "active": false,
+      "verified": true
+    }
+  ],
+  "detailedResults": [
+    {
+      "timestamp": "2025-11-15T13:06:53.825Z",
+      "message": "🚀 Iniciando testes universais de backup...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.827Z",
+      "message": "Total de usuários de teste: 4",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.827Z",
+      "message": "\n📋 Iniciando testes para usuário: diogo.grunge@gmail.com (usuario)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.828Z",
+      "message": "Configurando ambiente para usuário: diogo.grunge@gmail.com (usuario)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.828Z",
+      "message": "Dados de teste criados para diogo.grunge@gmail.com",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.828Z",
+      "message": "\n--- Exportação de Backup ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.829Z",
+      "message": "🧪 Testando exportação de backup...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.830Z",
+      "message": "✅ Exportação bem-sucedida: backup-financas-user-1763162160964-2025-11-15.json",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.830Z",
+      "message": "\n--- Backup Automático ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.834Z",
+      "message": "🧪 Testando backup automático...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.834Z",
+      "message": "✅ Backup automático bem-sucedido",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.834Z",
+      "message": "\n--- Recuperação de Emergência ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.835Z",
+      "message": "🧪 Testando recuperação de emergência...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.861Z",
+      "message": "✅ Recuperação de emergência bem-sucedida: Backup de 15/11/2025, 10:06:53 disponível",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.861Z",
+      "message": "\n--- Isolamento entre Usuários ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.862Z",
+      "message": "🧪 Testando isolamento entre usuários...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.862Z",
+      "message": "✅ Isolamento entre usuários funcionando corretamente",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.862Z",
+      "message": "\n--- Tratamento de Erros ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.863Z",
+      "message": "🧪 Testando tratamento de erros...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.863Z",
+      "message": "✅ Erro correto para usuário não autenticado",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.863Z",
+      "message": "✅ Erro correto para backup automático sem usuário",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.863Z",
+      "message": "✅ Erro correto para recuperação sem usuário",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.863Z",
+      "message": "\n📋 Iniciando testes para usuário: admin@teste.com (admin)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.866Z",
+      "message": "Configurando ambiente para usuário: admin@teste.com (admin)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.866Z",
+      "message": "Dados de teste criados para admin@teste.com",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.866Z",
+      "message": "\n--- Exportação de Backup ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.866Z",
+      "message": "🧪 Testando exportação de backup...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.867Z",
+      "message": "✅ Exportação bem-sucedida: backup-financas-user-1763160000001-2025-11-15.json",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.867Z",
+      "message": "\n--- Backup Automático ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.867Z",
+      "message": "🧪 Testando backup automático...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.867Z",
+      "message": "✅ Backup automático bem-sucedido",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.867Z",
+      "message": "\n--- Recuperação de Emergência ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.867Z",
+      "message": "🧪 Testando recuperação de emergência...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.867Z",
+      "message": "✅ Recuperação de emergência bem-sucedida: Backup de 15/11/2025, 10:06:53 disponível",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.868Z",
+      "message": "\n--- Isolamento entre Usuários ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.868Z",
+      "message": "🧪 Testando isolamento entre usuários...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.868Z",
+      "message": "✅ Isolamento entre usuários funcionando corretamente",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.868Z",
+      "message": "\n--- Tratamento de Erros ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.868Z",
+      "message": "🧪 Testando tratamento de erros...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.868Z",
+      "message": "✅ Erro correto para usuário não autenticado",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.868Z",
+      "message": "✅ Erro correto para backup automático sem usuário",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.869Z",
+      "message": "✅ Erro correto para recuperação sem usuário",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.869Z",
+      "message": "\n📋 Iniciando testes para usuário: usuario@teste.com (usuario)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.869Z",
+      "message": "Configurando ambiente para usuário: usuario@teste.com (usuario)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.870Z",
+      "message": "Dados de teste criados para usuario@teste.com",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.870Z",
+      "message": "\n--- Exportação de Backup ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.870Z",
+      "message": "🧪 Testando exportação de backup...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.870Z",
+      "message": "✅ Exportação bem-sucedida: backup-financas-user-1763160000002-2025-11-15.json",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.870Z",
+      "message": "\n--- Backup Automático ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.871Z",
+      "message": "🧪 Testando backup automático...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.871Z",
+      "message": "✅ Backup automático bem-sucedido",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.871Z",
+      "message": "\n--- Recuperação de Emergência ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.871Z",
+      "message": "🧪 Testando recuperação de emergência...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.871Z",
+      "message": "✅ Recuperação de emergência bem-sucedida: Backup de 15/11/2025, 10:06:53 disponível",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.871Z",
+      "message": "\n--- Isolamento entre Usuários ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.872Z",
+      "message": "🧪 Testando isolamento entre usuários...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.872Z",
+      "message": "✅ Isolamento entre usuários funcionando corretamente",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.872Z",
+      "message": "\n--- Tratamento de Erros ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.872Z",
+      "message": "🧪 Testando tratamento de erros...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.872Z",
+      "message": "✅ Erro correto para usuário não autenticado",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.872Z",
+      "message": "✅ Erro correto para backup automático sem usuário",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "✅ Erro correto para recuperação sem usuário",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "\n📋 Iniciando testes para usuário: inativo@teste.com (usuario)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "Configurando ambiente para usuário: inativo@teste.com (usuario)",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "Dados de teste criados para inativo@teste.com",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "\n--- Exportação de Backup ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "🧪 Testando exportação de backup...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "✅ Exportação bem-sucedida: backup-financas-user-1763160000003-2025-11-15.json",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.873Z",
+      "message": "\n--- Backup Automático ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "🧪 Testando backup automático...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "✅ Backup automático bem-sucedido",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "\n--- Recuperação de Emergência ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "🧪 Testando recuperação de emergência...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "✅ Recuperação de emergência bem-sucedida: Backup de 15/11/2025, 10:06:53 disponível",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "\n--- Isolamento entre Usuários ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "🧪 Testando isolamento entre usuários...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.874Z",
+      "message": "✅ Isolamento entre usuários funcionando corretamente",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.875Z",
+      "message": "\n--- Tratamento de Erros ---",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.875Z",
+      "message": "🧪 Testando tratamento de erros...",
+      "type": "info"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.875Z",
+      "message": "✅ Erro correto para usuário não autenticado",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.875Z",
+      "message": "✅ Erro correto para backup automático sem usuário",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-11-15T13:06:53.875Z",
+      "message": "✅ Erro correto para recuperação sem usuário",
+      "type": "success"
+    }
+  ]
+}

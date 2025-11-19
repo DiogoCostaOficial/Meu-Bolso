@@ -1,0 +1,215 @@
+// Configuração da API
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+/**
+ * Classe para gerenciar requisições à API
+ */
+class ApiService {
+  constructor() {
+    this.baseURL = API_URL;
+  }
+
+  /**
+   * Obtém o token do localStorage
+   */
+  getToken() {
+    return localStorage.getItem('token');
+  }
+
+  /**
+   * Salva o token no localStorage
+   */
+  setToken(token) {
+    localStorage.setItem('token', token);
+  }
+
+  /**
+   * Remove o token do localStorage
+   */
+  removeToken() {
+    localStorage.removeItem('token');
+  }
+
+  /**
+   * Faz requisição à API
+   */
+  async request(endpoint, options = {}) {
+    const token = this.getToken();
+    
+    const config = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers
+      }
+    };
+
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, config);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.mensagem || 'Erro na requisição');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erro na API:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET request
+   */
+  async get(endpoint) {
+    return this.request(endpoint, { method: 'GET' });
+  }
+
+  /**
+   * POST request
+   */
+  async post(endpoint, data) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  /**
+   * PUT request
+   */
+  async put(endpoint, data) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  /**
+   * DELETE request
+   */
+  async delete(endpoint) {
+    return this.request(endpoint, { method: 'DELETE' });
+  }
+}
+
+// Instância única da API
+const api = new ApiService();
+
+/**
+ * Serviço de Autenticação
+ */
+export const authService = {
+  /**
+   * Registra novo usuário
+   */
+  async registrar(dados) {
+    const response = await api.post('/auth/registrar', dados);
+    return response;
+  },
+
+  /**
+   * Faz login
+   */
+  async login(email, senha) {
+    const response = await api.post('/auth/login', { email, senha });
+    
+    if (response.sucesso && response.dados.token) {
+      api.setToken(response.dados.token);
+      localStorage.setItem('usuario', JSON.stringify(response.dados.usuario));
+    }
+    
+    return response;
+  },
+
+  /**
+   * Altera senha
+   */
+  async alterarSenha(senhaAtual, novaSenha) {
+    return await api.post('/auth/alterar-senha', { senhaAtual, novaSenha });
+  },
+
+  /**
+   * Verifica se o token é válido
+   */
+  async verificarToken() {
+    try {
+      return await api.get('/auth/verificar');
+    } catch (error) {
+      this.logout();
+      return null;
+    }
+  },
+
+  /**
+   * Faz logout
+   */
+  logout() {
+    api.removeToken();
+    localStorage.removeItem('usuario');
+  },
+
+  /**
+   * Verifica se está autenticado
+   */
+  isAuthenticated() {
+    return !!api.getToken();
+  },
+
+  /**
+   * Obtém usuário do localStorage
+   */
+  getUsuario() {
+    const usuario = localStorage.getItem('usuario');
+    return usuario ? JSON.parse(usuario) : null;
+  }
+};
+
+/**
+ * Serviço de Admin
+ */
+export const adminService = {
+  /**
+   * Obtém estatísticas do sistema
+   */
+  async obterEstatisticas() {
+    return await api.get('/admin/estatisticas');
+  },
+
+  /**
+   * Lista todos os usuários
+   */
+  async listarUsuarios() {
+    return await api.get('/admin/usuarios');
+  }
+};
+
+/**
+ * Serviço de Usuário
+ */
+export const userService = {
+  /**
+   * Obtém perfil do usuário
+   */
+  async obterPerfil() {
+    return await api.get('/user/perfil');
+  },
+
+  /**
+   * Obtém dados do usuário
+   */
+  async obterDados() {
+    return await api.get('/user/dados');
+  },
+
+  /**
+   * Salva dados do usuário
+   */
+  async salvarDados(dados) {
+    return await api.post('/user/dados', dados);
+  }
+};
+
+export default api;

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Auth - Finanças Fácil</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .data-preview { background: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Debug Autenticação - Finanças Fácil</h1>
+    
+    <div class="debug-section">
+        <h2>Estado da Autenticação</h2>
+        <div id="auth-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Dados do LocalStorage</h2>
+        <div id="localstorage-data"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Teste de Login</h2>
+        <button onclick="testarLogin()">Testar Login</button>
+        <div id="login-result"></div>
+    </div>
+
+    <script>
+        function verificarAuth() {
+            const authDiv = document.getElementById('auth-status');
+            const localStorageDiv = document.getElementById('localstorage-data');
+            
+            // Verificar localStorage
+            const token = localStorage.getItem('token');
+            const usuario = localStorage.getItem('usuario');
+            const user = localStorage.getItem('user');
+            
+            localStorageDiv.innerHTML = `
+                <p><strong>Token:</strong> ${token ? '✅ Presente' : '❌ Ausente'}</p>
+                <p><strong>Usuario:</strong> ${usuario ? '✅ Presente' : '❌ Ausente'}</p>
+                <p><strong>User (antigo):</strong> ${user ? '✅ Presente' : '❌ Ausente'}</p>
+                ${usuario ? `<div class="data-preview">Dados do usuário: ${usuario.substring(0, 100)}...</div>` : ''}
+            `;
+            
+            if (token && usuario) {
+                try {
+                    const userData = JSON.parse(usuario);
+                    authDiv.innerHTML = `
+                        <p class="success">✅ Usuário autenticado</p>
+                        <p><strong>Email:</strong> ${userData.email}</p>
+                        <p><strong>Nome:</strong> ${userData.nome}</p>
+                        <p><strong>ID:</strong> ${userData.id}</p>
+                    `;
+                } catch (error) {
+                    authDiv.innerHTML = `<p class="error">❌ Erro ao parsear dados do usuário: ${error.message}</p>`;
+                }
+            } else {
+                authDiv.innerHTML = `<p class="error">❌ Usuário não autenticado</p>`;
+            }
+        }
+        
+        async function testarLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = 'Testando login...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'diogo.grunge@gmail.com',
+                        senha: 'diogo123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Salvar no localStorage
+                    localStorage.setItem('token', data.dados.token);
+                    localStorage.setItem('usuario', JSON.stringify(data.dados.usuario));
+                    
+                    resultDiv.innerHTML = `<span class="success">✅ Login bem-sucedido!</span>`;
+                    
+                    // Atualizar a exibição
+                    setTimeout(verificarAuth, 1000);
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Login falhou: ${data.mensagem}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Erro de rede: ${error.message}</span>`;
+            }
+        }
+        
+        // Verificar ao carregar
+        verificarAuth();
+    </script>
+</body>
+</html>

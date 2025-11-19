@@ -1,0 +1,275 @@
+import bcrypt from 'bcryptjs';
+import {
+  buscarUsuarioPorEmail,
+  criarUsuario,
+  atualizarUsuario,
+  atualizarUltimoAcesso,
+  lerDB,
+  escreverDB
+} from '../../utils/database.js';
+import { gerarToken } from '../../utils/jwt.js';
+import { gerarSenhaAleatoria, validarForcaSenha } from '../../utils/password.js';
+import { enviarEmailBoasVindas, enviarEmailTrocaSenha } from '../../utils/email.js';
+
+/**
+ * Registro de novo usuário
+ */
+export const registrar = async (req, res) => {
+  try {
+    const { nome, email } = req.body;
+
+    // Validações
+    if (!nome || !email) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Nome e e-mail são obrigatórios'
+      });
+    }
+
+    // Verificar se email já existe
+    const usuarioExistente = await buscarUsuarioPorEmail(email);
+    if (usuarioExistente) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'E-mail já cadastrado'
+      });
+    }
+
+    // Gerar senha aleatória
+    const senhaTemporaria = gerarSenhaAleatoria(12);
+    const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
+
+    // Criar usuário
+    const novoUsuario = await criarUsuario({
+      nome,
+      email,
+      senha: senhaHash,
+      primeiroAcesso: true
+    });
+
+    // Enviar e-mail de boas-vindas (em produção, não retornar a senha na resposta)
+    const emailEnviado = await enviarEmailBoasVindas(nome, email, senhaTemporaria);
+
+    res.status(201).json({
+      sucesso: true,
+      mensagem: 'Usuário cadastrado com sucesso!',
+      dados: {
+        id: novoUsuario.id,
+        nome: novoUsuario.nome,
+        email: novoUsuario.email,
+        emailEnviado,
+        // APENAS PARA DESENVOLVIMENTO - REMOVER EM PRODUÇÃO
+        senhaTemporaria: process.env.NODE_ENV === 'development' ? senhaTemporaria : undefined
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao registrar:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao cadastrar usuário'
+    });
+  }
+};
+
+/**
+ * Login de usuário
+ */
+export const login = async (req, res) => {
+  try {
+    const { email, senha } = req.body;
+
+    // Validações
+    if (!email || !senha) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'E-mail e senha são obrigatórios'
+      });
+    }
+
+    // Buscar usuário
+    let usuario;
+    let tipo = 'usuario';
+    
+    if (email === 'admin') {
+      const db = await lerDB();
+      usuario = db.admin;
+      tipo = 'admin';
+      
+      // Inicializar senha do admin se for primeiro acesso
+      if (!usuario.senha) {
+        // Senha padrão 'admin' para primeiro acesso
+        usuario.senha = await bcrypt.hash('admin', 10);
+        await escreverDB(db);
+      }
+    } else {
+      usuario = await buscarUsuarioPorEmail(email);
+    }
+
+    if (!usuario) {
+      return res.status(401).json({
+        sucesso: false,
+        mensagem: 'E-mail ou senha incorretos'
+      });
+    }
+
+    // Verificar senha
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    if (!senhaValida) {
+      return res.status(401).json({
+        sucesso: false,
+        mensagem: 'E-mail ou senha incorretos'
+      });
+    }
+
+    // Atualizar último acesso (exceto admin)
+    if (tipo !== 'admin') {
+      await atualizarUltimoAcesso(usuario.id);
+    }
+
+    // Gerar token
+    const token = gerarToken({
+      id: usuario.id || 'admin',
+      email: usuario.email,
+      nome: usuario.nome,
+      tipo
+    });
+
+    res.json({
+      sucesso: true,
+      mensagem: 'Login realizado com sucesso!',
+      dados: {
+        token,
+        usuario: {
+          id: usuario.id || 'admin',
+          nome: usuario.nome,
+          email: usuario.email,
+          tipo,
+          primeiroAcesso: usuario.primeiroAcesso || false
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao fazer login:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao fazer login'
+    });
+  }
+};
+
+/**
+ * Alterar senha (primeiro acesso ou qualquer momento)
+ */
+export const alterarSenha = async (req, res) => {
+  try {
+    const { senhaAtual, novaSenha } = req.body;
+    const userId = req.usuario.id;
+    const userTipo = req.usuario.tipo;
+
+    console.log('🔐 Alteração de senha solicitada:');
+    console.log('   User ID:', userId);
+    console.log('   User Tipo:', userTipo);
+    console.log('   Senha Atual fornecida:', senhaAtual ? 'SIM' : 'NÃO');
+    console.log('   Nova Senha fornecida:', novaSenha ? 'SIM' : 'NÃO');
+
+    // Validações
+    if (!novaSenha) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Nova senha é obrigatória'
+      });
+    }
+
+    // Validar força da senha
+    const validacao = validarForcaSenha(novaSenha);
+    if (!validacao.valida) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Senha fraca',
+        erros: validacao.erros
+      });
+    }
+
+    // Buscar usuário
+    let usuario;
+    if (userTipo === 'admin') {
+      const db = await lerDB();
+      usuario = db.admin;
+    } else {
+      usuario = await buscarUsuarioPorEmail(req.usuario.email);
+    }
+
+    console.log('   Primeiro Acesso:', usuario.primeiroAcesso);
+
+    // SEMPRE verificar senha atual (seja primeiro acesso ou não)
+    if (senhaAtual) {
+      const senhaAtualValida = await bcrypt.compare(senhaAtual, usuario.senha);
+      console.log('   Senha atual válida:', senhaAtualValida);
+      
+      if (!senhaAtualValida) {
+        return res.status(401).json({
+          sucesso: false,
+          mensagem: 'Senha atual incorreta'
+        });
+      }
+    } else {
+      // Se não forneceu senha atual, retornar erro
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Senha atual é obrigatória'
+      });
+    }
+
+    // Gerar hash da nova senha
+    const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
+
+    // Atualizar senha
+    if (userTipo === 'admin') {
+      const db = await lerDB();
+      db.admin.senha = novaSenhaHash;
+      db.admin.primeiroAcesso = false;
+      await escreverDB(db);
+      console.log('✅ Senha do admin atualizada');
+    } else {
+      await atualizarUsuario(userId, {
+        senha: novaSenhaHash,
+        primeiroAcesso: false
+      });
+      console.log('✅ Senha do usuário atualizada');
+      
+      // Enviar e-mail de confirmação
+      await enviarEmailTrocaSenha(usuario.nome, usuario.email);
+    }
+
+    res.json({
+      sucesso: true,
+      mensagem: 'Senha alterada com sucesso!'
+    });
+  } catch (error) {
+    console.error('❌ Erro ao alterar senha:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao alterar senha'
+    });
+  }
+};
+
+/**
+ * Verificar token
+ */
+export const verificarAutenticacao = async (req, res) => {
+  res.json({
+    sucesso: true,
+    mensagem: 'Token válido',
+    dados: {
+      usuario: req.usuario
+    }
+  });
+};
+
+export default {
+  registrar,
+  login,
+  alterarSenha,
+  verificarAutenticacao
+};

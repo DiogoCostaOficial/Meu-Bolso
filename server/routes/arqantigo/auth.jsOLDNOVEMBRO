@@ -1,0 +1,40 @@
+import express from 'express';
+import {
+  registrar,
+  login,
+  alterarSenha,
+  verificarAutenticacao
+} from '../controllers/authController.js';
+import { autenticar } from '../middleware/auth.js';
+
+const router = express.Router();
+
+/**
+ * @route   POST /api/auth/registrar
+ * @desc    Registrar novo usuário
+ * @access  Public
+ */
+router.post('/registrar', registrar);
+
+/**
+ * @route   POST /api/auth/login
+ * @desc    Fazer login
+ * @access  Public
+ */
+router.post('/login', login);
+
+/**
+ * @route   POST /api/auth/alterar-senha
+ * @desc    Alterar senha do usuário
+ * @access  Private
+ */
+router.post('/alterar-senha', autenticar, alterarSenha);
+
+/**
+ * @route   GET /api/auth/verificar
+ * @desc    Verificar se o token é válido
+ * @access  Private
+ */
+router.get('/verificar', autenticar, verificarAutenticacao);
+
+export default router;
