@@ -73,7 +73,7 @@ const LoginNovo = () => {
 
     try {
       let result;
-      
+
       if (modoAdmin) {
         // Login especial do admin
         result = await login(null, formData.senha, formData.username);
@@ -125,11 +125,10 @@ const LoginNovo = () => {
             <button
               type="button"
               onClick={() => setModoAdmin(!modoAdmin)}
-              className={`text-sm font-medium transition-colors ${
-                modoAdmin 
-                  ? 'text-red-600 hover:text-red-700' 
+              className={`text-sm font-medium transition-colors ${modoAdmin
+                  ? 'text-red-600 hover:text-red-700'
                   : 'text-blue-600 hover:text-blue-700'
-              }`}
+                }`}
             >
               {modoAdmin ? '↩️ Voltar para login normal' : '🔑 Login Administrativo'}
             </button>
@@ -161,9 +160,8 @@ const LoginNovo = () => {
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border ${
-                      errors.username ? 'border-red-300' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                    className={`block w-full pl-10 pr-3 py-3 border ${errors.username ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                     placeholder="admin"
                     disabled={loading}
                   />
@@ -191,9 +189,8 @@ const LoginNovo = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border ${
-                      errors.email ? 'border-red-300' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                    className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                     placeholder="seu@email.com"
                     disabled={loading}
                   />
@@ -219,9 +216,8 @@ const LoginNovo = () => {
                   name="senha"
                   value={formData.senha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${
-                    errors.senha ? 'border-red-300' : 'border-gray-300'
-                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${errors.senha ? 'border-red-300' : 'border-gray-300'
+                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
@@ -229,6 +225,15 @@ const LoginNovo = () => {
               {errors.senha && (
                 <p className="mt-1 text-sm text-red-600">{errors.senha}</p>
               )}
+            </div>
+
+            <div className="flex justify-end">
+              <Link
+                to="/esqueci-senha"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition"
+              >
+                Esqueceu a senha?
+              </Link>
             </div>
 
             {/* Botão Submit */}
@@ -252,16 +257,16 @@ const LoginNovo = () => {
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-gray-600">
               Não tem uma conta?{' '}
-              <Link 
-                to="/cadastro" 
+              <Link
+                to="/cadastro"
                 className="font-medium text-blue-600 hover:text-blue-700 transition"
               >
                 Cadastre-se
               </Link>
             </p>
 
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="block text-sm text-gray-500 hover:text-gray-700 transition"
             >
               ← Voltar para página inicial

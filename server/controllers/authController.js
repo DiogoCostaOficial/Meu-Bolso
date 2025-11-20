@@ -14,26 +14,26 @@ const registrarAtividadeAdmin = (usuarioId, ip, tipo) => {
     tipo,
     userAgent: 'N/A' // Pode ser expandido com req.headers['user-agent'] se necessário
   };
-  
+
   // Salvar em arquivo de logs
   const fs = require('fs');
   const path = require('path');
   const logPath = path.join(__dirname, '..', 'data', 'admin-logs.json');
-  
+
   try {
     let logs = [];
     if (fs.existsSync(logPath)) {
       const logsData = fs.readFileSync(logPath, 'utf8');
       logs = JSON.parse(logsData);
     }
-    
+
     logs.push(log);
-    
+
     // Manter apenas os últimos 1000 logs para não crescer indefinidamente
     if (logs.length > 1000) {
       logs = logs.slice(-1000);
     }
-    
+
     fs.writeFileSync(logPath, JSON.stringify(logs, null, 2));
     console.log(`✅ Log admin registrado: ${tipo} - IP: ${ip}`);
   } catch (error) {
@@ -123,7 +123,7 @@ const login = async (req, res) => {
     if (username === 'admin' && senha === 'admin') {
       const usuarios = db.getUsuarios();
       const usuarioAdmin = usuarios.find(u => u.tipo === 'admin' && u.email === 'admin@admin.com');
-      
+
       if (!usuarioAdmin) {
         return res.status(401).json({
           success: false,
@@ -275,9 +275,11 @@ const validarOTP = (req, res) => {
     db.salvarUsuarios(usuarios);
 
     const token = gerarToken(usuario);
-    return res.json({ success: true, message: 'Conta verificada com sucesso', token, user: {
-      id: usuario.id, nome: usuario.nome, email: usuario.email, tipo: usuario.tipo, primeiroAcesso: usuario.primeiroAcesso
-    }});
+    return res.json({
+      success: true, message: 'Conta verificada com sucesso', token, user: {
+        id: usuario.id, nome: usuario.nome, email: usuario.email, tipo: usuario.tipo, primeiroAcesso: usuario.primeiroAcesso
+      }
+    });
   } catch (error) {
     console.error('Erro ao validar OTP:', error);
     return res.status(500).json({ success: false, message: 'Erro ao validar OTP' });
@@ -347,9 +349,9 @@ const alterarSenha = async (req, res) => {
 
     // Verificação especial para admin com senha padrão
     const ehAdminComSenhaPadrao = usuario.email === 'admin@admin.com' && senhaAtual === 'admin';
-    
+
     let senhaValida = false;
-    
+
     if (ehAdminComSenhaPadrao) {
       senhaValida = true; // Permite alteração da senha padrão do admin
     } else {
@@ -388,11 +390,146 @@ const alterarSenha = async (req, res) => {
   }
 };
 
+// Solicitar recuperação de senha
+const solicitarRecuperacaoSenha = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'E-mail é obrigatório'
+      });
+    }
+
+    const usuarios = db.getUsuarios();
+    const usuario = usuarios.find(u => u.email === email);
+
+    if (!usuario) {
+      // Por segurança, não informamos se o e-mail existe ou não
+      // Mas retornamos sucesso para não permitir enumeração de usuários
+      return res.json({
+        success: true,
+        message: 'Se o e-mail estiver cadastrado, você receberá um código de recuperação.'
+      });
+    }
+
+    // Gera código OTP
+    const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpira = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutos
+
+    // Atualiza usuário com OTP
+    usuario.otpCodigo = otpCodigo;
+    usuario.otpExpira = otpExpira;
+    db.salvarUsuarios(usuarios);
+
+    // Envia e-mail
+    console.log(`🔑 RECUPERAÇÃO DE SENHA - CÓDIGO OTP: ${otpCodigo} para ${email}`);
+    await enviarCodigoOTP(email, usuario.nome, otpCodigo);
+
+    res.json({
+      success: true,
+      message: 'Se o e-mail estiver cadastrado, você receberá um código de recuperação.'
+    });
+
+  } catch (error) {
+    console.error('Erro ao solicitar recuperação de senha:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao processar solicitação'
+    });
+  }
+};
+
+// Redefinir senha com OTP
+const redefinirSenha = async (req, res) => {
+  try {
+    const { email, codigo, novaSenha } = req.body;
+
+    if (!email || !codigo || !novaSenha) {
+      return res.status(400).json({
+        success: false,
+        message: 'Todos os campos são obrigatórios'
+      });
+    }
+
+    if (novaSenha.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'A nova senha deve ter no mínimo 6 caracteres'
+      });
+    }
+
+    const usuarios = db.getUsuarios();
+    const usuario = usuarios.find(u => u.email === email);
+
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    // Verifica OTP
+    if (!usuario.otpCodigo || !usuario.otpExpira) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nenhuma solicitação de recuperação encontrada'
+      });
+    }
+
+    const agora = new Date();
+    const expiracao = new Date(usuario.otpExpira);
+
+    if (agora > expiracao) {
+      return res.status(400).json({
+        success: false,
+        message: 'Código expirado. Solicite um novo.'
+      });
+    }
+
+    if (usuario.otpCodigo !== codigo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Código inválido'
+      });
+    }
+
+    // Atualiza senha
+    usuario.senha = await hashSenha(novaSenha);
+
+    // Limpa OTP
+    usuario.otpCodigo = null;
+    usuario.otpExpira = null;
+
+    // Se estava pendente de verificação, verifica agora pois confirmou e-mail via OTP
+    if (!usuario.verificado) {
+      usuario.verificado = true;
+    }
+
+    db.salvarUsuarios(usuarios);
+
+    res.json({
+      success: true,
+      message: 'Senha redefinida com sucesso! Você já pode fazer login.'
+    });
+
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao redefinir senha'
+    });
+  }
+};
+
 // Exporta as funções
 module.exports = {
   registrar,
   login,
   alterarSenha,
   validarOTP,
-  reenviarOTP
+  reenviarOTP,
+  solicitarRecuperacaoSenha,
+  redefinirSenha
 };

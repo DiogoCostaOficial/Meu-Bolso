@@ -9,6 +9,8 @@ router.post('/registrar', authController.registrar);
 router.post('/login', authController.login);
 router.post('/validar-otp', authController.validarOTP);
 router.post('/reenviar-otp', authController.reenviarOTP);
+router.post('/solicitar-recuperacao', authController.solicitarRecuperacaoSenha);
+router.post('/redefinir-senha', authController.redefinirSenha);
 
 // Rotas protegidas (precisam de token JWT)
 router.post('/alterar-senha', verificarToken, authController.alterarSenha);

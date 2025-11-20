@@ -29,12 +29,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, senha, username = null) => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      
+
       // Preparar dados do login
-      const loginData = username 
+      const loginData = username
         ? { username, senha } // Login especial do admin
         : { email, senha };  // Login normal
-      
+
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -54,16 +54,16 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('usuario', JSON.stringify(data.user)); // Mudança: usar 'usuario' em vez de 'user'
       setUser(data.user);
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         user: data.user,
-        primeiroAcesso: data.user.primeiroAcesso 
+        primeiroAcesso: data.user.primeiroAcesso
       };
     } catch (error) {
       console.error('Erro no login:', error);
-      return { 
-        success: false, 
-        message: error.message || 'Erro ao fazer login' 
+      return {
+        success: false,
+        message: error.message || 'Erro ao fazer login'
       };
     }
   };
@@ -89,9 +89,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true, email: data.email };
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      return { 
-        success: false, 
-        message: error.message || 'Erro ao criar conta' 
+      return {
+        success: false,
+        message: error.message || 'Erro ao criar conta'
       };
     }
   };
@@ -133,9 +133,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Erro ao alterar senha:', error);
-      return { 
-        success: false, 
-        message: error.message || 'Erro ao alterar senha' 
+      return {
+        success: false,
+        message: error.message || 'Erro ao alterar senha'
       };
     }
   };
@@ -189,6 +189,48 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const requestPasswordReset = async (email) => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${API_URL}/auth/solicitar-recuperacao`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao solicitar recuperação');
+      }
+      return { success: true, message: data.message };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
+
+  const resetPassword = async (email, codigo, novaSenha) => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${API_URL}/auth/redefinir-senha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, codigo, novaSenha })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao redefinir senha');
+      }
+      return { success: true, message: data.message };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
+
+  const updateUser = (userData) => {
+    setUser(prev => ({ ...prev, ...userData }));
+    const currentUser = JSON.parse(localStorage.getItem('usuario') || '{}');
+    localStorage.setItem('usuario', JSON.stringify({ ...currentUser, ...userData }));
+  };
+
   const value = {
     user,
     loading,
@@ -200,6 +242,9 @@ export const AuthProvider = ({ children }) => {
     validateOTP,
     resendOTP,
     getCurrentUser,
+    updateUser,
+    requestPasswordReset,
+    resetPassword,
   };
 
   return (

@@ -8,6 +8,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 // Importa as rotas
 const authRoutes = require('./routes/auth');
@@ -21,7 +22,7 @@ app.use('/api/user', userRoutes);
 
 // Rota de teste
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'API Finanças Fácil está rodando!',
     version: '1.0.0',
     endpoints: {
@@ -34,18 +35,18 @@ app.get('/', (req, res) => {
 
 // Rota 404
 app.use((req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     success: false,
-    message: 'Rota não encontrada' 
+    message: 'Rota não encontrada'
   });
 });
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
   console.error('Erro:', err);
-  res.status(500).json({ 
+  res.status(500).json({
     success: false,
-    message: 'Erro interno do servidor' 
+    message: 'Erro interno do servidor'
   });
 });
 

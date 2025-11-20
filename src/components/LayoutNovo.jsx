@@ -1,15 +1,18 @@
 // src/components/LayoutNovo.jsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Removido 'Outlet' daqui, pois ele está no ProtectedLayout
-import { LayoutDashboard, DollarSign, CreditCard, FileText, Save, Menu, X, BarChart3, Target, LogOut, Shield, User, RotateCcw } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, DollarSign, CreditCard, FileText, Save, Menu, X, BarChart3, Target, LogOut, Shield, User, RotateCcw, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-// Agora LayoutNovo espera receber abaAtiva e setAbaAtiva como props
 const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const usuario = user;
-  const [menuAberto, setMenuAberto] = React.useState(false); // Estado para o menu mobile
+  const [menuAberto, setMenuAberto] = React.useState(false);
+
+  // Determinar aba ativa baseada na rota se a prop não for passada
+  const activeTab = abaAtiva || location.pathname.substring(1) || 'dashboard';
 
   const handleLogout = () => {
     logout();
@@ -22,7 +25,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
     }
     setMenuAberto(false);
 
-    // Navega para a rota correspondente
     if (itemId === 'dashboard') {
       navigate('/dashboard');
     } else {
@@ -38,10 +40,10 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
     { id: 'relatorios', nome: 'Relatórios', icone: BarChart3 },
     { id: 'dre', nome: 'DRE', icone: FileText },
     { id: 'backup', nome: 'Backup', icone: Save },
-    { id: 'system-restore', nome: 'Restauração', icone: RotateCcw }
+    { id: 'system-restore', nome: 'Restauração', icone: RotateCcw },
+    { id: 'configuracoes', nome: 'Configurações', icone: Settings }
   ];
 
-  // Adicionar menu admin se for admin
   if (usuario?.tipo === 'admin') {
     menuItems.unshift({
       id: 'admin',
@@ -66,7 +68,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
       <div className="flex">
         {/* SIDEBAR - DESKTOP */}
         <aside className="hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200 min-h-screen shadow-lg">
-          {/* Header do Sidebar */}
           <div className="p-6 border-b border-gray-200">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Finanças Fácil
@@ -74,11 +75,14 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
             <p className="text-sm text-gray-600 mt-1">Controle Financeiro</p>
           </div>
 
-          {/* Informações do Usuário */}
           <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-                {usuario?.nome?.charAt(0).toUpperCase()}
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
+                {usuario?.avatar ? (
+                  <img src={usuario.avatar} alt={usuario.nome} className="w-full h-full object-cover" />
+                ) : (
+                  usuario?.nome?.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate">
@@ -97,7 +101,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
             )}
           </div>
 
-          {/* Menu de Navegação */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {menuItems.map((item) => {
               const Icon = item.icone;
@@ -105,11 +108,10 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                 <button
                   key={item.id}
                   onClick={() => handleMenuClick(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    abaAtiva === item.id
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === item.id
                       ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200'
                       : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />
                   <span className="font-medium">{item.nome}</span>
@@ -118,7 +120,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
             })}
           </nav>
 
-          {/* Footer do Sidebar */}
           <div className="p-4 border-t border-gray-200 space-y-2">
             <button
               onClick={handleLogout}
@@ -144,7 +145,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
               className="w-64 bg-white h-full shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header do Sidebar Mobile */}
               <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div>
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -160,11 +160,14 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                 </button>
               </div>
 
-              {/* Informações do Usuário Mobile */}
               <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-                    {usuario?.nome?.charAt(0).toUpperCase()}
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
+                    {usuario?.avatar ? (
+                      <img src={usuario.avatar} alt={usuario.nome} className="w-full h-full object-cover" />
+                    ) : (
+                      usuario?.nome?.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">
@@ -183,7 +186,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                 )}
               </div>
 
-              {/* Menu de Navegação Mobile */}
               <nav className="p-4 space-y-1 max-h-[calc(100vh-280px)] overflow-y-auto">
                 {menuItems.map((item) => {
                   const Icon = item.icone;
@@ -191,11 +193,10 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                     <button
                       key={item.id}
                       onClick={() => handleMenuClick(item.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                        abaAtiva === item.id
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === item.id
                           ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
                           : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+                        }`}
                     >
                       <Icon className="w-5 h-5 flex-shrink-0" />
                       <span className="font-medium">{item.nome}</span>
@@ -204,7 +205,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                 })}
               </nav>
 
-              {/* Footer Mobile */}
               <div className="p-4 border-t border-gray-200">
                 <button
                   onClick={handleLogout}
@@ -221,7 +221,6 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
         {/* CONTEÚDO PRINCIPAL */}
         <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">
           <div className="max-w-7xl mx-auto">
-            {/* O children aqui é o <Outlet /> que vem do ProtectedLayout */}
             {children}
           </div>
         </main>

@@ -11,6 +11,8 @@ import LoginNovo from './components/auth/LoginNovo';
 import CadastroNovo from './components/auth/CadastroNovo';
 import AlterarSenhaObrigatorio from './components/auth/AlterarSenhaObrigatorio';
 import ValidarOTP from './components/auth/ValidarOTP';
+import EsqueciSenha from './components/auth/EsqueciSenha';
+import RedefinirSenha from './components/auth/RedefinirSenha';
 
 // Dashboard Pages
 import Dashboard from './pages/Dashboard';
@@ -22,6 +24,7 @@ import Orcamento from './pages/Orcamento';
 import PainelAdmin from './pages/admin/PainelAdmin';
 import Backup from './pages/Backup';
 import SystemRestore from './pages/SystemRestore';
+import Configuracoes from './pages/Configuracoes';
 
 function AppNovo() {
   return (
@@ -34,6 +37,8 @@ function AppNovo() {
       <Route path="/cadastro" element={<CadastroNovo />} />
       <Route path="/validar-otp" element={<ValidarOTP />} />
       <Route path="/alterar-senha-obrigatorio" element={<AlterarSenhaObrigatorio />} />
+      <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+      <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
       {/* Rotas Protegidas - Requerem Login */}
       <Route
@@ -97,6 +102,14 @@ function AppNovo() {
         element={
           <ProtectedRoute>
             <SystemRestore />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/configuracoes"
+        element={
+          <ProtectedRoute>
+            <Configuracoes />
           </ProtectedRoute>
         }
       />

@@ -195,6 +195,40 @@ export const adminService = {
 // -----------------------------------------------------------------------------
 // SERVIÇOS DE DADOS (Exemplo: Receitas, Despesas, Orçamento)
 // -----------------------------------------------------------------------------
+export const userService = {
+  async obterPerfil() {
+    try {
+      const response = await api.get('/user/perfil');
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+  async atualizarPerfil(dados) {
+    try {
+      const response = await api.put('/user/perfil', dados);
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+  async uploadAvatar(arquivo) {
+    try {
+      const formData = new FormData();
+      formData.append('avatar', arquivo);
+
+      const response = await api.post('/user/upload-avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+};
+
 export const dataService = {
   // Exemplo de como você pode adicionar serviços para suas receitas/despesas
   async getReceitas() {
