@@ -35,7 +35,7 @@ const AlterarSenhaObrigatorio = () => {
 
   const validarSenha = (senha) => {
     const erros = [];
-    
+
     if (senha.length < 8) {
       erros.push('Mínimo de 8 caracteres');
     }
@@ -51,7 +51,7 @@ const AlterarSenhaObrigatorio = () => {
     if (!/[!@#$%&*]/.test(senha)) {
       erros.push('Um caractere especial (!@#$%&*)');
     }
-    
+
     return erros;
   };
 
@@ -101,16 +101,16 @@ const AlterarSenhaObrigatorio = () => {
 
   if (sucesso) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-green-50 flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
             <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
-          
+
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Senha Alterada!
           </h2>
-          
+
           <p className="text-gray-600 mb-6">
             Sua senha foi atualizada com sucesso. Redirecionando para o sistema...
           </p>
@@ -122,11 +122,11 @@ const AlterarSenhaObrigatorio = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-blue-50 flex items-center justify-center p-6">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-4 shadow-lg">
             <Lock className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Alterar Senha</h2>
@@ -244,7 +244,7 @@ const AlterarSenhaObrigatorio = () => {
           <button
             type="submit"
             disabled={carregando}
-            className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
           >
             {carregando ? (
               <>

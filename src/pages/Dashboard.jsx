@@ -28,7 +28,7 @@ const Dashboard = () => {
     try {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      
+
       setFinancialData({
         receitas: userData.receitas || [],
         despesas: userData.despesas || []
@@ -61,7 +61,7 @@ const Dashboard = () => {
 
   const filtrarPorAno = (dados) => {
     if (!Array.isArray(dados)) return [];
-    
+
     return dados.filter(item => {
       if (!item.data) return false;
       const [ano] = item.data.split('-');
@@ -132,7 +132,7 @@ const Dashboard = () => {
           <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
           <p className="text-gray-600 mt-1">Visão geral das suas finanças</p>
         </div>
-        
+
         <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200">
           <Calendar className="w-5 h-5 text-blue-600" />
           <select
@@ -277,19 +277,19 @@ const Dashboard = () => {
 
       {/* Estatísticas Adicionais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200">
+        <div className="bg-green-50 rounded-xl shadow-lg p-6 border border-green-200">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">Receitas no Ano</h4>
           <p className="text-2xl font-bold text-green-700">{receitasFiltradas.length}</p>
           <p className="text-xs text-gray-600 mt-1">transações registradas</p>
         </div>
-        
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200">
+
+        <div className="bg-red-50 rounded-xl shadow-lg p-6 border border-red-200">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">Despesas no Ano</h4>
           <p className="text-2xl font-bold text-red-700">{despesasFiltradas.length}</p>
           <p className="text-xs text-gray-600 mt-1">transações registradas</p>
         </div>
-        
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
+
+        <div className="bg-blue-50 rounded-xl shadow-lg p-6 border border-blue-200">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">Média Mensal</h4>
           <p className="text-2xl font-bold text-blue-700">{formatCurrency(saldoFinal / 12)}</p>
           <p className="text-xs text-gray-600 mt-1">saldo estimado/mês</p>

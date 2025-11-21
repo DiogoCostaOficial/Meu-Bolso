@@ -69,15 +69,15 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
         {/* SIDEBAR - DESKTOP */}
         <aside className="hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200 min-h-screen shadow-lg">
           <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-blue-600">
               Finanças Fácil
             </h1>
             <p className="text-sm text-gray-600 mt-1">Controle Financeiro</p>
           </div>
 
-          <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+          <div className="p-4 border-b border-gray-200 bg-blue-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
                 {usuario?.avatar ? (
                   <img src={usuario.avatar} alt={usuario.nome} className="w-full h-full object-cover" />
                 ) : (
@@ -109,8 +109,8 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                   key={item.id}
                   onClick={() => handleMenuClick(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === item.id
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200'
-                      : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                    : 'text-gray-700 hover:bg-gray-100'
                     }`}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />
@@ -147,7 +147,7 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
             >
               <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  <h1 className="text-2xl font-bold text-blue-600">
                     Finanças Fácil
                   </h1>
                   <p className="text-sm text-gray-600 mt-1">Controle Financeiro</p>
@@ -160,9 +160,9 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                 </button>
               </div>
 
-              <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+              <div className="p-4 border-b border-gray-200 bg-blue-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
+                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md overflow-hidden">
                     {usuario?.avatar ? (
                       <img src={usuario.avatar} alt={usuario.nome} className="w-full h-full object-cover" />
                     ) : (
@@ -194,8 +194,8 @@ const LayoutNovo = ({ children, abaAtiva, setAbaAtiva }) => {
                       key={item.id}
                       onClick={() => handleMenuClick(item.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === item.id
-                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                          : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gray-100'
                         }`}
                     >
                       <Icon className="w-5 h-5 flex-shrink-0" />

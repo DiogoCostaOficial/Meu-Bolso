@@ -1,44 +1,49 @@
-// src/pages/LandingPage.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  TrendingUp, 
-  Shield, 
-  PieChart, 
-  Users, 
-  Target, 
+import {
+  TrendingUp,
+  Shield,
+  PieChart,
+  Users,
+  Target,
   CheckCircle,
   ArrowRight,
   DollarSign,
   CreditCard,
   BarChart3,
   Wallet,
-  Star
+  Star,
+  Quote,
+  Lightbulb
 } from 'lucide-react';
+
+// Import images
+import heroImage from '../assets/financial_planning_hero.png';
+import controlImage from '../assets/financial_control_closeup.png';
 
 const LandingPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white font-sans">
       {/* Header/Navbar */}
-      <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+      <header className="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
         <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Wallet className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold text-blue-600">
               Finanças Fácil
             </span>
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#funcionalidades" className="text-gray-700 hover:text-blue-600 transition">
+            <a href="#importancia" className="text-gray-700 hover:text-blue-600 transition font-medium">
+              Por que controlar?
+            </a>
+            <a href="#funcionalidades" className="text-gray-700 hover:text-blue-600 transition font-medium">
               Funcionalidades
             </a>
-            <a href="#beneficios" className="text-gray-700 hover:text-blue-600 transition">
-              Benefícios
-            </a>
-            <a href="#depoimentos" className="text-gray-700 hover:text-blue-600 transition">
+            <a href="#depoimentos" className="text-gray-700 hover:text-blue-600 transition font-medium">
               Depoimentos
             </a>
           </div>
@@ -52,7 +57,7 @@ const LandingPage = () => {
             </button>
             <button
               onClick={() => navigate('/cadastro')}
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition"
+              className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transform hover:scale-105 transition shadow-md"
             >
               Criar Conta
             </button>
@@ -61,456 +66,244 @@ const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-32 pb-20 px-4 bg-blue-50">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
-            <div className="space-y-6">
-              <div className="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold">
-                ✨ Controle Financeiro Inteligente
+            <div className="space-y-8">
+              <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-bold tracking-wide uppercase">
+                🚀 Transforme sua vida hoje
               </div>
 
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
-                Organize suas
-                <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  finanças pessoais
+              <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight">
+                Assuma o Controle do Seu
+                <span className="block text-blue-600">
+                  Destino Financeiro
                 </span>
-                e familiares
               </h1>
 
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Tenha controle total sobre receitas, despesas e orçamento. 
-                Tome decisões financeiras mais inteligentes com relatórios detalhados.
+              <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
+                A liberdade que você sonha começa com a organização que você faz hoje.
+                Não deixe seu dinheiro controlar você. Assuma o comando e construa o futuro que você merece.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                   onClick={() => navigate('/cadastro')}
-                  className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-2xl transform hover:scale-105 transition"
+                  className="flex items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-full font-bold text-lg hover:bg-blue-700 hover:shadow-xl transform hover:scale-105 transition"
                 >
-                  Começar Gratuitamente
+                  Começar Minha Jornada
                   <ArrowRight className="ml-2 w-5 h-5" />
-                </button>
-
-                <button
-                  onClick={() => navigate('/login')}
-                  className="flex items-center justify-center px-8 py-4 bg-white text-gray-700 rounded-xl font-semibold border-2 border-gray-200 hover:border-blue-600 hover:text-blue-600 transition"
-                >
-                  Já tenho conta
                 </button>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8">
-                <div>
-                  <div className="text-3xl font-bold text-blue-600">100%</div>
-                  <div className="text-sm text-gray-600">Gratuito</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-purple-600">Seguro</div>
-                  <div className="text-sm text-gray-600">Seus dados</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-green-600">Fácil</div>
-                  <div className="text-sm text-gray-600">De usar</div>
+              <p className="text-sm text-gray-500 italic">
+                "O primeiro passo para a riqueza é o controle."
+              </p>
+            </div>
+
+            {/* Right Content - Hero Image */}
+            <div className="relative">
+              <div className="absolute -inset-4 bg-blue-600 rounded-2xl opacity-20 blur-2xl"></div>
+              <img
+                src={heroImage}
+                alt="Homem analisando finanças"
+                className="relative rounded-2xl shadow-2xl w-full object-cover h-[500px] transform hover:scale-[1.01] transition duration-500"
+              />
+
+              {/* Floating Badge */}
+              <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur p-4 rounded-xl shadow-lg border border-white/50">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <TrendingUp className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-semibold uppercase">Resultado</p>
+                    <p className="text-lg font-bold text-gray-900">Liberdade Financeira</p>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Right Content - Illustration */}
-            <div className="relative">
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl p-8 shadow-2xl">
-                <div className="bg-white rounded-2xl p-6 space-y-4">
-                  {/* Mock Dashboard */}
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-gray-800">Resumo Mensal</h3>
-                    <span className="text-green-600 font-semibold">+15%</span>
+      {/* Importance of Financial Control Section */}
+      <section id="importancia" className="py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            {/* Image Side */}
+            <div className="relative order-2 md:order-1">
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-100 rounded-full opacity-50 blur-3xl"></div>
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-100 rounded-full opacity-50 blur-3xl"></div>
+              <img
+                src={controlImage}
+                alt="Planejamento financeiro detalhado"
+                className="relative rounded-2xl shadow-xl w-full object-cover h-[600px]"
+              />
+            </div>
+
+            {/* Content Side */}
+            <div className="order-1 md:order-2 space-y-8">
+              <h2 className="text-4xl font-bold text-gray-900 leading-tight">
+                Por que o controle financeiro é <span className="text-blue-600">libertador</span>?
+              </h2>
+
+              <p className="text-lg text-gray-600">
+                Muitas pessoas acham que controlar gastos é sobre restrição. Na verdade, é sobre <strong>escolha</strong>.
+                Quando você sabe para onde seu dinheiro vai, você decide para onde ele <em>deve</em> ir.
+              </p>
+
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                    <Shield className="w-6 h-6" />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-green-50 p-4 rounded-xl">
-                      <TrendingUp className="w-6 h-6 text-green-600 mb-2" />
-                      <div className="text-sm text-gray-600">Receitas</div>
-                      <div className="text-xl font-bold text-gray-800">R$ 5.240</div>
-                    </div>
-
-                    <div className="bg-red-50 p-4 rounded-xl">
-                      <CreditCard className="w-6 h-6 text-red-600 mb-2" />
-                      <div className="text-sm text-gray-600">Despesas</div>
-                      <div className="text-xl font-bold text-gray-800">R$ 3.180</div>
-                    </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Paz de Espírito</h3>
+                    <p className="text-gray-600">
+                      Durma tranquilo sabendo que suas contas estão em dia e você está preparado para imprevistos.
+                      O estresse financeiro é um dos maiores vilões da saúde mental.
+                    </p>
                   </div>
+                </div>
 
-                  <div className="bg-blue-50 p-4 rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-600">Economia</span>
-                      <span className="text-sm font-semibold text-blue-600">39%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full" style={{width: '39%'}}></div>
-                    </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                    <Target className="w-6 h-6" />
                   </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Realização de Sonhos</h3>
+                    <p className="text-gray-600">
+                      Transforme metas distantes em planos concretos. A viagem, a casa própria, a aposentadoria tranquila
+                      — tudo deixa de ser "um dia" e vira "uma data".
+                    </p>
+                  </div>
+                </div>
 
-                  <div className="pt-2">
-                    <BarChart3 className="w-full h-24 text-gray-300" />
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+                    <Lightbulb className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Vida com Propósito</h3>
+                    <p className="text-gray-600">
+                      Gaste com o que realmente importa para você. Corte o supérfluo que não traz felicidade e invista
+                      naquilo que enriquece sua vida.
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              {/* Floating Cards */}
-              <div className="absolute -top-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-semibold">Meta atingida!</span>
-                </div>
-              </div>
+      {/* Motivational Quotes Section */}
+      <section className="py-20 bg-gray-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1553729459-efe14ef6055d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-8">
+            <Quote className="w-16 h-16 text-blue-500 mx-auto opacity-50" />
 
-              <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-semibold">100% Seguro</span>
-                </div>
-              </div>
+            <blockquote className="text-3xl md:text-4xl font-serif italic leading-relaxed">
+              "Não é sobre quanto dinheiro você ganha, mas sobre quanto dinheiro você mantém,
+              quão arduamente ele trabalha para você e para quantas gerações você o mantém."
+            </blockquote>
+
+            <div className="flex flex-col items-center">
+              <cite className="text-xl font-bold text-blue-400 not-italic">— Robert Kiyosaki</cite>
+              <span className="text-gray-400 text-sm mt-1">Autor de "Pai Rico, Pai Pobre"</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="funcionalidades" className="py-20 bg-white">
+      <section id="funcionalidades" className="py-24 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Funcionalidades Poderosas
+              Ferramentas para o seu Sucesso
             </h2>
-            <p className="text-xl text-gray-600">
-              Tudo que você precisa para ter controle total das suas finanças
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Simplificamos a gestão financeira para que você possa focar no que realmente importa: viver.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
-                <DollarSign className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Controle de Receitas
-              </h3>
-              <p className="text-gray-600">
-                Registre todas as suas fontes de renda e acompanhe seu crescimento financeiro mês a mês.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-2xl hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-purple-600 rounded-xl flex items-center justify-center mb-4">
-                <CreditCard className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Gestão de Despesas
-              </h3>
-              <p className="text-gray-600">
-                Categorize e monitore todos os seus gastos para identificar onde pode economizar.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-2xl hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-4">
-                <PieChart className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Relatórios Visuais
-              </h3>
-              <p className="text-gray-600">
-                Gráficos e dashboards interativos para visualizar sua saúde financeira de forma clara.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-8 rounded-2xl hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-orange-600 rounded-xl flex items-center justify-center mb-4">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Metas e Orçamento
-              </h3>
-              <p className="text-gray-600">
-                Defina objetivos financeiros e crie orçamentos para alcançar suas metas mais rápido.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-8 rounded-2xl hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-pink-600 rounded-xl flex items-center justify-center mb-4">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Controle Familiar
-              </h3>
-              <p className="text-gray-600">
-                Gerencie as finanças de toda a família em um só lugar, com segurança e privacidade.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-8 rounded-2xl hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center mb-4">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Segurança Total
-              </h3>
-              <p className="text-gray-600">
-                Seus dados são criptografados e protegidos com as melhores práticas de segurança.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section id="beneficios" className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left - Image/Illustration */}
-            <div className="order-2 md:order-1">
-              <div className="bg-white rounded-3xl p-8 shadow-2xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                  Por que escolher o Finanças Fácil?
+            {[
+              {
+                icon: <DollarSign className="w-8 h-8 text-white" />,
+                title: "Controle de Fluxo",
+                desc: "Visualize claramente suas entradas e saídas. Saiba exatamente quanto sobra no final do mês.",
+                color: "bg-blue-600"
+              },
+              {
+                icon: <PieChart className="w-8 h-8 text-white" />,
+                title: "Gráficos Inteligentes",
+                desc: "Entenda seus hábitos de consumo com gráficos visuais e intuitivos. A informação é poder.",
+                color: "bg-purple-600"
+              },
+              {
+                icon: <Target className="w-8 h-8 text-white" />,
+                title: "Metas Financeiras",
+                desc: "Defina objetivos e acompanhe seu progresso. A motivação que você precisa para continuar.",
+                color: "bg-green-600"
+              }
+            ].map((feature, index) => (
+              <div key={index} className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition duration-300 border border-gray-100">
+                <div className={`w-16 h-16 ${feature.color} rounded-2xl flex items-center justify-center mb-6 shadow-md`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {feature.title}
                 </h3>
-
-                <div className="space-y-4">
-                  {[
-                    'Interface intuitiva e fácil de usar',
-                    'Acesso de qualquer dispositivo',
-                    'Relatórios detalhados e personalizáveis',
-                    'Backup automático dos seus dados',
-                    'Suporte dedicado sempre disponível',
-                    'Atualizações constantes e gratuitas'
-                  ].map((benefit, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-                      <span className="text-gray-700">{benefit}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-8 p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white">
-                  <div className="text-3xl font-bold mb-2">100% Gratuito</div>
-                  <p className="text-blue-100">
-                    Todas as funcionalidades sem custo algum. Para sempre.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right - Content */}
-            <div className="order-1 md:order-2 space-y-8">
-              <div>
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                  Transforme sua vida financeira
-                </h2>
-                <p className="text-xl text-gray-600">
-                  Milhares de pessoas já estão no controle das suas finanças. 
-                  Junte-se a elas e alcance seus objetivos financeiros!
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.desc}
                 </p>
               </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">98%</div>
-                  <div className="text-gray-600">Satisfação dos usuários</div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="text-4xl font-bold text-purple-600 mb-2">5K+</div>
-                  <div className="text-gray-600">Usuários ativos</div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="text-4xl font-bold text-green-600 mb-2">R$ 2M+</div>
-                  <div className="text-gray-600">Economizados</div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                  <div className="text-4xl font-bold text-orange-600 mb-2">24/7</div>
-                  <div className="text-gray-600">Suporte disponível</div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => navigate('/cadastro')}
-                className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-2xl transform hover:scale-105 transition"
-              >
-                Começar Agora Gratuitamente
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="depoimentos" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              O que nossos usuários dizem
-            </h2>
-            <p className="text-xl text-gray-600">
-              Histórias reais de pessoas que transformaram suas finanças
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl shadow-lg">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-6">
-                "Finalmente consegui organizar minhas finanças! O Finanças Fácil me ajudou a economizar 30% do meu salário em apenas 3 meses."
-              </p>
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                  MC
-                </div>
-                <div className="ml-3">
-                  <div className="font-semibold text-gray-900">Maria Clara</div>
-                  <div className="text-sm text-gray-600">Professora</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="bg-gradient-to-br from-purple-50 to-white p-8 rounded-2xl shadow-lg">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-6">
-                "Interface super intuitiva! Minha esposa e eu conseguimos gerenciar as contas da família sem complicação."
-              </p>
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold">
-                  RS
-                </div>
-                <div className="ml-3">
-                  <div className="font-semibold text-gray-900">Roberto Silva</div>
-                  <div className="text-sm text-gray-600">Engenheiro</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className="bg-gradient-to-br from-green-50 to-white p-8 rounded-2xl shadow-lg">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-6">
-                "Os relatórios são incríveis! Agora sei exatamente para onde vai cada centavo e consigo planejar melhor meu futuro."
-              </p>
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                  AS
-                </div>
-                <div className="ml-3">
-                  <div className="font-semibold text-gray-900">Ana Santos</div>
-                  <div className="text-sm text-gray-600">Empresária</div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-24 bg-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Pronto para transformar suas finanças?
+          <h2 className="text-4xl md:text-5xl font-bold mb-8">
+            Comece sua transformação hoje
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Junte-se a milhares de pessoas que já estão no controle total do seu dinheiro. 
-            É gratuito e leva menos de 2 minutos!
+          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+            Não espere o "momento perfeito". O melhor momento para plantar uma árvore foi há 20 anos.
+            O segundo melhor momento é agora.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={() => navigate('/cadastro')}
-              className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:shadow-2xl transform hover:scale-105 transition"
-            >
-              Criar Conta Gratuita
-            </button>
+          <button
+            onClick={() => navigate('/cadastro')}
+            className="px-10 py-5 bg-white text-blue-700 rounded-full font-bold text-xl hover:bg-gray-100 hover:shadow-2xl transform hover:scale-105 transition"
+          >
+            Criar Minha Conta Gratuita
+          </button>
 
-            <button
-              onClick={() => navigate('/login')}
-              className="px-8 py-4 bg-transparent text-white border-2 border-white rounded-xl font-semibold hover:bg-white hover:text-blue-600 transition"
-            >
-              Já tenho conta
-            </button>
-          </div>
-
-          <p className="text-blue-100 mt-6">
-            ✨ Sem cartão de crédito necessário • Cancele quando quiser
+          <p className="mt-6 text-sm text-blue-200 opacity-80">
+            Junte-se a mais de 5.000 pessoas que já mudaram de vida.
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            {/* Brand */}
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Wallet className="w-8 h-8 text-blue-400" />
-                <span className="text-xl font-bold">Finanças Fácil</span>
-              </div>
-              <p className="text-gray-400">
-                Controle financeiro inteligente para você e sua família.
-              </p>
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center space-x-2 mb-4 md:mb-0">
+              <Wallet className="w-6 h-6 text-blue-500" />
+              <span className="text-lg font-bold text-white">Finanças Fácil</span>
             </div>
 
-            {/* Links */}
-            <div>
-              <h3 className="font-semibold mb-4">Produto</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#funcionalidades" className="hover:text-white transition">Funcionalidades</a></li>
-                <li><a href="#beneficios" className="hover:text-white transition">Benefícios</a></li>
-                <li><a href="#depoimentos" className="hover:text-white transition">Depoimentos</a></li>
-              </ul>
+            <div className="text-sm">
+              © 2025 Finanças Fácil. Feito com 💙 para sua liberdade.
             </div>
-
-            {/* Support */}
-            <div>
-              <h3 className="font-semibold mb-4">Suporte</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">Central de Ajuda</a></li>
-                <li><a href="#" className="hover:text-white transition">Contato</a></li>
-                <li><a href="#" className="hover:text-white transition">FAQ</a></li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">Privacidade</a></li>
-                <li><a href="#" className="hover:text-white transition">Termos de Uso</a></li>
-                <li><a href="#" className="hover:text-white transition">Segurança</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>© 2025 Finanças Fácil. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  TrendingUp, 
-  Shield, 
-  PieChart, 
-  Wallet, 
-  ArrowRight, 
-  CheckCircle, 
-  BarChart3, 
+import {
+  TrendingUp,
+  Shield,
+  PieChart,
+  Wallet,
+  ArrowRight,
+  CheckCircle,
+  BarChart3,
   Lock,
   Users,
   Smartphone,
@@ -61,18 +61,18 @@ const Homepage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-blue-50">
       {/* HEADER/NAVBAR */}
       <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Wallet className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold text-blue-600">
                   Finanças Fácil
                 </h1>
                 <p className="text-xs text-gray-600">Controle Financeiro Inteligente</p>
@@ -89,7 +89,7 @@ const Homepage = () => {
               </button>
               <button
                 onClick={() => navigate('/cadastro')}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
               >
                 Começar Grátis
                 <ArrowRight className="w-4 h-4" />
@@ -111,17 +111,17 @@ const Homepage = () => {
 
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
               Organize suas
-              <span className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="block text-blue-600">
                 Finanças com
               </span>
-              <span className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="block text-blue-600">
                 Inteligência
               </span>
             </h1>
 
             <p className="text-xl text-gray-600 leading-relaxed">
-              Sistema completo para gerenciar receitas, despesas e orçamentos. 
-              Visualize seus gastos, acompanhe metas e tome decisões financeiras 
+              Sistema completo para gerenciar receitas, despesas e orçamentos.
+              Visualize seus gastos, acompanhe metas e tome decisões financeiras
               inteligentes com dados em tempo real.
             </p>
 
@@ -129,7 +129,7 @@ const Homepage = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => navigate('/cadastro')}
-                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-2xl hover:shadow-indigo-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+                className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 Começar Agora - É Grátis
                 <ArrowRight className="w-5 h-5" />
@@ -162,12 +162,12 @@ const Homepage = () => {
 
           {/* Imagem/Mockup */}
           <div className="relative">
-            <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-300">
+            <div className="relative bg-blue-600 rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-300">
               {/* Mockup do Dashboard */}
               <div className="bg-white rounded-2xl p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full"></div>
+                    <div className="w-10 h-10 bg-blue-600 rounded-full"></div>
                     <div>
                       <p className="font-semibold text-gray-900">Dashboard</p>
                       <p className="text-sm text-gray-500">Visão Geral</p>
@@ -178,18 +178,18 @@ const Homepage = () => {
 
                 {/* Cards de Exemplo */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                  <div className="bg-green-50 p-4 rounded-xl border border-green-200">
                     <p className="text-sm text-green-700 font-medium">Receitas</p>
                     <p className="text-2xl font-bold text-green-600">R$ 15.450</p>
                   </div>
-                  <div className="bg-gradient-to-br from-red-50 to-rose-50 p-4 rounded-xl border border-red-200">
+                  <div className="bg-red-50 p-4 rounded-xl border border-red-200">
                     <p className="text-sm text-red-700 font-medium">Despesas</p>
                     <p className="text-2xl font-bold text-red-600">R$ 8.230</p>
                   </div>
                 </div>
 
                 {/* Gráfico Fake */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-200">
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                   <div className="flex items-end justify-around h-32 gap-2">
                     <div className="w-full bg-indigo-400 rounded-t-lg h-20"></div>
                     <div className="w-full bg-purple-400 rounded-t-lg h-24"></div>
@@ -215,7 +215,7 @@ const Homepage = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Tudo que você precisa para
-              <span className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="block text-blue-600">
                 Controlar suas Finanças
               </span>
             </h2>
@@ -230,9 +230,9 @@ const Homepage = () => {
               return (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 group"
+                  className="bg-white p-8 rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group"
                 >
-                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <Icone className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{recurso.titulo}</h3>
@@ -245,7 +245,7 @@ const Homepage = () => {
       </section>
 
       {/* BENEFÍCIOS */}
-      <section className="bg-gradient-to-br from-indigo-600 to-purple-600 py-20">
+      <section className="bg-blue-600 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -304,7 +304,7 @@ const Homepage = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
             Pronto para transformar
-            <span className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="block text-blue-600">
               suas finanças?
             </span>
           </h2>
@@ -314,7 +314,7 @@ const Homepage = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => navigate('/cadastro')}
-              className="px-10 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-2xl hover:shadow-indigo-500/50 transition-all duration-300 text-lg flex items-center justify-center gap-2"
+              className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 text-lg flex items-center justify-center gap-2"
             >
               Criar Conta Grátis
               <ArrowRight className="w-6 h-6" />
@@ -336,7 +336,7 @@ const Homepage = () => {
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                   <Wallet className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl font-bold">Finanças Fácil</span>

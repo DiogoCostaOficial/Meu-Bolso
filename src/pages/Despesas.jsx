@@ -223,7 +223,7 @@ const Despesas = () => {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
       const despesasData = userData.despesas || [];
-      
+
       // Garante que todas as despesas carregadas tenham statusPagamento, observacoes e dataVencimento
       const despesasComDefaults = despesasData.map(d => ({
         ...d,
@@ -243,13 +243,13 @@ const Despesas = () => {
       // Obter dados atuais do usuário
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      
+
       // Atualizar apenas as despesas
       const updatedData = {
         ...userData,
         despesas: novasDespesas
       };
-      
+
       // Salvar no backend
       await api.post('/user/dados', { dados: updatedData });
       setDespesas(novasDespesas);
@@ -921,15 +921,15 @@ const Despesas = () => {
                   <option value="">Todas as subcategorias</option>
                   {filtroCategoria // Se uma categoria está selecionada
                     ? getAvailableSubcategories(filtroCategoria).map(sub => ( // Mostra apenas as subcategorias da categoria
-                        <option key={sub} value={sub}>
-                          {sub}
-                        </option>
-                      ))
+                      <option key={sub} value={sub}>
+                        {sub}
+                      </option>
+                    ))
                     : allSubcategories.map(sub => ( // Caso contrário, mostra todas as subcategorias
-                        <option key={sub} value={sub}>
-                          {sub}
-                        </option>
-                      ))}
+                      <option key={sub} value={sub}>
+                        {sub}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div>
@@ -1057,7 +1057,7 @@ const Despesas = () => {
 
       {/* Cards de Resumo de Despesas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200">
+        <div className="bg-red-50 rounded-xl shadow-lg p-6 border border-red-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Total de Despesas</h3>
             <TrendingDown className="w-6 h-6 text-red-600" />
@@ -1065,7 +1065,7 @@ const Despesas = () => {
           <p className="text-3xl font-bold text-red-600">{formatarMoeda(totalDespesasFiltradas)}</p>
           <p className="text-sm text-gray-500 mt-1">{despesasFiltradas.length} despesa(s)</p>
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
+        <div className="bg-blue-50 rounded-xl shadow-lg p-6 border border-blue-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Categorias</h3>
             <Tag className="w-6 h-6 text-blue-600" />
@@ -1073,7 +1073,7 @@ const Despesas = () => {
           <p className="text-3xl font-bold text-blue-600">{categoriasAtivasDespesas}</p>
           <p className="text-sm text-gray-500 mt-1">categorias ativas</p>
         </div>
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
+        <div className="bg-purple-50 rounded-xl shadow-lg p-6 border border-purple-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Subcategorias</h3>
             <Layers className="w-6 h-6 text-purple-600" />
@@ -1150,15 +1150,15 @@ const Despesas = () => {
                     <option value="">Não alterar</option>
                     {bulkEditForm.categoria
                       ? getAvailableSubcategories(bulkEditForm.categoria).map(sub => (
-                          <option key={sub} value={sub}>
-                            {sub}
-                          </option>
-                        ))
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))
                       : allSubcategories.map(sub => ( // Permite selecionar qualquer subcategoria se a categoria não for alterada
-                          <option key={sub} value={sub}>
-                            {sub}
-                          </option>
-                        ))}
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 {/* Campo para edição em massa do status */}

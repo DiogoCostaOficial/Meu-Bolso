@@ -29,9 +29,9 @@ const AtivarConta = () => {
       const usuarioEncontrado = usuarios.find(u => u.id === id && u.status === 'pendente');
 
       if (!usuarioEncontrado) {
-        setToast({ 
-          mensagem: 'Conta não encontrada ou já ativada. Faça login.', 
-          tipo: 'erro' 
+        setToast({
+          mensagem: 'Conta não encontrada ou já ativada. Faça login.',
+          tipo: 'erro'
         });
         setTimeout(() => navigate('/login'), 2000);
         return;
@@ -101,9 +101,9 @@ const AtivarConta = () => {
 
           localStorage.setItem('USUARIOS', JSON.stringify(usuarios));
 
-          setToast({ 
-            mensagem: 'Conta ativada com sucesso! Redirecionando para login...', 
-            tipo: 'sucesso' 
+          setToast({
+            mensagem: 'Conta ativada com sucesso! Redirecionando para login...',
+            tipo: 'sucesso'
           });
 
           // Redireciona para login após 2 segundos
@@ -126,7 +126,7 @@ const AtivarConta = () => {
   // Se ainda está carregando
   if (carregando) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Carregando...</p>
@@ -138,7 +138,7 @@ const AtivarConta = () => {
   // Se não encontrou o usuário
   if (!usuario) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
         <div className="text-center">
           <AlertTriangle className="w-12 h-12 text-red-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Conta não encontrada</h2>
@@ -149,7 +149,7 @@ const AtivarConta = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6 transition-colors duration-300">
+    <div className="min-h-screen bg-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6 transition-colors duration-300">
       {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transition-all duration-300">
@@ -180,9 +180,8 @@ const AtivarConta = () => {
                 name="senha"
                 value={formulario.senha}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${
-                  erros.senha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
+                className={`w-full pl-10 pr-4 py-3 border ${erros.senha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="••••••••"
               />
             </div>
@@ -210,9 +209,8 @@ const AtivarConta = () => {
                 name="confirmarSenha"
                 value={formulario.confirmarSenha}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${
-                  erros.confirmarSenha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
+                className={`w-full pl-10 pr-4 py-3 border ${erros.confirmarSenha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="••••••••"
               />
             </div>

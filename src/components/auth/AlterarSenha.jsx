@@ -115,9 +115,9 @@ const AlterarSenha = () => {
         const novaSessao = { ...usuario, senha: formulario.novaSenha };
         localStorage.setItem('SESSION', JSON.stringify(novaSessao));
 
-        setToast({ 
-          mensagem: 'Senha alterada com sucesso!', 
-          tipo: 'sucesso' 
+        setToast({
+          mensagem: 'Senha alterada com sucesso!',
+          tipo: 'sucesso'
         });
 
         // Redireciona para dashboard após 2 segundos
@@ -134,7 +134,7 @@ const AlterarSenha = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6 transition-colors duration-300">
+    <div className="min-h-screen bg-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6 transition-colors duration-300">
       {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transition-all duration-300">
@@ -160,9 +160,8 @@ const AlterarSenha = () => {
                 name="senhaAtual"
                 value={formulario.senhaAtual}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${
-                  erros.senhaAtual ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
+                className={`w-full pl-10 pr-4 py-3 border ${erros.senhaAtual ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="••••••••"
               />
             </div>
@@ -187,9 +186,8 @@ const AlterarSenha = () => {
                 name="novaSenha"
                 value={formulario.novaSenha}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${
-                  erros.novaSenha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
+                className={`w-full pl-10 pr-4 py-3 border ${erros.novaSenha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="••••••••"
               />
             </div>
@@ -217,9 +215,8 @@ const AlterarSenha = () => {
                 name="confirmarNovaSenha"
                 value={formulario.confirmarNovaSenha}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${
-                  erros.confirmarNovaSenha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
+                className={`w-full pl-10 pr-4 py-3 border ${erros.confirmarNovaSenha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="••••••••"
               />
             </div>

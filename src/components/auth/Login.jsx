@@ -70,7 +70,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6 transition-colors duration-300">
+    <div className="min-h-screen bg-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-6 transition-colors duration-300">
       {toast && <Toast mensagem={toast.mensagem} tipo={toast.tipo} onClose={() => setToast(null)} />}
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transition-all duration-300">
@@ -96,9 +96,8 @@ const Login = () => {
                 name="email"
                 value={formulario.email}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${
-                  erros.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
+                className={`w-full pl-10 pr-4 py-3 border ${erros.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="joao@exemplo.com"
               />
             </div>
@@ -123,9 +122,8 @@ const Login = () => {
                 name="senha"
                 value={formulario.senha}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${
-                  erros.senha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
+                className={`w-full pl-10 pr-4 py-3 border ${erros.senha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="••••••••"
               />
             </div>

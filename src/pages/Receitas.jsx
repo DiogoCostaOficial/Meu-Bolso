@@ -72,7 +72,7 @@ const Receitas = () => {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
       const receitasData = userData.receitas || [];
-      
+
       setReceitas(Array.isArray(receitasData) ? receitasData : []);
       console.log('✅ Receitas carregadas:', receitasData.length);
     } catch (error) {
@@ -85,13 +85,13 @@ const Receitas = () => {
       // Obter dados atuais do usuário
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      
+
       // Atualizar apenas as receitas
       const updatedData = {
         ...userData,
         receitas: novasReceitas
       };
-      
+
       // Salvar no backend
       await api.post('/user/dados', { dados: updatedData });
       setReceitas(novasReceitas);
@@ -104,7 +104,7 @@ const Receitas = () => {
   };
   const adicionarReceita = (e) => {
     e.preventDefault();
-    
+
     if (!novaReceita.descricao || !novaReceita.valor || !novaReceita.categoria) {
       alert('Por favor, preencha todos os campos obrigatórios (Descrição, Valor e Categoria).');
       return;
@@ -114,15 +114,15 @@ const Receitas = () => {
       alert('Por favor, insira um valor válido maior que zero.');
       return;
     }
-    
+
     const qtd = parseInt(quantidadeTitulos);
     if (isNaN(qtd) || qtd <= 0) {
       alert('Por favor, insira uma quantidade válida de títulos.');
       return;
     }
-    
+
     let receitasAtualizadas = [...receitas];
-    
+
     if (editando) {
       // Modo edição: atualiza apenas a receita existente
       const receitaParaSalvar = {
@@ -139,11 +139,11 @@ const Receitas = () => {
       const timestamp = Date.now();
       const dataInicial = new Date(novaReceita.data + 'T00:00:00');
       const novasReceitas = [];
-      
+
       for (let i = 0; i < qtd; i++) {
         const dataReceita = new Date(dataInicial);
         dataReceita.setMonth(dataReceita.getMonth() + i);
-        
+
         novasReceitas.push({
           ...novaReceita,
           id: timestamp + i,
@@ -151,10 +151,10 @@ const Receitas = () => {
           data: dataReceita.toISOString().split('T')[0]
         });
       }
-      
+
       receitasAtualizadas = [...receitas, ...novasReceitas];
     }
-    
+
     salvarReceitas(receitasAtualizadas);
     resetarFormulario();
   };
@@ -548,7 +548,7 @@ const Receitas = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200">
+        <div className="bg-green-50 rounded-xl shadow-lg p-6 border border-green-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Total de Receitas</h3>
             <TrendingUp className="w-6 h-6 text-green-600" />
@@ -556,7 +556,7 @@ const Receitas = () => {
           <p className="text-3xl font-bold text-green-600">{formatarMoeda(totalReceitas)}</p>
           <p className="text-sm text-gray-500 mt-1">{receitasFiltradas.length} receita(s)</p>
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
+        <div className="bg-blue-50 rounded-xl shadow-lg p-6 border border-blue-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Categorias</h3>
             <Tag className="w-6 h-6 text-blue-600" />
@@ -564,7 +564,7 @@ const Receitas = () => {
           <p className="text-3xl font-bold text-blue-600">{categoriasAtivas}</p>
           <p className="text-sm text-gray-500 mt-1">categorias ativas</p>
         </div>
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
+        <div className="bg-purple-50 rounded-xl shadow-lg p-6 border border-purple-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600">Subcategorias</h3>
             <Tag className="w-6 h-6 text-purple-600" />
