@@ -29,7 +29,9 @@ export const AuthProvider = ({ children }) => {
   // Função de login
   const login = async (email, senha, username = null) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
 
       // Preparar dados do login
       const loginData = username
@@ -72,7 +74,9 @@ export const AuthProvider = ({ children }) => {
   // Função de cadastro
   const register = async (nome, email, senha) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
       const response = await fetch(`${API_URL}/auth/registrar`, {
         method: 'POST',
         headers: {
@@ -109,7 +113,9 @@ export const AuthProvider = ({ children }) => {
   const changePassword = async (senhaAtual, novaSenha) => {
     try {
       const token = localStorage.getItem('token');
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
 
       const response = await fetch(`${API_URL}/auth/alterar-senha`, {
         method: 'POST',
@@ -153,7 +159,9 @@ export const AuthProvider = ({ children }) => {
 
   const validateOTP = async (email, codigo) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
       const response = await fetch(`${API_URL}/auth/validar-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -174,7 +182,9 @@ export const AuthProvider = ({ children }) => {
 
   const resendOTP = async (email) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
       const response = await fetch(`${API_URL}/auth/reenviar-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -192,7 +202,9 @@ export const AuthProvider = ({ children }) => {
 
   const requestPasswordReset = async (email) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
       const response = await fetch(`${API_URL}/auth/solicitar-recuperacao`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -210,7 +222,9 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = async (email, codigo, novaSenha) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
       const response = await fetch(`${API_URL}/auth/redefinir-senha`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
