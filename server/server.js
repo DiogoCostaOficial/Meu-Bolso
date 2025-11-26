@@ -15,10 +15,15 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
 
-// Usa as rotas
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/user', userRoutes);
+// Configuração de rotas flexível (para funcionar com ou sem rewrite do Vercel)
+const router = express.Router();
+router.use('/auth', authRoutes);
+router.use('/admin', adminRoutes);
+router.use('/user', userRoutes);
+
+// Monta as rotas tanto em /api quanto na raiz para garantir compatibilidade
+app.use('/api', router);
+app.use('/', router);
 
 // Rota de teste
 app.get('/', (req, res) => {
