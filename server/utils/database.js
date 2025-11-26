@@ -87,7 +87,7 @@ const buscarDadosUsuario = async (userId) => {
         id: r.id,
         descricao: r.descricao,
         valor: parseFloat(r.valor),
-        data: r.data, // Postgres returns Date object, might need formatting
+        data: r.data instanceof Date ? r.data.toISOString().split('T')[0] : r.data,
         categoria: r.categoria,
         subcategoria: r.subcategoria,
         status: r.status,
@@ -101,7 +101,7 @@ const buscarDadosUsuario = async (userId) => {
         id: r.id,
         descricao: r.descricao,
         valor: parseFloat(r.valor),
-        data: r.data,
+        data: r.data instanceof Date ? r.data.toISOString().split('T')[0] : r.data,
         categoria: r.categoria,
         subcategoria: r.subcategoria,
         status: r.status,

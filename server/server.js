@@ -6,7 +6,32 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+// Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://financas-facil-i3zn.vercel.app',
+  'https://meu-bolso.vercel.app' // Adicione outras URLs se tiver
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      // Se a origem não estiver na lista, mas for um subdomínio do vercel.app, permite (opcional, mas útil para previews)
+      if (origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
