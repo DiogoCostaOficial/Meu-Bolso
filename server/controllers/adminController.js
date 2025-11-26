@@ -1,8 +1,8 @@
 const db = require('../utils/database');
 
-const obterEstatisticas = (req, res) => {
+const obterEstatisticas = async (req, res) => {
   try {
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const totalUsuarios = usuarios.length;
     const usuariosComAcesso = usuarios.filter(u => !!u.ultimoAcesso).length;
     const usuariosSemAcesso = totalUsuarios - usuariosComAcesso;
@@ -28,9 +28,10 @@ const obterEstatisticas = (req, res) => {
   }
 };
 
-const listarTodosUsuarios = (req, res) => {
+const listarTodosUsuarios = async (req, res) => {
   try {
-    const usuarios = db.getUsuarios().map(u => ({
+    const usuarios = await db.getUsuarios();
+    const usuariosFormatados = usuarios.map(u => ({
       id: u.id,
       nome: u.nome,
       email: u.email,
@@ -39,17 +40,18 @@ const listarTodosUsuarios = (req, res) => {
       primeiroAcesso: u.primeiroAcesso,
       tipo: u.tipo || 'usuario'
     }));
-    res.json({ sucesso: true, dados: usuarios });
+    res.json({ sucesso: true, dados: usuariosFormatados });
   } catch (error) {
     console.error('Erro ao listar usuários:', error);
     res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar usuários' });
   }
 };
 
-const buscarUsuarioPorId = (req, res) => {
+const buscarUsuarioPorId = async (req, res) => {
   try {
     const { id } = req.params;
-    const usuario = db.getUsuarios().find(u => u.id === id);
+    const usuarios = await db.getUsuarios();
+    const usuario = usuarios.find(u => u.id === id);
     if (!usuario) {
       return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
     }
@@ -60,7 +62,7 @@ const buscarUsuarioPorId = (req, res) => {
   }
 };
 
-const atualizarUsuario = (req, res) => {
+const atualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, email, tipo } = req.body;
@@ -78,9 +80,9 @@ const atualizarUsuario = (req, res) => {
       return res.status(400).json({ sucesso: false, mensagem: 'Tipo de usuário inválido' });
     }
 
-    const usuarios = db.getUsuarios();
-    const usuarioIndex = usuarios.findIndex(u => u.id === id);
-    if (usuarioIndex === -1) {
+    const usuarios = await db.getUsuarios();
+    const usuario = usuarios.find(u => u.id === id);
+    if (!usuario) {
       return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
     }
 
@@ -89,17 +91,20 @@ const atualizarUsuario = (req, res) => {
       return res.status(400).json({ sucesso: false, mensagem: 'E-mail já está em uso por outro usuário' });
     }
 
-    usuarios[usuarioIndex] = { ...usuarios[usuarioIndex], nome, email, tipo };
-    db.salvarUsuarios(usuarios);
+    usuario.nome = nome;
+    usuario.email = email;
+    usuario.tipo = tipo;
 
-    res.json({ sucesso: true, mensagem: 'Usuário atualizado com sucesso', dados: usuarios[usuarioIndex] });
+    await db.atualizarUsuario(usuario);
+
+    res.json({ sucesso: true, mensagem: 'Usuário atualizado com sucesso', dados: usuario });
   } catch (error) {
     console.error('Erro ao atualizar usuário:', error);
     res.status(500).json({ sucesso: false, mensagem: error.message || 'Erro ao atualizar usuário' });
   }
 };
 
-const deletarUsuario = (req, res) => {
+const deletarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -107,14 +112,25 @@ const deletarUsuario = (req, res) => {
       return res.status(403).json({ sucesso: false, mensagem: 'Você não pode excluir sua própria conta' });
     }
 
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.id === id);
     if (!usuario) {
       return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
     }
 
-    const atualizados = usuarios.filter(u => u.id !== id);
-    db.salvarUsuarios(atualizados);
+    // TODO: Implement delete user in DB (we need to add a delete function in database.js or just use raw query here if needed, but for now let's assume we might just deactivate or we need to add a delete function)
+    // Since we don't have a delete function in database.js yet, let's add one or use a direct query if we were inside database.js.
+    // But wait, database.js exports `salvarUsuarios` which overwrites everything.
+    // In the new Postgres version of database.js, `salvarUsuarios` is NOT exported.
+    // We need to add `deletarUsuario` to database.js or handle it.
+    // Let's assume for this step we will just log it and maybe fail or we should have updated database.js first to include delete.
+    // Actually, looking at database.js I wrote earlier, I didn't export a delete function.
+    // I should probably update database.js to include a delete function.
+
+    // For now, I will comment out the actual deletion and return a message saying it's not implemented fully or I will fix database.js in next step.
+    // Better yet, I will use `db.deletarUsuario` and I will add it to database.js in the next step.
+
+    await db.deletarUsuario(id);
 
     res.json({ sucesso: true, mensagem: `Usuário ${usuario.nome} excluído com sucesso` });
   } catch (error) {

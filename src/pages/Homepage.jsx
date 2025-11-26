@@ -73,7 +73,7 @@ const Homepage = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-blue-600">
-                  Finanças Fácil
+                  Meu Bolso
                 </h1>
                 <p className="text-xs text-gray-600">Controle Financeiro Inteligente</p>
               </div>
@@ -251,7 +251,7 @@ const Homepage = () => {
             <div>
               <h2 className="text-4xl font-bold text-white mb-6">
                 Por que escolher o
-                <span className="block">Finanças Fácil?</span>
+                <span className="block">Meu Bolso?</span>
               </h2>
               <p className="text-xl text-indigo-100 mb-8">
                 Mais do que um simples controle financeiro. Uma solução completa para transformar sua relação com o dinheiro.
@@ -339,7 +339,7 @@ const Homepage = () => {
                 <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                   <Wallet className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xl font-bold">Finanças Fácil</span>
+                <span className="text-xl font-bold">Meu Bolso</span>
               </div>
               <p className="text-gray-400">
                 Sistema completo de controle financeiro pessoal. Gerencie suas finanças com inteligência e segurança.
@@ -366,7 +366,7 @@ const Homepage = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Finanças Fácil. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Meu Bolso. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

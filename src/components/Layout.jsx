@@ -8,7 +8,7 @@ const Layout = ({ children, abaAtiva, setAbaAtiva }) => {
     { id: 'dashboard', nome: 'Dashboard', icone: LayoutDashboard },
     { id: 'orcamento', nome: 'Orçamento', icone: Target },
     { id: 'receitas', nome: 'Receitas', icone: DollarSign },
-    { id: 'despesas', nome: 'Despesas', icone: CreditCard },     
+    { id: 'despesas', nome: 'Despesas', icone: CreditCard },
     { id: 'relatorios', nome: 'Relatórios', icone: BarChart3 },
     { id: 'dre', nome: 'DRE', icone: FileText },
     { id: 'backup', nome: 'Backup', icone: Save }
@@ -31,7 +31,7 @@ const Layout = ({ children, abaAtiva, setAbaAtiva }) => {
         {/* SIDEBAR - DESKTOP */}
         <aside className="hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200 min-h-screen">
           <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">Finanças Fácil</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Meu Bolso</h1>
             <p className="text-sm text-gray-600">Controle Financeiro</p>
           </div>
 
@@ -42,11 +42,10 @@ const Layout = ({ children, abaAtiva, setAbaAtiva }) => {
                 <button
                   key={item.id}
                   onClick={() => setAbaAtiva(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    abaAtiva === item.id
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${abaAtiva === item.id
                       ? 'bg-blue-600 text-white shadow-lg'
                       : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.nome}</span>
@@ -90,11 +89,10 @@ const Layout = ({ children, abaAtiva, setAbaAtiva }) => {
                         setAbaAtiva(item.id);
                         setMenuAberto(false);
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                        abaAtiva === item.id
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${abaAtiva === item.id
                           ? 'bg-blue-600 text-white shadow-lg'
                           : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+                        }`}
                     >
                       <Icon className="w-5 h-5" />
                       <span className="font-medium">{item.nome}</span>

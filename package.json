@@ -1,5 +1,5 @@
 {
-  "name": "financas-facil",
+  "name": "meu-bolso",
   "private": true,
   "version": "2.0.0",
   "type": "module",
@@ -27,6 +27,7 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1",
     "recharts": "^2.15.4",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^2.2.0",
     "xlsx": "^0.18.5"
   },

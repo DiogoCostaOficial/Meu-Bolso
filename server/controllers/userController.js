@@ -1,9 +1,9 @@
 const db = require('../utils/database');
 
-const obterPerfil = (req, res) => {
+const obterPerfil = async (req, res) => {
   try {
     const userId = req.usuario.id;
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.id === userId);
 
     if (!usuario) {
@@ -27,25 +27,25 @@ const obterPerfil = (req, res) => {
   }
 };
 
-const atualizarPerfil = (req, res) => {
+const atualizarPerfil = async (req, res) => {
   try {
     const userId = req.usuario.id;
     const { nome, avatar } = req.body;
 
-    const usuarios = db.getUsuarios();
-    const usuarioIndex = usuarios.findIndex(u => u.id === userId);
+    const usuarios = await db.getUsuarios();
+    const usuario = usuarios.find(u => u.id === userId);
 
-    if (usuarioIndex === -1) {
+    if (!usuario) {
       return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
     }
 
     // Update fields if provided
-    if (nome) usuarios[usuarioIndex].nome = nome;
-    if (avatar !== undefined) usuarios[usuarioIndex].avatar = avatar;
+    if (nome) usuario.nome = nome;
+    if (avatar !== undefined) usuario.avatar = avatar;
 
-    db.salvarUsuarios(usuarios);
+    await db.atualizarUsuario(usuario);
 
-    const { senha, otpCodigo, otpExpira, ...dadosUsuario } = usuarios[usuarioIndex];
+    const { senha, otpCodigo, otpExpira, ...dadosUsuario } = usuario;
 
     res.json({
       success: true,
@@ -61,21 +61,43 @@ const atualizarPerfil = (req, res) => {
   }
 };
 
-const uploadAvatar = (req, res) => {
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
+const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Nenhum arquivo enviado' });
     }
 
-    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const file = req.file;
+    const fileExt = file.originalname.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Erro Supabase Storage:', error);
+      throw error;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
 
     res.json({
       success: true,
       message: 'Avatar enviado com sucesso',
-      data: { avatarUrl },
+      data: { avatarUrl: publicUrl },
       sucesso: true,
       mensagem: 'Avatar enviado com sucesso',
-      dados: { avatarUrl }
+      dados: { avatarUrl: publicUrl }
     });
   } catch (error) {
     console.error('Erro ao fazer upload do avatar:', error);
@@ -83,17 +105,17 @@ const uploadAvatar = (req, res) => {
   }
 };
 
-const obterDados = (req, res) => {
+const obterDados = async (req, res) => {
   try {
     const userId = req.usuario.id;
-    const dados = db.buscarDadosUsuario(userId);
+    const dados = await db.buscarDadosUsuario(userId);
     res.json({ success: true, message: '', data: dados, sucesso: true, mensagem: '', dados });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Erro ao obter dados', sucesso: false, mensagem: 'Erro ao obter dados' });
   }
 };
 
-const salvarDados = (req, res) => {
+const salvarDados = async (req, res) => {
   try {
     const userId = req.usuario.id;
     const dados = req.body && req.body.dados ? req.body.dados : req.body;
@@ -106,7 +128,7 @@ const salvarDados = (req, res) => {
     if (dados.despesas && !Array.isArray(dados.despesas)) {
       dados.despesas = [];
     }
-    const ok = db.salvarDadosUsuario(userId, dados);
+    const ok = await db.salvarDadosUsuario(userId, dados);
     if (!ok) {
       return res.status(500).json({ success: false, message: 'Erro ao salvar dados', sucesso: false, mensagem: 'Erro ao salvar dados' });
     }

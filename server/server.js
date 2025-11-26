@@ -23,7 +23,7 @@ app.use('/api/user', userRoutes);
 // Rota de teste
 app.get('/', (req, res) => {
   res.json({
-    message: 'API Finanças Fácil está rodando!',
+    message: 'API Meu Bolso está rodando!',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
@@ -51,13 +51,18 @@ app.use((err, req, res, next) => {
 });
 
 // Inicia o servidor
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`\n✅ Servidor rodando na porta ${PORT}`);
-  console.log(`🌐 API: http://localhost:${PORT}`);
-  console.log(`📚 Endpoints disponíveis:`);
-  console.log(`   - POST http://localhost:${PORT}/api/auth/registrar`);
-  console.log(`   - POST http://localhost:${PORT}/api/auth/login`);
-  console.log(`   - POST http://localhost:${PORT}/api/auth/alterar-senha`);
-  console.log(`\n✨ Banco de dados carregado com sucesso!\n`);
-});
+// Inicia o servidor apenas se não estiver em produção (Vercel exporta o app)
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`\n✅ Servidor rodando na porta ${PORT}`);
+    console.log(`🌐 API: http://localhost:${PORT}`);
+    console.log(`📚 Endpoints disponíveis:`);
+    console.log(`   - POST http://localhost:${PORT}/api/auth/registrar`);
+    console.log(`   - POST http://localhost:${PORT}/api/auth/login`);
+    console.log(`   - POST http://localhost:${PORT}/api/auth/alterar-senha`);
+    console.log(`\n✨ Banco de dados carregado com sucesso!\n`);
+  });
+}
+
+module.exports = app;

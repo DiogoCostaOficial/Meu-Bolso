@@ -62,7 +62,7 @@ const registrar = async (req, res) => {
     }
 
     // Verifica se e-mail já existe
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuarioExistente = usuarios.find(u => u.email === email);
 
     if (usuarioExistente) {
@@ -94,7 +94,7 @@ const registrar = async (req, res) => {
     };
 
     // Salva usuário no banco
-    db.adicionarUsuario(novoUsuario);
+    await db.adicionarUsuario(novoUsuario);
 
     // Envia OTP
     await enviarCodigoOTP(email, nome, otpCodigo);
@@ -121,7 +121,7 @@ const login = async (req, res) => {
 
     // Login especial para admin (sem email)
     if (username === 'admin' && senha === 'admin') {
-      const usuarios = db.getUsuarios();
+      const usuarios = await db.getUsuarios();
       const usuarioAdmin = usuarios.find(u => u.tipo === 'admin' && u.email === 'admin@admin.com');
 
       if (!usuarioAdmin) {
@@ -133,7 +133,7 @@ const login = async (req, res) => {
 
       // Atualiza último acesso
       usuarioAdmin.ultimoAcesso = new Date().toISOString();
-      db.salvarUsuarios(usuarios);
+      await db.atualizarUsuario(usuarioAdmin);
 
       // Gera token
       const token = gerarToken(usuarioAdmin);
@@ -172,7 +172,7 @@ const login = async (req, res) => {
       });
     }
 
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.email === email);
 
     if (!usuario) {
@@ -210,7 +210,7 @@ const login = async (req, res) => {
 
     // Atualiza último acesso
     usuario.ultimoAcesso = new Date().toISOString();
-    db.salvarUsuarios(usuarios);
+    await db.atualizarUsuario(usuario);
 
     // Gera token
     const token = gerarToken(usuario);
@@ -238,14 +238,14 @@ const login = async (req, res) => {
 };
 
 // Validar OTP
-const validarOTP = (req, res) => {
+const validarOTP = async (req, res) => {
   try {
     const { email, codigo } = req.body;
     if (!email || !codigo) {
       return res.status(400).json({ success: false, message: 'E-mail e código são obrigatórios' });
     }
 
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.email === email);
     if (!usuario) {
       return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
@@ -272,7 +272,7 @@ const validarOTP = (req, res) => {
     usuario.primeiroAcesso = false;
     usuario.otpCodigo = null;
     usuario.otpExpira = null;
-    db.salvarUsuarios(usuarios);
+    await db.atualizarUsuario(usuario);
 
     const token = gerarToken(usuario);
     return res.json({
@@ -294,7 +294,7 @@ const reenviarOTP = async (req, res) => {
       return res.status(400).json({ success: false, message: 'E-mail é obrigatório' });
     }
 
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.email === email);
     if (!usuario) {
       return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
@@ -307,7 +307,7 @@ const reenviarOTP = async (req, res) => {
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
     usuario.otpCodigo = codigo;
     usuario.otpExpira = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    db.salvarUsuarios(usuarios);
+    await db.atualizarUsuario(usuario);
 
     await enviarCodigoOTP(email, usuario.nome, codigo);
     return res.json({ success: true, message: 'Novo código enviado' });
@@ -337,7 +337,7 @@ const alterarSenha = async (req, res) => {
       });
     }
 
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.id === usuarioId);
 
     if (!usuario) {
@@ -369,7 +369,7 @@ const alterarSenha = async (req, res) => {
     // Atualiza senha
     usuario.senha = await hashSenha(novaSenha);
     usuario.primeiroAcesso = false;
-    db.salvarUsuarios(usuarios);
+    await db.atualizarUsuario(usuario);
 
     // Registra atividade especial se for admin
     if (usuario.email === 'admin@admin.com') {
@@ -402,7 +402,7 @@ const solicitarRecuperacaoSenha = async (req, res) => {
       });
     }
 
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.email === email);
 
     if (!usuario) {
@@ -421,7 +421,7 @@ const solicitarRecuperacaoSenha = async (req, res) => {
     // Atualiza usuário com OTP
     usuario.otpCodigo = otpCodigo;
     usuario.otpExpira = otpExpira;
-    db.salvarUsuarios(usuarios);
+    await db.atualizarUsuario(usuario);
 
     // Envia e-mail
     console.log(`🔑 RECUPERAÇÃO DE SENHA - CÓDIGO OTP: ${otpCodigo} para ${email}`);
@@ -460,7 +460,7 @@ const redefinirSenha = async (req, res) => {
       });
     }
 
-    const usuarios = db.getUsuarios();
+    const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.email === email);
 
     if (!usuario) {
@@ -507,7 +507,7 @@ const redefinirSenha = async (req, res) => {
       usuario.verificado = true;
     }
 
-    db.salvarUsuarios(usuarios);
+    await db.atualizarUsuario(usuario);
 
     res.json({
       success: true,

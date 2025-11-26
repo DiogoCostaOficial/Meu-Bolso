@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { ModeToggle } from '../mode-toggle';
+import { toast } from 'sonner';
 
 const LoginNovo = () => {
   const navigate = useNavigate();
@@ -17,7 +19,6 @@ const LoginNovo = () => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,10 +32,6 @@ const LoginNovo = () => {
         ...prev,
         [name]: ''
       }));
-    }
-
-    if (apiError) {
-      setApiError('');
     }
   };
 
@@ -69,7 +66,6 @@ const LoginNovo = () => {
     }
 
     setLoading(true);
-    setApiError('');
 
     try {
       let result;
@@ -83,6 +79,7 @@ const LoginNovo = () => {
       }
 
       if (result.success) {
+        toast.success("Login realizado com sucesso!");
         if (result.primeiroAcesso || result.loginEspecial) {
           navigate('/alterar-senha-obrigatorio');
         } else {
@@ -90,20 +87,24 @@ const LoginNovo = () => {
         }
       } else {
         if (result.message && /não verificada|OTP/i.test(result.message)) {
+          toast.warning("Verificação necessária.");
           navigate('/validar-otp', { state: { email: formData.email } });
         } else {
-          setApiError(result.message || 'Erro ao fazer login');
+          toast.error(result.message || 'Erro ao fazer login');
         }
       }
     } catch (error) {
-      setApiError('Erro ao conectar com o servidor');
+      toast.error('Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-gray-900 transition-colors duration-300 px-4 relative">
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
       <div className="max-w-md w-full">
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -134,13 +135,7 @@ const LoginNovo = () => {
             </button>
           </div>
 
-          {/* Erro da API */}
-          {apiError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
-              <p className="text-sm text-red-800">{apiError}</p>
-            </div>
-          )}
+
 
           {/* Formulário */}
           <form onSubmit={handleSubmit} className="space-y-6">

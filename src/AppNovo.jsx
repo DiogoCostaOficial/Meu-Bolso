@@ -18,6 +18,7 @@ import RedefinirSenha from './components/auth/RedefinirSenha';
 import Dashboard from './pages/Dashboard';
 import Receitas from './pages/Receitas';
 import Despesas from './pages/Despesas';
+import Cartoes from './pages/Cartoes';
 import DRE from './pages/DRE';
 import Relatorios from './pages/Relatorios';
 import Orcamento from './pages/Orcamento';
@@ -62,6 +63,14 @@ function AppNovo() {
         element={
           <ProtectedRoute>
             <Despesas />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cartoes"
+        element={
+          <ProtectedRoute>
+            <Cartoes />
           </ProtectedRoute>
         }
       />

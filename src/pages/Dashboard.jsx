@@ -8,7 +8,7 @@ const Dashboard = () => {
     receitas: [],
     despesas: []
   });
-
+  const [categorias, setCategorias] = useState([]);
   const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
 
   useEffect(() => {
@@ -33,6 +33,19 @@ const Dashboard = () => {
         receitas: userData.receitas || [],
         despesas: userData.despesas || []
       });
+
+      // Carregar categorias do usuário ou usar padrão
+      if (userData.categorias && userData.categorias.length > 0) {
+        setCategorias(userData.categorias);
+      } else {
+        setCategorias([
+          { nome: 'Despesas Fixas', cor: '#EF4444' },
+          { nome: 'Lazer', cor: '#3B82F6' },
+          { nome: 'Educação', cor: '#10B981' },
+          { nome: 'Investimentos', cor: '#8B5CF6' },
+          { nome: 'Reserva de Emergência', cor: '#F59E0B' }
+        ]);
+      }
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
       // Se não houver dados, inicia com arrays vazios
@@ -72,24 +85,26 @@ const Dashboard = () => {
   const receitasFiltradas = filtrarPorAno(financialData.receitas);
   const despesasFiltradas = filtrarPorAno(financialData.despesas);
 
-  // Separar despesas por categoria
-  const despesasEssenciais = despesasFiltradas.filter(d => d.categoria === 'Despesas Fixas');
-  const despesasLazer = despesasFiltradas.filter(d => d.categoria === 'Lazer');
-  const despesasEducacao = despesasFiltradas.filter(d => d.categoria === 'Educação');
+  // Calcular totais por categoria dinamicamente
+  const categoriasTotais = categorias.map(cat => {
+    const total = despesasFiltradas
+      .filter(d => d.categoria === cat.nome)
+      .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0);
+    return { ...cat, total };
+  }).filter(cat => cat.total > 0);
 
   const totalReceitas = calculateTotal(receitasFiltradas);
-  const totalDespesasEssenciais = calculateTotal(despesasEssenciais);
-  const totalDespesasLazer = calculateTotal(despesasLazer);
-  const totalDespesasEducacao = calculateTotal(despesasEducacao);
-  const totalDespesas = totalDespesasEssenciais + totalDespesasLazer + totalDespesasEducacao;
+  const totalDespesas = calculateTotal(despesasFiltradas); // Soma de TODAS as despesas filtradas
   const saldoFinal = totalReceitas - totalDespesas;
   const percentualSobra = totalReceitas > 0 ? ((saldoFinal / totalReceitas) * 100) : 0;
 
   const pieData = [
-    { name: 'Despesas Fixas', value: totalDespesasEssenciais, color: '#ef4444' },
-    { name: 'Lazer', value: totalDespesasLazer, color: '#f59e0b' },
-    { name: 'Educação', value: totalDespesasEducacao, color: '#8b5cf6' },
-    { name: 'Saldo', value: saldoFinal > 0 ? saldoFinal : 0, color: '#3b82f6' },
+    ...categoriasTotais.map(cat => ({
+      name: cat.nome,
+      value: cat.total,
+      color: cat.cor
+    })),
+    { name: 'Saldo', value: saldoFinal > 0 ? saldoFinal : 0, color: '#3b82f6' }
   ].filter(item => item.value > 0);
 
   const cards = [
@@ -248,18 +263,15 @@ const Dashboard = () => {
                 <span className="text-gray-700 font-medium">Total de Receitas</span>
                 <span className="font-bold text-green-600 text-lg">{formatCurrency(totalReceitas)}</span>
               </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                <span className="text-gray-700 font-medium">Despesas Fixas</span>
-                <span className="font-bold text-red-600">{formatCurrency(totalDespesasEssenciais)}</span>
-              </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                <span className="text-gray-700 font-medium">Lazer</span>
-                <span className="font-bold text-orange-600">{formatCurrency(totalDespesasLazer)}</span>
-              </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                <span className="text-gray-700 font-medium">Educação</span>
-                <span className="font-bold text-purple-600">{formatCurrency(totalDespesasEducacao)}</span>
-              </div>
+
+              {/* Categorias Dinâmicas */}
+              {categoriasTotais.map((cat, index) => (
+                <div key={index} className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <span className="text-gray-700 font-medium">{cat.nome}</span>
+                  <span className="font-bold" style={{ color: cat.cor }}>{formatCurrency(cat.total)}</span>
+                </div>
+              ))}
+
               <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                 <span className="text-gray-700 font-medium">Total de Despesas</span>
                 <span className="font-bold text-red-600 text-lg">{formatCurrency(totalDespesas)}</span>

@@ -30,7 +30,7 @@ export default function AdminSettingsPage() {
                   type="text"
                   name="site-name"
                   id="site-name"
-                  defaultValue="Finanças Fácil"
+                  defaultValue="Meu Bolso"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
@@ -101,7 +101,7 @@ export default function AdminSettingsPage() {
                   type="email"
                   name="email-from"
                   id="email-from"
-                  defaultValue="noreply@financasfacil.com"
+                  defaultValue="noreply@meubolso.com"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>

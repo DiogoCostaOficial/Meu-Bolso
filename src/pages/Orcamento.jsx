@@ -41,21 +41,30 @@ const Orcamento = () => {
     try {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      
+
       // Look for budget for the selected month
       const orcamentos = Array.isArray(userData.orcamentos) ? userData.orcamentos : [];
       const orcamentoMes = orcamentos.find(o => o.mes === mesSelecionado);
-      
+
       if (orcamentoMes) {
         setRendaPrevista(orcamentoMes.rendaPrevista || '');
         setDividas(orcamentoMes.dividas || '');
         setRendaReal(orcamentoMes.rendaReal || '');
-        // Use categories from backend or default categories
-        const categoriasBackend = orcamentoMes.categorias || [];
-        if (categoriasBackend.length > 0) {
-          setCategorias(categoriasBackend.map(cat => ({
+        // Use categories from saved budget, or user's custom categories, or defaults
+        const categoriasDoOrcamento = orcamentoMes.categorias || [];
+        const categoriasDoUsuario = userData.categorias || [];
+
+        if (categoriasDoOrcamento.length > 0) {
+          setCategorias(categoriasDoOrcamento.map(cat => ({
             ...cat,
             gastoAtual: cat.gastoAtual || 0
+          })));
+        } else if (categoriasDoUsuario.length > 0) {
+          // Use user's custom categories
+          setCategorias(categoriasDoUsuario.map(cat => ({
+            ...cat,
+            percentual: 0,
+            gastoAtual: 0
           })));
         } else {
           // Default categories if none in backend
@@ -68,17 +77,27 @@ const Orcamento = () => {
           ]);
         }
       } else {
-        // No budget found for this month - reset to defaults
+        // No budget found for this month - reset to defaults or user categories
         setRendaPrevista('');
         setDividas('');
         setRendaReal('');
-        setCategorias([
-          { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
-          { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
-          { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
-          { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
-          { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
-        ]);
+
+        const categoriasDoUsuario = userData.categorias || [];
+        if (categoriasDoUsuario.length > 0) {
+          setCategorias(categoriasDoUsuario.map(cat => ({
+            ...cat,
+            percentual: 0,
+            gastoAtual: 0
+          })));
+        } else {
+          setCategorias([
+            { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
+            { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
+            { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
+            { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
+            { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
+          ]);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar orçamento do backend:', error);
@@ -89,10 +108,10 @@ const Orcamento = () => {
     try {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      
+
       // Get expenses from backend
       const despesas = Array.isArray(userData.despesas) ? userData.despesas : [];
-      
+
       // Filter expenses for the selected month
       const despesasMes = despesas.filter(d => d.data.startsWith(mesSelecionado));
       setDespesas(despesasMes);
@@ -143,11 +162,11 @@ const Orcamento = () => {
       alert('Informe uma renda prevista válida!');
       return;
     }
-    
+
     try {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      
+
       // Prepare budget data
       const novoOrcamento = {
         mes: mesSelecionado,
@@ -156,25 +175,25 @@ const Orcamento = () => {
         rendaReal,
         categorias // Categories already contain updated gastoAtual
       };
-      
+
       // Get existing budgets or initialize array
       const orcamentos = Array.isArray(userData.orcamentos) ? userData.orcamentos : [];
-      
+
       // Remove existing budget for this month if it exists
       const orcamentosFiltrados = orcamentos.filter(o => o.mes !== mesSelecionado);
-      
+
       // Add the new budget
       orcamentosFiltrados.push(novoOrcamento);
-      
+
       // Update user data with new budgets array
       const updatedData = {
         ...userData,
         orcamentos: orcamentosFiltrados
       };
-      
+
       // Save to backend
       await api.post('/user/dados', { dados: updatedData });
-      
+
       setOrcamentoSalvo(true);
       setTimeout(() => {
         setOrcamentoSalvo(false);
@@ -190,33 +209,43 @@ const Orcamento = () => {
       try {
         const response = await api.get('/user/dados');
         const userData = response.data.dados || {};
-        
+
         // Get existing budgets
         const orcamentos = Array.isArray(userData.orcamentos) ? userData.orcamentos : [];
-        
+
         // Remove budget for this month
         const orcamentosFiltrados = orcamentos.filter(o => o.mes !== mesSelecionado);
-        
+
         // Update user data
         const updatedData = {
           ...userData,
           orcamentos: orcamentosFiltrados
         };
-        
+
         // Save to backend
         await api.post('/user/dados', { dados: updatedData });
-        
+
         // Reset form
         setRendaPrevista('');
         setDividas('');
         setRendaReal('');
-        setCategorias([
-          { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
-          { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
-          { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
-          { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
-          { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
-        ]);
+
+        const categoriasDoUsuario = userData.categorias || [];
+        if (categoriasDoUsuario.length > 0) {
+          setCategorias(categoriasDoUsuario.map(cat => ({
+            ...cat,
+            percentual: 0,
+            gastoAtual: 0
+          })));
+        } else {
+          setCategorias([
+            { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
+            { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
+            { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
+            { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
+            { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
+          ]);
+        }
       } catch (error) {
         console.error('Erro ao resetar orçamento no backend:', error);
         alert('Erro ao resetar orçamento. Tente novamente.');
@@ -451,9 +480,8 @@ const Orcamento = () => {
                   <span className="font-bold text-gray-900 text-lg">TOTAL</span>
                 </td>
                 <td className="px-4 py-4 text-center">
-                  <span className={`text-2xl font-bold ${
-                    percentualValido ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span className={`text-2xl font-bold ${percentualValido ? 'text-green-600' : 'text-red-600'
+                    }`}>
                     {totalPercentual.toFixed(2)}%
                   </span>
                 </td>

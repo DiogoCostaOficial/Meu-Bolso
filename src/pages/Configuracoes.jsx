@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { userService, authService } from '../services/api';
-import { User, Lock, Save, Check, AlertCircle, Camera, Upload } from 'lucide-react';
+import { User, Lock, Save, Check, AlertCircle, Camera, Upload, Layers, Trash2, Plus, XCircle } from 'lucide-react';
 
 const Configuracoes = () => {
     const { user, updateUser, changePassword } = useAuth();
@@ -275,6 +275,221 @@ const Configuracoes = () => {
                         </button>
                     </form>
                 </div>
+            </div>
+
+            {/* Gerenciamento de Categorias */}
+            <GerenciarCategorias
+                loading={loading}
+                setLoading={setLoading}
+                setMessage={setMessage}
+            />
+        </div>
+    );
+};
+
+// Componente Interno para Gerenciar Categorias
+const GerenciarCategorias = ({ loading, setLoading, setMessage }) => {
+    const [categorias, setCategorias] = useState([]);
+    const [novaCategoria, setNovaCategoria] = useState({ nome: '', cor: '#000000', subcategorias: [] });
+    const [novaSubcategoria, setNovaSubcategoria] = useState('');
+    const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+
+    useEffect(() => {
+        carregarCategorias();
+    }, []);
+
+    const carregarCategorias = async () => {
+        try {
+            const response = await userService.obterDados(); // Assume que retorna { dados: { categorias: [...] } }
+            if (response.success && response.data && response.data.categorias) {
+                setCategorias(response.data.categorias);
+            } else {
+                // Se não houver categorias, inicializa com padrão (opcional, ou deixa vazio)
+                // Aqui vamos deixar vazio ou carregar defaults se o backend não tiver nada
+            }
+        } catch (error) {
+            console.error('Erro ao carregar categorias:', error);
+        }
+    };
+
+    const salvarCategorias = async (novasCategorias) => {
+        try {
+            setLoading(true);
+            // Primeiro busca os dados atuais para não sobrescrever outros campos
+            const responseGet = await userService.obterDados();
+            const dadosAtuais = responseGet.data || {};
+
+            const dadosAtualizados = {
+                ...dadosAtuais,
+                categorias: novasCategorias
+            };
+
+            const responseSave = await userService.salvarDados({ dados: dadosAtualizados });
+            if (responseSave.success) {
+                setCategorias(novasCategorias);
+                setMessage({ type: 'success', text: 'Categorias atualizadas com sucesso!' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Erro ao salvar categorias.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const adicionarCategoria = () => {
+        if (!novaCategoria.nome) {
+            setMessage({ type: 'error', text: 'Nome da categoria é obrigatório.' });
+            return;
+        }
+        if (novaCategoria.subcategorias.length === 0) {
+            setMessage({ type: 'error', text: 'Adicione pelo menos uma subcategoria.' });
+            return;
+        }
+
+        const novasCategorias = [...categorias, { ...novaCategoria, id: Date.now().toString() }];
+        salvarCategorias(novasCategorias);
+        setNovaCategoria({ nome: '', cor: '#000000', subcategorias: [] });
+        setNovaSubcategoria('');
+    };
+
+    const adicionarSubcategoriaNaNova = () => {
+        if (!novaSubcategoria) return;
+        setNovaCategoria(prev => ({
+            ...prev,
+            subcategorias: [...prev.subcategorias, novaSubcategoria]
+        }));
+        setNovaSubcategoria('');
+    };
+
+    const removerSubcategoriaDaNova = (index) => {
+        setNovaCategoria(prev => ({
+            ...prev,
+            subcategorias: prev.subcategorias.filter((_, i) => i !== index)
+        }));
+    };
+
+    const adicionarSubcategoriaEmExistente = (catIndex) => {
+        if (!novaSubcategoria) return;
+        const novasCategorias = [...categorias];
+        novasCategorias[catIndex].subcategorias = [...(novasCategorias[catIndex].subcategorias || []), novaSubcategoria];
+        salvarCategorias(novasCategorias);
+        setNovaSubcategoria('');
+    };
+
+    const removerCategoria = (index) => {
+        if (window.confirm('Tem certeza que deseja remover esta categoria?')) {
+            const novasCategorias = categorias.filter((_, i) => i !== index);
+            salvarCategorias(novasCategorias);
+        }
+    };
+
+    return (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
+            <div className="flex items-center gap-2 mb-6">
+                <Layers className="text-indigo-600" size={24} />
+                <h2 className="text-lg font-semibold text-gray-800">Gerenciar Categorias</h2>
+            </div>
+
+            {/* Lista de Categorias Existentes */}
+            <div className="space-y-4 mb-8">
+                {categorias.map((cat, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-bold text-lg" style={{ color: cat.cor }}>{cat.nome}</h3>
+                            <button onClick={() => removerCategoria(index)} className="text-red-500 hover:text-red-700">
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {cat.subcategorias && cat.subcategorias.map((sub, subIndex) => (
+                                <span key={subIndex} className="bg-gray-100 px-2 py-1 rounded text-sm text-gray-700">
+                                    {sub}
+                                </span>
+                            ))}
+                        </div>
+                        {/* Adicionar Subcategoria em Existente */}
+                        <div className="mt-2 flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Nova subcategoria"
+                                className="border rounded px-2 py-1 text-sm"
+                                value={categoriaSelecionada === index ? novaSubcategoria : ''}
+                                onChange={(e) => {
+                                    setCategoriaSelecionada(index);
+                                    setNovaSubcategoria(e.target.value);
+                                }}
+                            />
+                            <button
+                                onClick={() => adicionarSubcategoriaEmExistente(index)}
+                                className="bg-blue-500 text-white px-2 py-1 rounded text-sm"
+                                disabled={categoriaSelecionada !== index || !novaSubcategoria}
+                            >
+                                <Plus size={14} />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Adicionar Nova Categoria */}
+            <div className="border-t pt-4">
+                <h3 className="font-semibold mb-4">Adicionar Nova Categoria</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input
+                        type="text"
+                        placeholder="Nome da Categoria"
+                        className="border rounded p-2"
+                        value={novaCategoria.nome}
+                        onChange={(e) => setNovaCategoria({ ...novaCategoria, nome: e.target.value })}
+                    />
+                    <input
+                        type="color"
+                        className="h-10 w-full cursor-pointer"
+                        value={novaCategoria.cor}
+                        onChange={(e) => setNovaCategoria({ ...novaCategoria, cor: e.target.value })}
+                    />
+                </div>
+
+                {/* Adicionar Subcategorias para a Nova Categoria */}
+                <div className="mb-4">
+                    <div className="flex gap-2 mb-2">
+                        <input
+                            type="text"
+                            placeholder="Adicionar Subcategoria (Obrigatório)"
+                            className="border rounded p-2 flex-grow"
+                            value={categoriaSelecionada === 'nova' ? novaSubcategoria : ''}
+                            onChange={(e) => {
+                                setCategoriaSelecionada('nova');
+                                setNovaSubcategoria(e.target.value);
+                            }}
+                        />
+                        <button
+                            onClick={adicionarSubcategoriaNaNova}
+                            className="bg-green-500 text-white px-4 py-2 rounded"
+                            disabled={categoriaSelecionada !== 'nova' || !novaSubcategoria}
+                        >
+                            <Plus size={20} />
+                        </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {novaCategoria.subcategorias.map((sub, index) => (
+                            <span key={index} className="bg-gray-100 px-2 py-1 rounded text-sm text-gray-700 flex items-center gap-1">
+                                {sub}
+                                <button onClick={() => removerSubcategoriaDaNova(index)} className="text-red-500 hover:text-red-700">
+                                    <XCircle size={14} />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                <button
+                    onClick={adicionarCategoria}
+                    disabled={loading}
+                    className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+                >
+                    Salvar Nova Categoria
+                </button>
             </div>
         </div>
     );

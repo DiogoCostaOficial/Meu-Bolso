@@ -1,12 +1,12 @@
 // src/pages/LandingPage.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  TrendingUp, 
-  Shield, 
-  PieChart, 
-  Users, 
-  Target, 
+import {
+  TrendingUp,
+  Shield,
+  PieChart,
+  Users,
+  Target,
   CheckCircle,
   ArrowRight,
   DollarSign,
@@ -27,7 +27,7 @@ const LandingPage = () => {
           <div className="flex items-center space-x-2">
             <Wallet className="w-8 h-8 text-blue-600" />
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Finanças Fácil
+              Meu Bolso
             </span>
           </div>
 
@@ -79,7 +79,7 @@ const LandingPage = () => {
               </h1>
 
               <p className="text-xl text-gray-600 leading-relaxed">
-                Tenha controle total sobre receitas, despesas e orçamento. 
+                Tenha controle total sobre receitas, despesas e orçamento.
                 Tome decisões financeiras mais inteligentes com relatórios detalhados.
               </p>
 
@@ -147,7 +147,7 @@ const LandingPage = () => {
                       <span className="text-sm font-semibold text-blue-600">39%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full" style={{width: '39%'}}></div>
+                      <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full" style={{ width: '39%' }}></div>
                     </div>
                   </div>
 
@@ -278,7 +278,7 @@ const LandingPage = () => {
             <div className="order-2 md:order-1">
               <div className="bg-white rounded-3xl p-8 shadow-2xl">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                  Por que escolher o Finanças Fácil?
+                  Por que escolher o Meu Bolso?
                 </h3>
 
                 <div className="space-y-4">
@@ -313,7 +313,7 @@ const LandingPage = () => {
                   Transforme sua vida financeira
                 </h2>
                 <p className="text-xl text-gray-600">
-                  Milhares de pessoas já estão no controle das suas finanças. 
+                  Milhares de pessoas já estão no controle das suas finanças.
                   Junte-se a elas e alcance seus objetivos financeiros!
                 </p>
               </div>
@@ -372,7 +372,7 @@ const LandingPage = () => {
                 ))}
               </div>
               <p className="text-gray-700 mb-6">
-                "Finalmente consegui organizar minhas finanças! O Finanças Fácil me ajudou a economizar 30% do meu salário em apenas 3 meses."
+                "Finalmente consegui organizar minhas finanças! O Meu Bolso me ajudou a economizar 30% do meu salário em apenas 3 meses."
               </p>
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -437,7 +437,7 @@ const LandingPage = () => {
             Pronto para transformar suas finanças?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Junte-se a milhares de pessoas que já estão no controle total do seu dinheiro. 
+            Junte-se a milhares de pessoas que já estão no controle total do seu dinheiro.
             É gratuito e leva menos de 2 minutos!
           </p>
 
@@ -471,7 +471,7 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Wallet className="w-8 h-8 text-blue-400" />
-                <span className="text-xl font-bold">Finanças Fácil</span>
+                <span className="text-xl font-bold">Meu Bolso</span>
               </div>
               <p className="text-gray-400">
                 Controle financeiro inteligente para você e sua família.
@@ -510,7 +510,7 @@ const LandingPage = () => {
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>© 2025 Finanças Fácil. Todos os direitos reservados.</p>
+            <p>© 2025 Meu Bolso. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

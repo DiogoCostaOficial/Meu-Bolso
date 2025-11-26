@@ -32,7 +32,7 @@ const LandingPage = () => {
           <div className="flex items-center space-x-2">
             <Wallet className="w-8 h-8 text-blue-600" />
             <span className="text-2xl font-bold text-blue-600">
-              Finanças Fácil
+              Meu Bolso
             </span>
           </div>
 
@@ -298,11 +298,11 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Wallet className="w-6 h-6 text-blue-500" />
-              <span className="text-lg font-bold text-white">Finanças Fácil</span>
+              <span className="text-lg font-bold text-white">Meu Bolso</span>
             </div>
 
             <div className="text-sm">
-              © 2025 Finanças Fácil. Feito com 💙 para sua liberdade.
+              © 2025 Meu Bolso. Feito com 💙 para sua liberdade.
             </div>
           </div>
         </div>

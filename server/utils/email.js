@@ -16,7 +16,7 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Código de Verificação - Finanças Fácil 🔐',
+    subject: 'Código de Verificação - Meu Bolso 🔐',
     html: `
       <!DOCTYPE html>
       <html>
@@ -106,7 +106,7 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
         <div class="container">
           <div class="logo">🔐</div>
           <h1>Olá, ${nome}!</h1>
-          <p class="subtitle">Bem-vindo ao Finanças Fácil</p>
+          <p class="subtitle">Bem-vindo ao Meu Bolso</p>
 
           <div class="otp-box">
             <p style="color: #666; margin-bottom: 10px;">Seu código de verificação é:</p>
@@ -132,7 +132,7 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
           <div class="footer">
             <p>Se você não solicitou este código, ignore este e-mail.</p>
             <p style="margin-top: 20px;">
-              <strong>Equipe Finanças Fácil</strong><br>
+              <strong>Equipe Meu Bolso</strong><br>
               Controle financeiro inteligente
             </p>
           </div>
@@ -168,7 +168,7 @@ const enviarEmailBoasVindas = async (email, nome) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Bem-vindo ao Finanças Fácil! 🎉',
+    subject: 'Bem-vindo ao Meu Bolso! 🎉',
     html: `
       <!DOCTYPE html>
       <html>
@@ -227,7 +227,7 @@ const enviarEmailBoasVindas = async (email, nome) => {
         </div>
 
         <div class="content">
-          <p>Parabéns! Sua conta no <strong>Finanças Fácil</strong> foi ativada e você já pode começar a usar.</p>
+          <p>Parabéns! Sua conta no <strong>Meu Bolso</strong> foi ativada e você já pode começar a usar.</p>
 
           <h3>🚀 O que você pode fazer agora:</h3>
 
@@ -269,7 +269,7 @@ const enviarEmailBoasVindas = async (email, nome) => {
 
         <div class="footer">
           <p>
-            <strong>Finanças Fácil</strong><br>
+            <strong>Meu Bolso</strong><br>
             Controle financeiro inteligente para você e sua família
           </p>
           <p style="font-size: 12px; color: #999;">

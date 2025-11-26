@@ -100,7 +100,7 @@ export default function AdminDashboard({ children, currentPage = 'dashboard' }) 
                     <img
                       className="h-8 w-auto"
                       src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                      alt="Finanças Fácil"
+                      alt="Meu Bolso"
                     />
                   </div>
                   <nav className="flex flex-1 flex-col">
@@ -181,7 +181,7 @@ export default function AdminDashboard({ children, currentPage = 'dashboard' }) 
               <img
                 className="h-8 w-auto"
                 src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                alt="Finanças Fácil"
+                alt="Meu Bolso"
               />
             </div>
             <nav className="flex flex-1 flex-col">

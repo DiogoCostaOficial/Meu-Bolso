@@ -20,74 +20,33 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-// 1. Definir subcategorias específicas para cada categoria principal
-const subcategoriesDespesasFixas = [
-  'Moradia',
-  'Mercado',
-  'Saúde',
-  'Carro',
-  'Transporte',
-  'Bichos',
-  'Diversos Fixos'
-];
-const subcategoriesLazer = [
-  'Junkie Food',
-  'Assinaturas',
-  'Rolês e Passeios',
-  'Datas especiais',
-  'Presentes',
-  'Diversos Lazer'
-];
-const subcategoriesEducacao = [
-  'Cursos',
-  'Livros',
-  'Workshops',
-  'Material Escolar',
-  'Faculdade',
-  'Idiomas',
-  'Pós-graduação',
-  'Diversos Educação'
-];
-const subcategoriesInvestimentos = [
-  'Investimentos BR',
-  'Investimentos US',
-  'Cripto',
-  'Diversos Investimentos'
-];
-const subcategoriesReservaEmergencia = [
-  'Fundo de Emergência',
-  'Fundo de Oportunidade',
-  'Diversos Reserva'
-];
-
-// 2. Criar uma lista 'allSubcategories' abrangente (união de todas as subcategorias únicas)
-// Usamos um Set para garantir que não haja duplicatas e depois convertemos para Array e ordenamos.
-const allSubcategories = [
-  ...new Set([
-    ...subcategoriesDespesasFixas,
-    ...subcategoriesLazer,
-    ...subcategoriesEducacao,
-    ...subcategoriesInvestimentos,
-    ...subcategoriesReservaEmergencia,
-  ])
-].sort(); // Ordena alfabeticamente para uma exibição consistente nos filtros
-
-// Mapeamento de categorias para suas subcategorias permitidas
-const categoriaSubcategoriaMap = {
-  'Despesas Fixas': subcategoriesDespesasFixas,
-  Lazer: subcategoriesLazer,
-  Educação: subcategoriesEducacao,
-  Investimentos: subcategoriesInvestimentos,
-  'Reserva de Emergência': subcategoriesReservaEmergencia
-};
-
-// Categorias padrão com cores
+// Categorias padrão com cores (Fallback)
 const categoriasDefault = [
-  { nome: 'Despesas Fixas', cor: '#EF4444' },
-  { nome: 'Lazer', cor: '#3B82F6' },
-  { nome: 'Educação', cor: '#10B981' },
-  { nome: 'Investimentos', cor: '#8B5CF6' },
-  { nome: 'Reserva de Emergência', cor: '#F59E0B' }
+  {
+    nome: 'Despesas Fixas',
+    cor: '#EF4444',
+    subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos']
+  },
+  {
+    nome: 'Lazer',
+    cor: '#3B82F6',
+    subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer']
+  },
+  {
+    nome: 'Educação',
+    cor: '#10B981',
+    subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação']
+  },
+  {
+    nome: 'Investimentos',
+    cor: '#8B5CF6',
+    subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos']
+  },
+  {
+    nome: 'Reserva de Emergência',
+    cor: '#F59E0B',
+    subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva']
+  }
 ];
 
 // Lista de meses em português
@@ -105,11 +64,6 @@ const mesesDoAno = [
   { valor: '11', nome: 'Novembro' },
   { valor: '12', nome: 'Dezembro' }
 ];
-
-// Função para obter as subcategorias disponíveis para uma dada categoria
-const getAvailableSubcategories = (categoryName) => {
-  return categoriaSubcategoriaMap[categoryName] || []; // Retorna array vazio se a categoria não tiver subcategorias mapeadas
-};
 
 const Despesas = () => {
   const [despesas, setDespesas] = useState([]);
@@ -147,9 +101,18 @@ const Despesas = () => {
     dataVencimento: '' // Campo de data de vencimento para edição inline
   });
 
+  // Função para obter as subcategorias disponíveis para uma dada categoria (Baseada no estado atual)
+  const getAvailableSubcategories = (categoryName) => {
+    const cat = categorias.find(c => c.nome === categoryName);
+    return cat ? cat.subcategorias || [] : [];
+  };
+
+  // Lista de todas as subcategorias para filtros (Baseada no estado atual)
+  const allSubcategories = [...new Set(categorias.flatMap(c => c.subcategorias || []))].sort();
+
   // Define os valores iniciais padrão para o formulário
   const initialDefaultCategory = categoriasDefault[0].nome;
-  const initialDefaultSubcategories = getAvailableSubcategories(initialDefaultCategory);
+  const initialDefaultSubcategories = categoriasDefault[0].subcategorias;
   const initialDefaultSubcategory = initialDefaultSubcategories.length > 0 ? initialDefaultSubcategories[0] : '';
   const [formulario, setFormulario] = useState({
     descricao: '',
@@ -186,29 +149,14 @@ const Despesas = () => {
     setFiltroSubcategoria('');
   }, [filtroCategoria]);
 
-  // Carrega categorias do localStorage ou usa as padrão
-  const carregarCategorias = () => {
+  // Carrega categorias do backend ou usa as padrão
+  const carregarCategorias = async () => {
     try {
-      const orcamentoSalvo = localStorage.getItem('ORCAMENTO');
-      if (orcamentoSalvo) {
-        const dados = JSON.parse(orcamentoSalvo);
-        if (dados.categorias && dados.categorias.length > 0) {
-          // Filtra apenas as categorias que queremos usar neste componente
-          const categoriasFiltradas = dados.categorias.filter(cat =>
-            ['Despesas Fixas', 'Lazer', 'Educação', 'Investimentos', 'Reserva de Emergência'].includes(cat.nome)
-          );
-          if (categoriasFiltradas.length > 0) {
-            setCategorias(categoriasFiltradas);
-          } else {
-            // Se as categorias do localStorage não contiverem as que queremos, usa as padrão
-            setCategorias(categoriasDefault);
-          }
-        } else {
-          // Se não houver categorias no localStorage, usa as padrão
-          setCategorias(categoriasDefault);
-        }
+      const response = await api.get('/user/dados');
+      if (response.data.success && response.data.dados && response.data.dados.categorias && response.data.dados.categorias.length > 0) {
+        setCategorias(response.data.dados.categorias);
       } else {
-        // Se não houver orçamento salvo, usa as categorias padrão
+        // Se não houver categorias no backend, usa as padrão
         setCategorias(categoriasDefault);
       }
     } catch (error) {
