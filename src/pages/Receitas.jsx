@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit, DollarSign, Calendar, Tag, FileText, TrendingUp, Filter, X, ChevronUp, ChevronDown, Check, XCircle } from 'lucide-react';
 import api from '../services/api';
+import useDebouncedSave from '../hooks/useDebouncedSave';
+import SaveIndicator from '../components/SaveIndicator';
 
 const Receitas = () => {
   const [receitas, setReceitas] = useState([]);
@@ -80,6 +82,7 @@ const Receitas = () => {
       setReceitas([]);
     }
   };
+
   const salvarReceitas = async (novasReceitas) => {
     try {
       // Obter dados atuais do usuário
@@ -99,9 +102,20 @@ const Receitas = () => {
     } catch (error) {
       console.error('❌ Erro ao salvar receitas:', error);
       const errorMessage = error.response?.data?.mensagem || error.message || 'Erro desconhecido';
-      alert(`Erro ao salvar receita: ${errorMessage}\n\nDetalhes: ${errorMessage}`);
+
+      // Relançar o erro para o hook capturar
+      throw new Error(`Erro ao salvar receita: ${errorMessage}`);
     }
   };
+
+  // Hook de debounce para salvamento otimizado
+  const {
+    debouncedSave,
+    saveImmediately,
+    isSaving,
+    saveStatus,
+    lastSaved
+  } = useDebouncedSave(salvarReceitas, 1000); // Aguarda 1 segundo antes de salvar
   const adicionarReceita = (e) => {
     e.preventDefault();
 
@@ -155,7 +169,8 @@ const Receitas = () => {
       receitasAtualizadas = [...receitas, ...novasReceitas];
     }
 
-    salvarReceitas(receitasAtualizadas);
+    // Usar debounce para salvamento otimizado
+    debouncedSave(receitasAtualizadas);
     resetarFormulario();
   };
   // NOVO: Iniciar edição inline
@@ -196,7 +211,9 @@ const Receitas = () => {
         valor: valorNumerico
       } : r
     );
-    salvarReceitas(updatedReceitas);
+
+    // Usar debounce para edição inline
+    debouncedSave(updatedReceitas);
     setEditingItemId(null);
     setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '' });
   };
@@ -208,7 +225,9 @@ const Receitas = () => {
   const excluirReceita = (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta receita?')) {
       const receitasAtualizadas = receitas.filter(r => r.id !== id);
-      salvarReceitas(receitasAtualizadas);
+
+      // Usar salvamento imediato para exclusões (ação crítica)
+      saveImmediately(receitasAtualizadas);
       setEditingItemId(null);
     }
   };
@@ -735,6 +754,13 @@ const Receitas = () => {
           </table>
         </div>
       </div>
+
+      {/* Indicador de salvamento */}
+      <SaveIndicator
+        isSaving={isSaving}
+        saveStatus={saveStatus}
+        lastSaved={lastSaved}
+      />
     </div>
   );
 };

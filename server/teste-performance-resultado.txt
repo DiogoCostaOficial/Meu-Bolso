@@ -1,0 +1,30 @@
+﻿
+ÔÜí TESTE DE PERFORMANCE - SALVAMENTO DE DADOS
+
+============================================================
+Ô£à Conectado ao banco de dados
+
+­ƒôï Testando com usu├írio: user-1763946725507
+
+1´©ÅÔâú  TESTE DE LEITURA:
+   Ô£à Leitura conclu├¡da em 625ms
+   ­ƒôè Dados encontrados:
+      - Receitas: 0
+      - Despesas: 0
+      - Categorias: 0
+      - Or├ºamentos: 0
+
+2´©ÅÔâú  TESTE DE ESCRITA:
+   Ô£à Escrita conclu├¡da em 611ms
+
+3´©ÅÔâú  TESTE DE OPERA├ç├âO COMPLETA (como salvarDadosUsuario):
+   ­ƒôè Registros antes: 0
+   ­ƒùæ´©Å  DELETE executado em 159ms
+   Ô×ò INSERT de 10 registros em 1525ms (m├®dia: 152.5ms/registro)
+   Ô£à Opera├º├úo completa em 2291ms
+
+============================================================
+
+­ƒÆí AN├üLISE E RECOMENDA├ç├òES:
+
+ÔØî ERRO GERAL: writeDuration is not defined

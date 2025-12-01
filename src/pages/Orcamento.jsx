@@ -10,21 +10,24 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
+const CATEGORIAS_PADRAO = [
+  { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
+  { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
+  { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
+  { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
+  { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
+];
+
 const Orcamento = () => {
   const { user } = useAuth();
   const [rendaPrevista, setRendaPrevista] = useState('');
   const [dividas, setDividas] = useState('');
   const [rendaReal, setRendaReal] = useState('');
   const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7)); // Formato YYYY-MM
-  const [categorias, setCategorias] = useState([
-    // CORRIGIDO: 'Despesas Básicas' para 'Despesas Fixas' para consistência
-    { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
-    { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
-    { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
-    { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
-    { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
-  ]);
+  const [categorias, setCategorias] = useState(CATEGORIAS_PADRAO);
   const [orcamentoSalvo, setOrcamentoSalvo] = useState(false);
+  const [mensagemFeedback, setMensagemFeedback] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [despesas, setDespesas] = useState([]);
 
   useEffect(() => {
@@ -34,8 +37,11 @@ const Orcamento = () => {
 
   useEffect(() => {
     calcularRendaReal();
+  }, [rendaPrevista, dividas]);
+
+  useEffect(() => {
     atualizarGastosAtuais();
-  }, [rendaPrevista, dividas, despesas, categorias]); // Adicionado 'categorias' para reagir a mudanças nos percentuais
+  }, [despesas]); // Removido 'categorias' para evitar loop infinito
 
   const carregarOrcamento = async () => {
     try {
@@ -55,10 +61,23 @@ const Orcamento = () => {
         const categoriasDoUsuario = userData.categorias || [];
 
         if (categoriasDoOrcamento.length > 0) {
-          setCategorias(categoriasDoOrcamento.map(cat => ({
-            ...cat,
-            gastoAtual: cat.gastoAtual || 0
-          })));
+          setCategorias(categoriasDoOrcamento.map(cat => {
+            // Fallback robusto para cores
+            let cor = cat.cor;
+            if (!cor || cor === '#CCCCCC') {
+              const match = categoriasDoUsuario.find(c => c.nome === cat.nome) ||
+                CATEGORIAS_PADRAO.find(c => c.nome === cat.nome);
+              if (match) cor = match.cor;
+            }
+            // Se ainda assim não tiver cor, mantém o cinza ou gera uma aleatória (opcional)
+            if (!cor) cor = '#CCCCCC';
+
+            return {
+              ...cat,
+              cor,
+              gastoAtual: cat.gastoAtual || 0
+            };
+          }));
         } else if (categoriasDoUsuario.length > 0) {
           // Use user's custom categories
           setCategorias(categoriasDoUsuario.map(cat => ({
@@ -68,13 +87,7 @@ const Orcamento = () => {
           })));
         } else {
           // Default categories if none in backend
-          setCategorias([
-            { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
-            { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
-            { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
-            { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
-            { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
-          ]);
+          setCategorias(CATEGORIAS_PADRAO);
         }
       } else {
         // No budget found for this month - reset to defaults or user categories
@@ -90,13 +103,7 @@ const Orcamento = () => {
             gastoAtual: 0
           })));
         } else {
-          setCategorias([
-            { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
-            { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
-            { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
-            { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
-            { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
-          ]);
+          setCategorias(CATEGORIAS_PADRAO);
         }
       }
     } catch (error) {
@@ -128,13 +135,21 @@ const Orcamento = () => {
   };
 
   const atualizarGastosAtuais = () => {
-    const novasCategorias = categorias.map(cat => {
-      const gastoTotal = despesas
-        .filter(d => d.categoria === cat.nome)
-        .reduce((acc, d) => acc + d.valor, 0);
-      return { ...cat, gastoAtual: gastoTotal };
+    setCategorias(prevCategorias => {
+      const novasCategorias = prevCategorias.map(cat => {
+        const gastoTotal = despesas
+          .filter(d => d.categoria === cat.nome)
+          .reduce((acc, d) => acc + d.valor, 0);
+        return { ...cat, gastoAtual: gastoTotal };
+      });
+
+      // Verifica se houve mudança real para evitar re-render desnecessário
+      const mudou = novasCategorias.some((cat, index) => {
+        return cat.gastoAtual !== prevCategorias[index].gastoAtual;
+      });
+
+      return mudou ? novasCategorias : prevCategorias;
     });
-    setCategorias(novasCategorias);
   };
 
   const atualizarPercentual = (index, valor) => {
@@ -151,18 +166,22 @@ const Orcamento = () => {
   // };
 
   const totalPercentual = categorias.reduce((acc, cat) => acc + cat.percentual, 0);
-  const percentualValido = totalPercentual === 100;
+  // Use a small epsilon for floating point comparison
+  const percentualValido = Math.abs(totalPercentual - 100) < 0.01;
 
   const salvarOrcamento = async () => {
+    setMensagemFeedback(null); // Limpa mensagens anteriores
+
     if (!percentualValido) {
-      alert('A soma dos percentuais deve ser exatamente 100%!');
+      setMensagemFeedback({ tipo: 'erro', texto: `A soma dos percentuais deve ser 100%. Atual: ${totalPercentual.toFixed(2)}%` });
       return;
     }
     if (!rendaPrevista || parseFloat(rendaPrevista) <= 0) {
-      alert('Informe uma renda prevista válida!');
+      setMensagemFeedback({ tipo: 'erro', texto: 'Informe uma renda prevista válida!' });
       return;
     }
 
+    setLoading(true);
     try {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
@@ -195,12 +214,16 @@ const Orcamento = () => {
       await api.post('/user/dados', { dados: updatedData });
 
       setOrcamentoSalvo(true);
+      setMensagemFeedback({ tipo: 'sucesso', texto: 'Orçamento salvo com sucesso!' });
       setTimeout(() => {
         setOrcamentoSalvo(false);
+        setMensagemFeedback(null);
       }, 3000);
     } catch (error) {
       console.error('Erro ao salvar orçamento no backend:', error);
-      alert('Erro ao salvar orçamento. Tente novamente.');
+      setMensagemFeedback({ tipo: 'erro', texto: 'Erro ao salvar orçamento. Tente novamente.' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -305,18 +328,36 @@ const Orcamento = () => {
           </button>
           <button
             onClick={salvarOrcamento}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg"
+            disabled={loading}
+            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-white transition shadow-lg ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+              }`}
           >
-            <Save className="w-5 h-5" />
-            Salvar Orçamento
+            {loading ? (
+              <>
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                Salvar Orçamento
+              </>
+            )}
           </button>
         </div>
       </div>
-      {/* MENSAGEM DE SUCESSO */}
-      {orcamentoSalvo && (
-        <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4 flex items-center gap-3">
-          <CheckCircle className="w-6 h-6 text-green-600" />
-          <p className="text-green-800 font-semibold">Orçamento salvo com sucesso!</p>
+      {/* MENSAGEM DE FEEDBACK */}
+      {mensagemFeedback && (
+        <div className={`border-2 rounded-lg p-4 flex items-center gap-3 ${mensagemFeedback.tipo === 'sucesso'
+          ? 'bg-green-50 border-green-500 text-green-800'
+          : 'bg-red-50 border-red-500 text-red-800'
+          }`}>
+          {mensagemFeedback.tipo === 'sucesso' ? (
+            <CheckCircle className="w-6 h-6" />
+          ) : (
+            <XCircle className="w-6 h-6" />
+          )}
+          <p className="font-semibold">{mensagemFeedback.texto}</p>
         </div>
       )}
       {/* GRID: RENDA E GRÁFICO */}

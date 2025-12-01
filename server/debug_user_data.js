@@ -41,13 +41,15 @@ async function debugUserData() {
             });
         }
 
-        // 3. Listar algumas transações para conferência
-        const sampleTrans = await client.query('SELECT * FROM transactions WHERE user_id = $1 LIMIT 3', [user.id]);
-        if (sampleTrans.rows.length > 0) {
-            console.log(`\n📝 Exemplo de transações:`);
-            sampleTrans.rows.forEach(t => {
-                console.log(`   - [${t.tipo}] ${t.descricao}: R$ ${t.valor} (ID: ${t.id})`);
+        // 3. Buscar Orçamentos
+        const budgetsRes = await client.query('SELECT * FROM budgets WHERE user_id = $1', [user.id]);
+        console.log(`\n💰 Orçamentos no Banco (${budgetsRes.rows.length}):`);
+        if (budgetsRes.rows.length > 0) {
+            budgetsRes.rows.forEach(b => {
+                console.log(`   - [${b.periodo}] ${b.categoria}: R$ ${b.valor_limite}`);
             });
+        } else {
+            console.log(`   ⚠️ Nenhum orçamento encontrado.`);
         }
 
     } catch (err) {

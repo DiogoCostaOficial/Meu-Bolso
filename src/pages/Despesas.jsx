@@ -19,6 +19,8 @@ import {
   TrendingDown // Adicionado para o card de despesas
 } from 'lucide-react';
 import api from '../services/api';
+import useDebouncedSave from '../hooks/useDebouncedSave';
+import SaveIndicator from '../components/SaveIndicator';
 
 // Categorias padrão com cores (Fallback)
 const categoriasDefault = [
@@ -201,12 +203,24 @@ const Despesas = () => {
       // Salvar no backend
       await api.post('/user/dados', { dados: updatedData });
       setDespesas(novasDespesas);
+      console.log('✅ Despesas salvas com sucesso');
     } catch (error) {
-      console.error('Erro ao salvar despesas:', error);
+      console.error('❌ Erro ao salvar despesas:', error);
       const errorMessage = error.response?.data?.mensagem || error.message || 'Erro desconhecido';
-      alert(`Erro ao salvar despesa: ${errorMessage}\n\nDetalhes: ${errorMessage}`);
+
+      // Relançar o erro para o hook capturar
+      throw new Error(`Erro ao salvar despesa: ${errorMessage}`);
     }
   };
+
+  // Hook de debounce para salvamento otimizado
+  const {
+    debouncedSave,
+    saveImmediately,
+    isSaving,
+    saveStatus,
+    lastSaved
+  } = useDebouncedSave(salvarDespesas, 1000); // Aguarda 1 segundo antes de salvar
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
@@ -299,7 +313,9 @@ const Despesas = () => {
       };
       novasDespesas.push(novaDespesa);
     }
-    salvarDespesas([...despesas, ...novasDespesas]);
+
+    // Usar debounce para salvamento otimizado
+    debouncedSave([...despesas, ...novasDespesas]);
     resetarFormulario();
   };
 
@@ -365,7 +381,9 @@ const Despesas = () => {
         valor: valorNumerico
       } : d
     );
-    salvarDespesas(updatedDespesas);
+
+    // Usar debounce para edição inline
+    debouncedSave(updatedDespesas);
     setEditingItemId(null);
     setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '' }); // Resetar campos
   };
@@ -378,7 +396,9 @@ const Despesas = () => {
   const excluirDespesa = id => {
     if (window.confirm('Deseja realmente excluir esta despesa?')) {
       const novasDespesas = despesas.filter(d => d.id !== id);
-      salvarDespesas(novasDespesas);
+
+      // Usar salvamento imediato para exclusões (ação crítica)
+      saveImmediately(novasDespesas);
       setSelectedDespesas(prev => prev.filter(dId => dId !== id));
       setEditingItemId(null);
     }
@@ -391,7 +411,9 @@ const Despesas = () => {
         ? { ...d, statusPagamento: d.statusPagamento === 'pago' ? 'pendente' : 'pago' }
         : d
     );
-    salvarDespesas(updatedDespesas);
+
+    // Usar debounce para alteração de status
+    debouncedSave(updatedDespesas);
   };
 
   const formatarMoeda = valor => {
@@ -590,7 +612,9 @@ const Despesas = () => {
       }
       return despesa;
     });
-    salvarDespesas(updatedDespesas);
+
+    // Usar debounce para edição em massa
+    debouncedSave(updatedDespesas);
     setSelectedDespesas([]);
     setBulkEditForm({ descricao: '', categoria: '', subcategoria: '', statusPagamento: '' }); // Resetar status
     setMostrarBulkEditForm(false);
@@ -1393,6 +1417,13 @@ const Despesas = () => {
           </>
         )}
       </div>
+
+      {/* Indicador de salvamento */}
+      <SaveIndicator
+        isSaving={isSaving}
+        saveStatus={saveStatus}
+        lastSaved={lastSaved}
+      />
     </div>
   );
 };

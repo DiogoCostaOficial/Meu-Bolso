@@ -82,6 +82,61 @@ const buscarDadosUsuario = async (userId) => {
     const categoriasRes = await client.query("SELECT * FROM categories WHERE user_id = $1", [userId]);
     const orcamentosRes = await client.query("SELECT * FROM budgets WHERE user_id = $1", [userId]);
 
+    // Reconstruct Budgets from flat SQL rows
+    const rawBudgets = orcamentosRes.rows;
+    const budgetsByMonth = {};
+
+    // Create a map of category colors
+    const categoryColors = {};
+    categoriasRes.rows.forEach(c => {
+      categoryColors[c.nome] = c.cor;
+    });
+
+    rawBudgets.forEach(row => {
+      if (!row.periodo) return;
+
+      if (!budgetsByMonth[row.periodo]) {
+        budgetsByMonth[row.periodo] = {
+          mes: row.periodo,
+          rendaPrevista: 0,
+          dividas: 0,
+          rendaReal: 0,
+          categorias: []
+        };
+      }
+
+      const monthData = budgetsByMonth[row.periodo];
+      const valor = parseFloat(row.valor_limite);
+
+      if (row.categoria === 'META_RENDA_PREVISTA') {
+        monthData.rendaPrevista = valor;
+      } else if (row.categoria === 'META_DIVIDAS') {
+        monthData.dividas = valor;
+      } else if (row.categoria === 'META_RENDA_REAL') {
+        monthData.rendaReal = valor;
+      } else {
+        // Regular category
+        monthData.categorias.push({
+          nome: row.categoria,
+          valorPlanejado: valor,
+          // Percentual will be calculated below
+          percentual: 0,
+          cor: categoryColors[row.categoria] || '#CCCCCC' // Use mapped color or default
+        });
+      }
+    });
+
+    // Calculate percentages and finalize structure
+    const finalOrcamentos = Object.values(budgetsByMonth).map(orc => {
+      if (orc.rendaReal > 0) {
+        orc.categorias = orc.categorias.map(cat => ({
+          ...cat,
+          percentual: parseFloat(((cat.valorPlanejado / orc.rendaReal) * 100).toFixed(2))
+        }));
+      }
+      return orc;
+    });
+
     return {
       receitas: receitasRes.rows.map(r => ({
         id: r.id,
@@ -119,12 +174,7 @@ const buscarDadosUsuario = async (userId) => {
         cor: c.cor,
         icone: c.icone
       })),
-      orcamentos: orcamentosRes.rows.map(o => ({
-        id: o.id,
-        categoria: o.categoria,
-        valorLimite: parseFloat(o.valor_limite),
-        periodo: o.periodo
-      }))
+      orcamentos: finalOrcamentos
     };
   } catch (err) {
     console.error('Erro ao buscar dados do usuário:', err);
@@ -139,48 +189,146 @@ const salvarDadosUsuario = async (userId, dados) => {
   try {
     await client.query('BEGIN');
 
-    // Delete existing
-    await client.query('DELETE FROM transactions WHERE user_id = $1', [userId]);
-    await client.query('DELETE FROM categories WHERE user_id = $1', [userId]);
-    await client.query('DELETE FROM budgets WHERE user_id = $1', [userId]);
+    // =========================================================================
+    // 1. TRANSAÇÕES (RECEITAS E DESPESAS) - OTIMIZADO COM UPSERT
+    // =========================================================================
 
-    // Insert Receitas
+    // Coletar todas as transações recebidas (receitas + despesas)
+    const incomingTransactions = [];
     if (dados.receitas && Array.isArray(dados.receitas)) {
-      for (const r of dados.receitas) {
-        await client.query(`
-          INSERT INTO transactions (id, user_id, descricao, valor, data, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, 'receita', $8, $9, $10, $11, $12, $13)
-        `, [r.id, userId, r.descricao, r.valor, r.data, r.categoria, r.subcategoria, r.status, r.statusPagamento, r.parcelado, r.parcelas, r.parcelaAtual, r.observacao]);
-      }
+      dados.receitas.forEach(r => incomingTransactions.push({ ...r, tipo: 'receita' }));
     }
-
-    // Insert Despesas
     if (dados.despesas && Array.isArray(dados.despesas)) {
-      for (const r of dados.despesas) {
-        await client.query(`
-          INSERT INTO transactions (id, user_id, descricao, valor, data, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, 'despesa', $8, $9, $10, $11, $12, $13)
-        `, [r.id, userId, r.descricao, r.valor, r.data, r.categoria, r.subcategoria, r.status, r.statusPagamento, r.parcelado, r.parcelas, r.parcelaAtual, r.observacao]);
-      }
+      dados.despesas.forEach(d => incomingTransactions.push({ ...d, tipo: 'despesa' }));
     }
 
-    // Insert Categories
+    if (incomingTransactions.length > 0) {
+      // A. Identificar IDs para manter/atualizar
+      const incomingIds = incomingTransactions.map(t => t.id).filter(id => id);
+
+      // B. Deletar apenas o que NÃO está na lista recebida (Limpeza seletiva)
+      // Nota: Usamos unnest para performance com arrays grandes
+      if (incomingIds.length > 0) {
+        await client.query(`
+          DELETE FROM transactions 
+          WHERE user_id = $1 
+          AND id NOT IN (SELECT unnest($2::text[]))
+        `, [userId, incomingIds]);
+      }
+
+      // C. Upsert (Inserir ou Atualizar) cada transação
+      for (const t of incomingTransactions) {
+        await client.query(`
+          INSERT INTO transactions (id, user_id, descricao, valor, data, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          ON CONFLICT (id) DO UPDATE SET
+            descricao = EXCLUDED.descricao,
+            valor = EXCLUDED.valor,
+            data = EXCLUDED.data,
+            categoria = EXCLUDED.categoria,
+            subcategoria = EXCLUDED.subcategoria,
+            tipo = EXCLUDED.tipo,
+            status = EXCLUDED.status,
+            status_pagamento = EXCLUDED.status_pagamento,
+            parcelado = EXCLUDED.parcelado,
+            parcelas_total = EXCLUDED.parcelas_total,
+            parcela_atual = EXCLUDED.parcela_atual,
+            observacao = EXCLUDED.observacao
+        `, [
+          t.id,
+          userId,
+          t.descricao,
+          t.valor,
+          t.data,
+          t.categoria,
+          t.subcategoria,
+          t.tipo,
+          t.status,
+          t.statusPagamento,
+          t.parcelado,
+          t.parcelas,
+          t.parcelaAtual,
+          t.observacao
+        ]);
+      }
+    } else if (dados.receitas || dados.despesas) {
+      // Se as chaves existem mas estão vazias, significa que o usuário deletou tudo
+      await client.query('DELETE FROM transactions WHERE user_id = $1', [userId]);
+    }
+
+    // =========================================================================
+    // 2. CATEGORIAS - OTIMIZADO COM UPSERT
+    // =========================================================================
     if (dados.categorias && Array.isArray(dados.categorias)) {
+      const catIds = dados.categorias.map(c => c.id).filter(id => id);
+
+      // Deletar categorias removidas
+      if (catIds.length > 0) {
+        await client.query(`
+          DELETE FROM categories 
+          WHERE user_id = $1 
+          AND id NOT IN (SELECT unnest($2::text[]))
+        `, [userId, catIds]);
+      } else {
+        await client.query('DELETE FROM categories WHERE user_id = $1', [userId]);
+      }
+
+      // Upsert categorias
       for (const c of dados.categorias) {
         await client.query(`
           INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom)
           VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+          ON CONFLICT (id) DO UPDATE SET
+            nome = EXCLUDED.nome,
+            tipo = EXCLUDED.tipo,
+            subcategorias = EXCLUDED.subcategorias,
+            cor = EXCLUDED.cor,
+            icone = EXCLUDED.icone
         `, [c.id, userId, c.nome, c.tipo, c.subcategorias, c.cor, c.icone]);
       }
     }
 
-    // Insert Budgets
+    // =========================================================================
+    // 3. ORÇAMENTOS (Mantido recriação pois IDs são dinâmicos no frontend atual)
+    // =========================================================================
+    // Como os orçamentos são poucos registros, o impacto é mínimo.
     if (dados.orcamentos && Array.isArray(dados.orcamentos)) {
-      for (const o of dados.orcamentos) {
-        await client.query(`
-          INSERT INTO budgets (id, user_id, categoria, valor_limite, periodo)
-          VALUES ($1, $2, $3, $4, $5)
-        `, [o.id, userId, o.categoria, o.valorLimite, o.periodo]);
+      await client.query('DELETE FROM budgets WHERE user_id = $1', [userId]);
+
+      for (const orcamento of dados.orcamentos) {
+        // 1. Insert Meta Data
+        const metaItems = [
+          { key: 'META_RENDA_PREVISTA', value: orcamento.rendaPrevista },
+          { key: 'META_DIVIDAS', value: orcamento.dividas },
+          { key: 'META_RENDA_REAL', value: orcamento.rendaReal }
+        ];
+
+        for (const item of metaItems) {
+          const metaId = `budget-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+          await client.query(`
+            INSERT INTO budgets (id, user_id, categoria, valor_limite, periodo)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [metaId, userId, item.key, parseFloat(item.value || 0), orcamento.mes]);
+        }
+
+        // 2. Insert Categories
+        if (orcamento.categorias && Array.isArray(orcamento.categorias)) {
+          for (const cat of orcamento.categorias) {
+            let valorCalculado = 0;
+            if (cat.valorPlanejado) {
+              valorCalculado = parseFloat(cat.valorPlanejado);
+            } else if (cat.percentual && orcamento.rendaReal) {
+              valorCalculado = (parseFloat(orcamento.rendaReal) * parseFloat(cat.percentual)) / 100;
+            }
+
+            const catId = `budget-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+
+            await client.query(`
+              INSERT INTO budgets (id, user_id, categoria, valor_limite, periodo)
+              VALUES ($1, $2, $3, $4, $5)
+            `, [catId, userId, cat.nome, valorCalculado, orcamento.mes]);
+          }
+        }
       }
     }
 

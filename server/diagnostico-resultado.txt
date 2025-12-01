@@ -1,0 +1,41 @@
+﻿
+­ƒöì DIAGN├ôSTICO DO BANCO DE DADOS
+
+============================================================
+
+­ƒôï 1. VARI├üVEIS DE AMBIENTE:
+   DATABASE_URL: Ô£à Configurada
+   SUPABASE_URL: Ô£à Configurada
+   SUPABASE_ANON_KEY: Ô£à Configurada
+
+­ƒöî 2. TESTANDO CONEX├âO COM O BANCO:
+   Ô£à Conex├úo estabelecida com sucesso!
+
+­ƒôè 3. VERIFICANDO TABELAS:
+   Ô£à users: 3 registros
+   Ô£à transactions: 447 registros
+   Ô£à categories: 0 registros
+   Ô£à budgets: 11 registros
+
+ÔÜí 4. VERIFICANDO PERFORMANCE:
+   Ô£à 5 ├¡ndices encontrados
+      - budgets.budgets_pkey
+      - categories.categories_pkey
+      - transactions.transactions_pkey
+      - users.users_email_key
+      - users.users_pkey
+
+Ô£ì´©Å  5. TESTANDO OPERA├ç├âO DE ESCRITA:
+   ÔØî ERRO na opera├º├úo de escrita: insert or update on table "categories" violates foreign key constraint "categories_user_id_fkey"
+
+­ƒöù 6. CONEX├òES ATIVAS:
+   Total de conex├Áes: 6
+
+============================================================
+
+­ƒÆí RESUMO:
+   Onde os dados s├úo salvos: Banco de dados PostgreSQL (Supabase)
+   Localiza├º├úo: Nuvem (n├úo no seu computador)
+   Acesso: Via DATABASE_URL configurada no arquivo .env
+
+
