@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, DollarSign, Calendar, Tag, FileText, TrendingUp, Filter, X, ChevronUp, ChevronDown, Check, XCircle } from 'lucide-react';
+import { Plus, Trash2, Edit, DollarSign, Calendar, Tag, FileText, TrendingUp, Filter, X, ChevronUp, ChevronDown, Check, XCircle, GraduationCap } from 'lucide-react';
 import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
+import { useEdu } from '../contexts/EduContext';
 
 const Receitas = () => {
+  const { showLesson } = useEdu();
   const [receitas, setReceitas] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -291,16 +293,25 @@ const Receitas = () => {
           <h1 className="text-4xl font-extrabold text-gray-900">Receitas</h1>
           <p className="text-gray-600 mt-2">Gerencie suas fontes de renda</p>
         </div>
-        <button
-          onClick={() => {
-            setMostrarFormulario(!mostrarFormulario);
-            setEditingItemId(null);
-          }}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          {mostrarFormulario ? 'Cancelar' : 'Nova Receita'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => showLesson('receitas')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+          >
+            <GraduationCap className="w-5 h-5" />
+            Ajuda Educativa
+          </button>
+          <button
+            onClick={() => {
+              setMostrarFormulario(!mostrarFormulario);
+              setEditingItemId(null);
+            }}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            {mostrarFormulario ? 'Cancelar' : 'Nova Receita'}
+          </button>
+        </div>
       </div>
 
       {/* NOVO POSICIONAMENTO: Formulário de Nova Receita aparece AQUI */}

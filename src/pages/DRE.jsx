@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Calendar, GraduationCap } from 'lucide-react';
 import api from '../services/api';
+import { useEdu } from '../contexts/EduContext';
 
 const DRE = () => {
+  const { showLesson } = useEdu();
   // Estados
   const [receitas, setReceitas] = useState([]);
   const [despesas, setDespesas] = useState([]);
@@ -40,7 +42,7 @@ const DRE = () => {
       try {
         const response = await api.get('/user/dados');
         const userData = response.data.dados || {};
-        
+
         setReceitas(Array.isArray(userData.receitas) ? userData.receitas : []);
         setDespesas(Array.isArray(userData.despesas) ? userData.despesas : []);
       } catch (error) {
@@ -49,18 +51,18 @@ const DRE = () => {
         setDespesas([]);
       }
     };
-    
+
     carregarDados();
   }, []);
 
   // Funções de filtro
   const filtrarPorPeriodo = (dados) => {
     if (!Array.isArray(dados)) return [];
-    
+
     return dados.filter(item => {
       if (!item.data) return false;
       const [ano, mes] = item.data.split('-');
-      
+
       if (periodoSelecionado === 'mensal') {
         return ano === anoSelecionado && mes === mesSelecionado;
       } else if (periodoSelecionado === 'trimestral') {
@@ -69,7 +71,7 @@ const DRE = () => {
       } else if (periodoSelecionado === 'anual') {
         return ano === anoSelecionado;
       }
-      
+
       return false;
     });
   };
@@ -78,12 +80,12 @@ const DRE = () => {
   const calcularTotais = () => {
     const receitasFiltradas = filtrarPorPeriodo(receitas);
     const despesasFiltradas = filtrarPorPeriodo(despesas);
-    
+
     const totalReceitas = receitasFiltradas.reduce((acc, r) => acc + (Number(r.valor) || 0), 0);
     const totalDespesas = despesasFiltradas.reduce((acc, d) => acc + (Number(d.valor) || 0), 0);
     const lucro = totalReceitas - totalDespesas;
     const margemLucro = totalReceitas > 0 ? ((lucro / totalReceitas) * 100) : 0;
-    
+
     return {
       totalReceitas,
       totalDespesas,
@@ -160,7 +162,7 @@ const DRE = () => {
     if (!Array.isArray(dados)) return [];
     const dadosFiltrados = filtrarPorPeriodo(dados);
     const agrupado = {};
-    
+
     dadosFiltrados.forEach(item => {
       const categoria = item.categoria || 'Outros';
       if (!agrupado[categoria]) {
@@ -168,7 +170,7 @@ const DRE = () => {
       }
       agrupado[categoria] += Number(item.valor) || 0;
     });
-    
+
     return Object.entries(agrupado)
       .map(([categoria, valor]) => ({ categoria, valor }))
       .sort((a, b) => b.valor - a.valor);
@@ -215,6 +217,13 @@ const DRE = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             Demonstração do Resultado do Exercício (DRE)
           </h1>
+          <button
+            onClick={() => showLesson('dre')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+          >
+            <GraduationCap className="w-5 h-5" />
+            Ajuda Educativa
+          </button>
         </div>
 
         {/* FILTROS DE PERÍODO */}
@@ -515,14 +524,12 @@ const DRE = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       R$ {formatarMoeda(item.totalDespesas)}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${
-                      item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       R$ {formatarMoeda(Math.abs(item.lucro))}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${
-                      item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       {item.margemLucro.toFixed(1)}%
                     </td>
                   </tr>
@@ -574,14 +581,12 @@ const DRE = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       R$ {formatarMoeda(item.totalDespesas)}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${
-                      item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       R$ {formatarMoeda(Math.abs(item.lucro))}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${
-                      item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       {item.margemLucro.toFixed(1)}%
                     </td>
                   </tr>

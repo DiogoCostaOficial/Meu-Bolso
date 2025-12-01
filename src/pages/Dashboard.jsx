@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { useAuth } from '../contexts/AuthContext';
+import { useEdu } from '../contexts/EduContext';
+import {
+  Wallet, TrendingUp, TrendingDown, CreditCard,
+  ArrowUpRight, ArrowDownRight, DollarSign, Calendar,
+  GraduationCap, PiggyBank
+} from 'lucide-react';
 import api from '../services/api';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Legend, PieChart, Pie, Cell
+} from 'recharts';
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const { showLesson, updateFinancialData } = useEdu();
+  const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] = useState({
     receitas: [],
     despesas: []
@@ -29,10 +41,18 @@ const Dashboard = () => {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
 
+      const receitas = userData.receitas || [];
+      const despesas = userData.despesas || [];
+
       setFinancialData({
-        receitas: userData.receitas || [],
-        despesas: userData.despesas || []
+        receitas: receitas,
+        despesas: despesas
       });
+
+      // Calcular totais para o contexto educativo
+      const totalReceitas = receitas.reduce((acc, curr) => acc + Number(curr.valor), 0);
+      const totalDespesas = despesas.reduce((acc, curr) => acc + Number(curr.valor), 0);
+      updateFinancialData(totalReceitas, totalDespesas);
 
       // Carregar categorias do usuário ou usar padrão
       if (userData.categorias && userData.categorias.length > 0) {
@@ -46,13 +66,14 @@ const Dashboard = () => {
           { nome: 'Reserva de Emergência', cor: '#F59E0B' }
         ]);
       }
+      setLoading(false);
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
-      // Se não houver dados, inicia com arrays vazios
       setFinancialData({
         receitas: [],
         despesas: []
       });
+      setLoading(false);
     }
   };
 
@@ -139,6 +160,14 @@ const Dashboard = () => {
     }
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Cabeçalho com Filtro de Ano */}
@@ -148,19 +177,29 @@ const Dashboard = () => {
           <p className="text-gray-600 mt-1">Visão geral das suas finanças</p>
         </div>
 
-        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200">
-          <Calendar className="w-5 h-5 text-blue-600" />
-          <select
-            value={anoSelecionado}
-            onChange={(e) => setAnoSelecionado(e.target.value)}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium text-gray-700"
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => showLesson('dashboard')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
           >
-            {gerarListaAnos().map(ano => (
-              <option key={ano} value={ano}>
-                {ano}
-              </option>
-            ))}
-          </select>
+            <GraduationCap className="w-5 h-5" />
+            Ajuda Educativa
+          </button>
+
+          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200">
+            <Calendar className="w-5 h-5 text-blue-600" />
+            <select
+              value={anoSelecionado}
+              onChange={(e) => setAnoSelecionado(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium text-gray-700"
+            >
+              {gerarListaAnos().map(ano => (
+                <option key={ano} value={ano}>
+                  {ano}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

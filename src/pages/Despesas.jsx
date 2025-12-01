@@ -16,11 +16,13 @@ import {
   ChevronDown,
   Search,
   CheckCircle, // Novo ícone para 'pago'
-  TrendingDown // Adicionado para o card de despesas
+  TrendingDown, // Adicionado para o card de despesas
+  GraduationCap
 } from 'lucide-react';
 import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
+import { useEdu } from '../contexts/EduContext';
 
 // Categorias padrão com cores (Fallback)
 const categoriasDefault = [
@@ -68,6 +70,7 @@ const mesesDoAno = [
 ];
 
 const Despesas = () => {
+  const { showLesson } = useEdu();
   const [despesas, setDespesas] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -626,7 +629,14 @@ const Despesas = () => {
       <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
         Gerenciador de Despesas
       </h1>
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-end mb-6 gap-3">
+        <button
+          onClick={() => showLesson('despesas')}
+          className="flex items-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-lg font-medium"
+        >
+          <GraduationCap className="w-5 h-5" />
+          Ajuda Educativa
+        </button>
         <button
           onClick={() => {
             setMostrarFormulario(true);
