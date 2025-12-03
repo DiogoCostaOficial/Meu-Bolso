@@ -39,12 +39,14 @@ app.use('/uploads', express.static('uploads'));
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
+const debugRoutes = require('./routes/debug');
 
 // Configuração de rotas flexível (para funcionar com ou sem rewrite do Vercel)
 const router = express.Router();
 router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
 router.use('/user', userRoutes);
+router.use('/debug', debugRoutes);
 
 // Monta as rotas tanto em /api quanto na raiz para garantir compatibilidade
 app.use('/api', router);
