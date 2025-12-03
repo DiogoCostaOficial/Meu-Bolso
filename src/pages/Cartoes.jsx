@@ -3,6 +3,7 @@ import { Plus, Trash2, Save, CreditCard, Calendar, GraduationCap } from 'lucide-
 import api from '../services/api';
 import { toast } from 'sonner';
 import { useEdu } from '../contexts/EduContext';
+import EduHelpButton from '../components/EduHelpButton';
 
 const Cartoes = () => {
     const { showLesson } = useEdu();
@@ -158,13 +159,7 @@ const Cartoes = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => showLesson('cartoes')}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
-                    >
-                        <GraduationCap className="w-5 h-5" />
-                        Ajuda Educativa
-                    </button>
+                    <EduHelpButton topic="cartoes" />
                     <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                         <Calendar className="w-4 h-4 text-gray-500" />
                         <select

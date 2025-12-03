@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from "./theme-provider";
 import { EduProvider } from '../contexts/EduContext';
 import EduMascot from './EduMascot';
+import VideoPopup from './VideoPopup';
 import {
   LayoutDashboard,
   Wallet,
@@ -18,7 +19,9 @@ import {
   Moon,
   Settings,
   Database,
-  RefreshCw
+  RefreshCw,
+  PieChart,
+  FileBarChart
 } from 'lucide-react';
 
 const LayoutNovo = ({ children }) => {
@@ -39,8 +42,8 @@ const LayoutNovo = ({ children }) => {
     { path: '/receitas', icon: TrendingUp, label: 'Receitas' },
     { path: '/despesas', icon: TrendingDown, label: 'Despesas' },
     { path: '/cartoes', icon: CreditCard, label: 'Cartões' },
-    { path: '/relatorios', icon: FileText, label: 'Relatórios' },
-    { path: '/dre', icon: FileText, label: 'DRE' },
+    { path: '/relatorios', icon: PieChart, label: 'Relatórios' },
+    { path: '/dre', icon: FileBarChart, label: 'DRE' },
     { path: '/backup', icon: Database, label: 'Backup' },
     { path: '/restauracao', icon: RefreshCw, label: 'Restauração' },
     { path: '/configuracoes', icon: Settings, label: 'Configurações' },
@@ -49,6 +52,8 @@ const LayoutNovo = ({ children }) => {
   return (
     <EduProvider>
       <div className="min-h-screen bg-gray-50 flex">
+        <VideoPopup />
+
         {/* Sidebar Desktop */}
         <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 fixed h-full z-10">
           <div className="p-6 border-b border-gray-100">

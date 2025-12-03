@@ -4,6 +4,7 @@ import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
+import EduHelpButton from '../components/EduHelpButton';
 
 const Receitas = () => {
   const { showLesson } = useEdu();
@@ -294,13 +295,7 @@ const Receitas = () => {
           <p className="text-gray-600 mt-2">Gerencie suas fontes de renda</p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => showLesson('receitas')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
-          >
-            <GraduationCap className="w-5 h-5" />
-            Ajuda Educativa
-          </button>
+          <EduHelpButton topic="receitas" />
           <button
             onClick={() => {
               setMostrarFormulario(!mostrarFormulario);

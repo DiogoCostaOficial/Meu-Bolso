@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEdu } from '../contexts/EduContext';
+import EduHelpButton from '../components/EduHelpButton';
 import {
   Wallet, TrendingUp, TrendingDown, CreditCard,
   ArrowUpRight, ArrowDownRight, DollarSign, Calendar,
@@ -22,6 +23,22 @@ const Dashboard = () => {
   });
   const [categorias, setCategorias] = useState([]);
   const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
+  const [mesSelecionado, setMesSelecionado] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
+
+  const meses = [
+    { valor: '01', nome: 'Janeiro' },
+    { valor: '02', nome: 'Fevereiro' },
+    { valor: '03', nome: 'Março' },
+    { valor: '04', nome: 'Abril' },
+    { valor: '05', nome: 'Maio' },
+    { valor: '06', nome: 'Junho' },
+    { valor: '07', nome: 'Julho' },
+    { valor: '08', nome: 'Agosto' },
+    { valor: '09', nome: 'Setembro' },
+    { valor: '10', nome: 'Outubro' },
+    { valor: '11', nome: 'Novembro' },
+    { valor: '12', nome: 'Dezembro' }
+  ];
 
   useEffect(() => {
     loadData();
@@ -52,7 +69,7 @@ const Dashboard = () => {
       // Calcular totais para o contexto educativo
       const totalReceitas = receitas.reduce((acc, curr) => acc + Number(curr.valor), 0);
       const totalDespesas = despesas.reduce((acc, curr) => acc + Number(curr.valor), 0);
-      updateFinancialData(totalReceitas, totalDespesas);
+      // updateFinancialData(totalReceitas, totalDespesas);
 
       // Carregar categorias do usuário ou usar padrão
       if (userData.categorias && userData.categorias.length > 0) {
@@ -93,18 +110,18 @@ const Dashboard = () => {
     return items.reduce((acc, item) => acc + (parseFloat(item.valor) || 0), 0);
   };
 
-  const filtrarPorAno = (dados) => {
+  const filtrarPorMes = (dados) => {
     if (!Array.isArray(dados)) return [];
 
     return dados.filter(item => {
       if (!item.data) return false;
-      const [ano] = item.data.split('-');
-      return ano === anoSelecionado;
+      const [ano, mes] = item.data.split('-');
+      return ano === anoSelecionado && mes === mesSelecionado;
     });
   };
 
-  const receitasFiltradas = filtrarPorAno(financialData.receitas);
-  const despesasFiltradas = filtrarPorAno(financialData.despesas);
+  const receitasFiltradas = filtrarPorMes(financialData.receitas);
+  const despesasFiltradas = filtrarPorMes(financialData.despesas);
 
   // Calcular totais por categoria dinamicamente
   const categoriasTotais = categorias.map(cat => {
@@ -116,6 +133,11 @@ const Dashboard = () => {
 
   const totalReceitas = calculateTotal(receitasFiltradas);
   const totalDespesas = calculateTotal(despesasFiltradas); // Soma de TODAS as despesas filtradas
+  // Atualizar dados do mascote com base nos valores filtrados
+  useEffect(() => {
+    updateFinancialData(totalReceitas, totalDespesas);
+  }, [totalReceitas, totalDespesas, updateFinancialData]);
+
   const saldoFinal = totalReceitas - totalDespesas;
   const percentualSobra = totalReceitas > 0 ? ((saldoFinal / totalReceitas) * 100) : 0;
 
@@ -178,16 +200,21 @@ const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => showLesson('dashboard')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
-          >
-            <GraduationCap className="w-5 h-5" />
-            Ajuda Educativa
-          </button>
+          <EduHelpButton topic="dashboard" />
 
           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200">
             <Calendar className="w-5 h-5 text-blue-600" />
+            <select
+              value={mesSelecionado}
+              onChange={(e) => setMesSelecionado(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium text-gray-700"
+            >
+              {meses.map(mes => (
+                <option key={mes.valor} value={mes.valor}>
+                  {mes.nome}
+                </option>
+              ))}
+            </select>
             <select
               value={anoSelecionado}
               onChange={(e) => setAnoSelecionado(e.target.value)}
@@ -280,70 +307,35 @@ const Dashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <PiggyBank className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">Nenhum dado para exibir</p>
-                  <p className="text-sm mt-1">Ano: {anoSelecionado}</p>
-                </div>
+              <div className="flex items-center justify-center h-[300px] text-gray-500">
+                Sem dados de despesas para este ano
               </div>
             )}
           </div>
         </div>
 
-        {/* Resumo em Lista */}
+        {/* Gráfico de Barras */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900">Resumo Financeiro</h3>
+            <h3 className="text-xl font-bold text-gray-900">Gastos por Categoria</h3>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                <span className="text-gray-700 font-medium">Total de Receitas</span>
-                <span className="font-bold text-green-600 text-lg">{formatCurrency(totalReceitas)}</span>
+            {categoriasTotais.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={categoriasTotais} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tickFormatter={(value) => `R$${value}`} />
+                  <YAxis dataKey="nome" type="category" width={100} />
+                  <Tooltip formatter={(value) => formatCurrency(value)} />
+                  <Bar dataKey="total" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-gray-500">
+                Sem dados de despesas para este ano
               </div>
-
-              {/* Categorias Dinâmicas */}
-              {categoriasTotais.map((cat, index) => (
-                <div key={index} className="flex justify-between items-center pb-3 border-b border-gray-200">
-                  <span className="text-gray-700 font-medium">{cat.nome}</span>
-                  <span className="font-bold" style={{ color: cat.cor }}>{formatCurrency(cat.total)}</span>
-                </div>
-              ))}
-
-              <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                <span className="text-gray-700 font-medium">Total de Despesas</span>
-                <span className="font-bold text-red-600 text-lg">{formatCurrency(totalDespesas)}</span>
-              </div>
-              <div className="flex justify-between items-center pt-3 bg-gray-50 -mx-6 px-6 py-4">
-                <span className="text-lg font-bold text-gray-900">Saldo Final</span>
-                <span className={`text-2xl font-bold ${saldoFinal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(saldoFinal)}
-                </span>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      {/* Estatísticas Adicionais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-green-50 rounded-xl shadow-lg p-6 border border-green-200">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Receitas no Ano</h4>
-          <p className="text-2xl font-bold text-green-700">{receitasFiltradas.length}</p>
-          <p className="text-xs text-gray-600 mt-1">transações registradas</p>
-        </div>
-
-        <div className="bg-red-50 rounded-xl shadow-lg p-6 border border-red-200">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Despesas no Ano</h4>
-          <p className="text-2xl font-bold text-red-700">{despesasFiltradas.length}</p>
-          <p className="text-xs text-gray-600 mt-1">transações registradas</p>
-        </div>
-
-        <div className="bg-blue-50 rounded-xl shadow-lg p-6 border border-blue-200">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Média Mensal</h4>
-          <p className="text-2xl font-bold text-blue-700">{formatCurrency(saldoFinal / 12)}</p>
-          <p className="text-xs text-gray-600 mt-1">saldo estimado/mês</p>
         </div>
       </div>
     </div>

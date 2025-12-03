@@ -23,6 +23,7 @@ import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
+import EduHelpButton from '../components/EduHelpButton';
 
 // Categorias padrão com cores (Fallback)
 const categoriasDefault = [
@@ -630,13 +631,7 @@ const Despesas = () => {
         Gerenciador de Despesas
       </h1>
       <div className="flex justify-end mb-6 gap-3">
-        <button
-          onClick={() => showLesson('despesas')}
-          className="flex items-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-lg font-medium"
-        >
-          <GraduationCap className="w-5 h-5" />
-          Ajuda Educativa
-        </button>
+        <EduHelpButton topic="despesas" />
         <button
           onClick={() => {
             setMostrarFormulario(true);
@@ -652,203 +647,205 @@ const Despesas = () => {
         </button>
       </div>
       {/* NOVO POSICIONAMENTO: Formulário de Nova Despesa */}
-      {mostrarFormulario && (
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <CreditCard className="w-6 h-6 text-red-600" />
-              {editando ? 'Editar Despesa' : 'Adicionar Nova Despesa'}
-            </h2>
-            <button
-              onClick={() => setIsFormMinimized(!isFormMinimized)}
-              className="text-gray-500 hover:text-gray-700"
-              title={isFormMinimized ? "Expandir Formulário" : "Minimizar Formulário"}
-            >
-              {isFormMinimized ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
-            </button>
-          </div>
-          {!isFormMinimized && (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-2">
-                    Descrição
-                  </label>
-                  <input
-                    type="text"
-                    id="descricao"
-                    name="descricao"
-                    value={formulario.descricao}
-                    onChange={handleChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                    placeholder="Ex: Aluguel, Conta de Luz, Supermercado"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-2">
-                    Valor
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
+      {
+        mostrarFormulario && (
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <CreditCard className="w-6 h-6 text-red-600" />
+                {editando ? 'Editar Despesa' : 'Adicionar Nova Despesa'}
+              </h2>
+              <button
+                onClick={() => setIsFormMinimized(!isFormMinimized)}
+                className="text-gray-500 hover:text-gray-700"
+                title={isFormMinimized ? "Expandir Formulário" : "Minimizar Formulário"}
+              >
+                {isFormMinimized ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+              </button>
+            </div>
+            {!isFormMinimized && (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-2">
+                      Descrição
+                    </label>
                     <input
-                      type="number"
-                      id="valor"
-                      name="valor"
-                      value={formulario.valor}
+                      type="text"
+                      id="descricao"
+                      name="descricao"
+                      value={formulario.descricao}
                       onChange={handleChange}
-                      step="0.01"
-                      min="0.01"
-                      className="shadow appearance-none border rounded w-full py-2 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                      placeholder="0.00"
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      placeholder="Ex: Aluguel, Conta de Luz, Supermercado"
                       required
                     />
                   </div>
-                </div>
-                <div>
-                  <label htmlFor="data" className="block text-sm font-medium text-gray-700 mb-2">
-                    Data da Despesa
-                  </label>
-                  <input
-                    type="date"
-                    id="data"
-                    name="data"
-                    value={formulario.data}
-                    onChange={handleChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                    required
-                  />
-                </div>
-                {/* NOVO: Campo para Data de Vencimento */}
-                <div>
-                  <label htmlFor="dataVencimento" className="block text-sm font-medium text-gray-700 mb-2">
-                    Data de Vencimento (opcional)
-                  </label>
-                  <input
-                    type="date"
-                    id="dataVencimento"
-                    name="dataVencimento"
-                    value={formulario.dataVencimento}
-                    onChange={handleChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="categoria" className="block text-sm font-medium text-gray-700 mb-2">
-                    Categoria
-                  </label>
-                  <select
-                    id="categoria"
-                    name="categoria"
-                    value={formulario.categoria}
-                    onChange={handleChange}
-                    className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                    required
-                  >
-                    {categorias.map(cat => (
-                      <option key={cat.nome} value={cat.nome}>
-                        {cat.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="subcategoria" className="block text-sm font-medium text-gray-700 mb-2">
-                    Subcategoria
-                  </label>
-                  <select
-                    id="subcategoria"
-                    name="subcategoria"
-                    value={formulario.subcategoria}
-                    onChange={handleChange}
-                    className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                    required
-                  >
-                    {getAvailableSubcategories(formulario.categoria).map(sub => (
-                      <option key={sub} value={sub}>
-                        {sub}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="observacoes" className="block text-sm font-medium text-gray-700 mb-2">
-                  Observações (opcional)
-                </label>
-                <textarea
-                  id="observacoes"
-                  name="observacoes"
-                  value={formulario.observacoes}
-                  onChange={handleChange}
-                  rows="3"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                  placeholder="Adicione detalhes ou notas importantes sobre a despesa..."
-                ></textarea>
-              </div>
-              <div className="flex items-center space-x-4">
-                <label htmlFor="parcelado" className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="parcelado"
-                    name="parcelado"
-                    checked={formulario.parcelado}
-                    onChange={handleChange}
-                    className="form-checkbox h-5 w-5 text-red-600 rounded focus:ring-red-500"
-                  />
-                  <span className="ml-2 text-gray-700 text-sm font-bold">Parcelar despesa</span>
-                </label>
-                {formulario.parcelado && (
-                  <div className="flex-1">
-                    <label htmlFor="numeroParcelas" className="block text-sm font-medium text-gray-700 mb-2">
-                      Número de Parcelas
+                  <div>
+                    <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-2">
+                      Valor
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
+                      <input
+                        type="number"
+                        id="valor"
+                        name="valor"
+                        value={formulario.valor}
+                        onChange={handleChange}
+                        step="0.01"
+                        min="0.01"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="data" className="block text-sm font-medium text-gray-700 mb-2">
+                      Data da Despesa
                     </label>
                     <input
-                      type="number"
-                      id="numeroParcelas"
-                      name="numeroParcelas"
-                      value={formulario.numeroParcelas}
+                      type="date"
+                      id="data"
+                      name="data"
+                      value={formulario.data}
                       onChange={handleChange}
-                      min="1"
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
-                      placeholder="1"
+                      required
                     />
                   </div>
-                )}
-              </div>
-              {/* Exibir valor de cada parcela */}
-              {formulario.parcelado && parseFloat(formulario.valor) > 0 && parseInt(formulario.numeroParcelas, 10) > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-blue-600" />
-                    <p className="text-sm font-medium text-blue-900">
-                      Valor de cada parcela: <span className="text-lg font-bold">{formatarMoeda(calcularValorParcela())}</span>
+                  {/* NOVO: Campo para Data de Vencimento */}
+                  <div>
+                    <label htmlFor="dataVencimento" className="block text-sm font-medium text-gray-700 mb-2">
+                      Data de Vencimento (opcional)
+                    </label>
+                    <input
+                      type="date"
+                      id="dataVencimento"
+                      name="dataVencimento"
+                      value={formulario.dataVencimento}
+                      onChange={handleChange}
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="categoria" className="block text-sm font-medium text-gray-700 mb-2">
+                      Categoria
+                    </label>
+                    <select
+                      id="categoria"
+                      name="categoria"
+                      value={formulario.categoria}
+                      onChange={handleChange}
+                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      required
+                    >
+                      {categorias.map(cat => (
+                        <option key={cat.nome} value={cat.nome}>
+                          {cat.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="subcategoria" className="block text-sm font-medium text-gray-700 mb-2">
+                      Subcategoria
+                    </label>
+                    <select
+                      id="subcategoria"
+                      name="subcategoria"
+                      value={formulario.subcategoria}
+                      onChange={handleChange}
+                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      required
+                    >
+                      {getAvailableSubcategories(formulario.categoria).map(sub => (
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="observacoes" className="block text-sm font-medium text-gray-700 mb-2">
+                    Observações (opcional)
+                  </label>
+                  <textarea
+                    id="observacoes"
+                    name="observacoes"
+                    value={formulario.observacoes}
+                    onChange={handleChange}
+                    rows="3"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                    placeholder="Adicione detalhes ou notas importantes sobre a despesa..."
+                  ></textarea>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <label htmlFor="parcelado" className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="parcelado"
+                      name="parcelado"
+                      checked={formulario.parcelado}
+                      onChange={handleChange}
+                      className="form-checkbox h-5 w-5 text-red-600 rounded focus:ring-red-500"
+                    />
+                    <span className="ml-2 text-gray-700 text-sm font-bold">Parcelar despesa</span>
+                  </label>
+                  {formulario.parcelado && (
+                    <div className="flex-1">
+                      <label htmlFor="numeroParcelas" className="block text-sm font-medium text-gray-700 mb-2">
+                        Número de Parcelas
+                      </label>
+                      <input
+                        type="number"
+                        id="numeroParcelas"
+                        name="numeroParcelas"
+                        value={formulario.numeroParcelas}
+                        onChange={handleChange}
+                        min="1"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                        placeholder="1"
+                      />
+                    </div>
+                  )}
+                </div>
+                {/* Exibir valor de cada parcela */}
+                {formulario.parcelado && parseFloat(formulario.valor) > 0 && parseInt(formulario.numeroParcelas, 10) > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-blue-600" />
+                      <p className="text-sm font-medium text-blue-900">
+                        Valor de cada parcela: <span className="text-lg font-bold">{formatarMoeda(calcularValorParcela())}</span>
+                      </p>
+                    </div>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {formulario.numeroParcelas}x de {formatarMoeda(calcularValorParcela())} = {formatarMoeda(parseFloat(formulario.valor))}
                     </p>
                   </div>
-                  <p className="text-xs text-blue-700 mt-1">
-                    {formulario.numeroParcelas}x de {formatarMoeda(calcularValorParcela())} = {formatarMoeda(parseFloat(formulario.valor))}
-                  </p>
+                )}
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={resetarFormulario}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-150"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300"
+                  >
+                    {editando ? 'Salvar Edição' : 'Adicionar Despesa'}
+                  </button>
                 </div>
-              )}
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={resetarFormulario}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-150"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300"
-                >
-                  {editando ? 'Salvar Edição' : 'Adicionar Despesa'}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      )}
+              </form>
+            )}
+          </div>
+        )
+      }
       {/* Seção de Filtros */}
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <div className="flex justify-between items-center mb-4">
@@ -1066,124 +1063,126 @@ const Despesas = () => {
       </div>
 
       {/* Formulário de Edição em Massa (Bulk Edit) */}
-      {selectedDespesas.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <Edit2 className="w-6 h-6 text-orange-600" />
-              Editar Despesas Selecionadas ({selectedDespesas.length})
-            </h2>
-            <button
-              onClick={() => setMostrarBulkEditForm(!mostrarBulkEditForm)}
-              className="text-gray-500 hover:text-gray-700"
-              title={mostrarBulkEditForm ? "Minimizar Edição em Massa" : "Expandir Edição em Massa"}
-            >
-              {mostrarBulkEditForm ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-            </button>
-          </div>
-          {mostrarBulkEditForm && (
-            <form onSubmit={handleBulkEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label htmlFor="bulkDescricao" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nova Descrição (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    id="bulkDescricao"
-                    name="descricao"
-                    value={bulkEditForm.descricao}
-                    onChange={handleBulkEditChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
-                    placeholder="Deixe em branco para não alterar"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="bulkCategoria" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nova Categoria (opcional)
-                  </label>
-                  <select
-                    id="bulkCategoria"
-                    name="categoria"
-                    value={bulkEditForm.categoria}
-                    onChange={handleBulkEditChange}
-                    className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="">Não alterar</option>
-                    {categorias.map(cat => (
-                      <option key={cat.nome} value={cat.nome}>
-                        {cat.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="bulkSubcategoria" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nova Subcategoria (opcional)
-                  </label>
-                  <select
-                    id="bulkSubcategoria"
-                    name="subcategoria"
-                    value={bulkEditForm.subcategoria}
-                    onChange={handleBulkEditChange}
-                    className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
-                    disabled={!bulkEditForm.categoria && !selectedDespesas.some(id => getAvailableSubcategories(despesas.find(d => d.id === id)?.categoria).length > 0)}
-                  >
-                    <option value="">Não alterar</option>
-                    {bulkEditForm.categoria
-                      ? getAvailableSubcategories(bulkEditForm.categoria).map(sub => (
-                        <option key={sub} value={sub}>
-                          {sub}
-                        </option>
-                      ))
-                      : allSubcategories.map(sub => ( // Permite selecionar qualquer subcategoria se a categoria não for alterada
-                        <option key={sub} value={sub}>
-                          {sub}
+      {
+        selectedDespesas.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Edit2 className="w-6 h-6 text-orange-600" />
+                Editar Despesas Selecionadas ({selectedDespesas.length})
+              </h2>
+              <button
+                onClick={() => setMostrarBulkEditForm(!mostrarBulkEditForm)}
+                className="text-gray-500 hover:text-gray-700"
+                title={mostrarBulkEditForm ? "Minimizar Edição em Massa" : "Expandir Edição em Massa"}
+              >
+                {mostrarBulkEditForm ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              </button>
+            </div>
+            {mostrarBulkEditForm && (
+              <form onSubmit={handleBulkEditSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="bulkDescricao" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nova Descrição (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      id="bulkDescricao"
+                      name="descricao"
+                      value={bulkEditForm.descricao}
+                      onChange={handleBulkEditChange}
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
+                      placeholder="Deixe em branco para não alterar"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="bulkCategoria" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nova Categoria (opcional)
+                    </label>
+                    <select
+                      id="bulkCategoria"
+                      name="categoria"
+                      value={bulkEditForm.categoria}
+                      onChange={handleBulkEditChange}
+                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="">Não alterar</option>
+                      {categorias.map(cat => (
+                        <option key={cat.nome} value={cat.nome}>
+                          {cat.nome}
                         </option>
                       ))}
-                  </select>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="bulkSubcategoria" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nova Subcategoria (opcional)
+                    </label>
+                    <select
+                      id="bulkSubcategoria"
+                      name="subcategoria"
+                      value={bulkEditForm.subcategoria}
+                      onChange={handleBulkEditChange}
+                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
+                      disabled={!bulkEditForm.categoria && !selectedDespesas.some(id => getAvailableSubcategories(despesas.find(d => d.id === id)?.categoria).length > 0)}
+                    >
+                      <option value="">Não alterar</option>
+                      {bulkEditForm.categoria
+                        ? getAvailableSubcategories(bulkEditForm.categoria).map(sub => (
+                          <option key={sub} value={sub}>
+                            {sub}
+                          </option>
+                        ))
+                        : allSubcategories.map(sub => ( // Permite selecionar qualquer subcategoria se a categoria não for alterada
+                          <option key={sub} value={sub}>
+                            {sub}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  {/* Campo para edição em massa do status */}
+                  <div>
+                    <label htmlFor="bulkStatusPagamento" className="block text-sm font-medium text-gray-700 mb-1">
+                      Novo Status (opcional)
+                    </label>
+                    <select
+                      id="bulkStatusPagamento"
+                      name="statusPagamento"
+                      value={bulkEditForm.statusPagamento}
+                      onChange={handleBulkEditChange}
+                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="">Não alterar</option>
+                      <option value="pago">Pago</option>
+                      <option value="pendente">Pendente</option>
+                    </select>
+                  </div>
                 </div>
-                {/* Campo para edição em massa do status */}
-                <div>
-                  <label htmlFor="bulkStatusPagamento" className="block text-sm font-medium text-gray-700 mb-1">
-                    Novo Status (opcional)
-                  </label>
-                  <select
-                    id="bulkStatusPagamento"
-                    name="statusPagamento"
-                    value={bulkEditForm.statusPagamento}
-                    onChange={handleBulkEditChange}
-                    className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDespesas([]);
+                      setBulkEditForm({ descricao: '', categoria: '', subcategoria: '', statusPagamento: '' });
+                      setMostrarBulkEditForm(false);
+                    }}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-150"
                   >
-                    <option value="">Não alterar</option>
-                    <option value="pago">Pago</option>
-                    <option value="pendente">Pendente</option>
-                  </select>
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300"
+                  >
+                    Aplicar Edição em Massa
+                  </button>
                 </div>
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedDespesas([]);
-                    setBulkEditForm({ descricao: '', categoria: '', subcategoria: '', statusPagamento: '' });
-                    setMostrarBulkEditForm(false);
-                  }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-150"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300"
-                >
-                  Aplicar Edição em Massa
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      )}
+              </form>
+            )}
+          </div>
+        )
+      }
       {/* Lista de Despesas */}
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <div className="flex justify-between items-center mb-4">
@@ -1428,13 +1427,13 @@ const Despesas = () => {
         )}
       </div>
 
-      {/* Indicador de salvamento */}
-      <SaveIndicator
+
+      < SaveIndicator
         isSaving={isSaving}
         saveStatus={saveStatus}
         lastSaved={lastSaved}
       />
-    </div>
+    </div >
   );
 };
 

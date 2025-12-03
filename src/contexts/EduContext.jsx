@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext } from 'react';
-import { EDU_CONTENT, analyzeFinances } from '../utils/eduContent';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { EDU_CONTENT, analyzeFinances, TRANSITION_MESSAGES } from '../utils/eduContent';
 
 const EduContext = createContext();
 
@@ -8,15 +8,18 @@ export const EduProvider = ({ children }) => {
     const [currentTopic, setCurrentTopic] = useState(null);
     const [financialData, setFinancialData] = useState({ receitas: 0, despesas: 0 });
     const [mascotState, setMascotState] = useState('coin'); // 'coin', 'bill', 'gold'
+    const [transitionMessage, setTransitionMessage] = useState(null);
 
     const showLesson = (topic) => {
         setCurrentTopic(topic);
         setIsVisible(true);
+        setTransitionMessage(null); // Limpa mensagem de transição ao abrir lição normal
     };
 
     const hideMascot = () => {
         setIsVisible(false);
         setCurrentTopic(null);
+        setTransitionMessage(null);
     };
 
     const updateFinancialData = (receitas, despesas) => {
@@ -26,18 +29,57 @@ export const EduProvider = ({ children }) => {
         const totalReceitas = Number(receitas) || 0;
         const totalDespesas = Number(despesas) || 0;
         const saldo = totalReceitas - totalDespesas;
-        const percentualGasto = totalReceitas > 0 ? (totalDespesas / totalReceitas) * 100 : 0;
 
-        if (saldo <= 0 || percentualGasto > 90) {
-            setMascotState('coin'); // Pouco dinheiro ou apertado
-        } else if (percentualGasto > 50) {
-            setMascotState('bill'); // Sob controle
+        // Calcular percentual de economia (quanto sobrou)
+        let percentualEconomia = 0;
+        if (totalReceitas > 0) {
+            percentualEconomia = ((totalReceitas - totalDespesas) / totalReceitas) * 100;
+        }
+
+        let newState = 'coin';
+
+        if (saldo < 0) {
+            newState = 'coin'; // Negativo é Moeda
+        } else if (percentualEconomia <= 10) {
+            newState = 'coin'; // Até 10% de economia é Moeda
+        } else if (percentualEconomia <= 75) {
+            newState = 'bill'; // De 11% a 75% é Dinheiro
         } else {
-            setMascotState('gold'); // Sobrando dinheiro (gastou 50% ou menos)
+            newState = 'gold'; // Acima de 75% é Ouro
+        }
+
+        // Verificar transição
+        if (newState !== mascotState) {
+            // Definir hierarquia: coin < bill < gold
+            const hierarchy = { coin: 1, bill: 2, gold: 3 };
+            const oldRank = hierarchy[mascotState] !== undefined ? hierarchy[mascotState] : 1;
+            const newRank = hierarchy[newState];
+
+            if (newRank > oldRank) {
+                // Upgrade
+                setTransitionMessage(TRANSITION_MESSAGES.upgrade);
+                setIsVisible(true); // Mostrar mascote automaticamente para dar parabéns
+            } else if (newRank < oldRank) {
+                // Downgrade
+                setTransitionMessage(TRANSITION_MESSAGES.downgrade);
+                setIsVisible(true); // Mostrar mascote automaticamente para alertar
+            }
+
+            setMascotState(newState);
         }
     };
 
     const getLessonContent = () => {
+        // Prioridade para mensagem de transição
+        if (transitionMessage) {
+            return {
+                title: transitionMessage.title,
+                explanation: transitionMessage.message,
+                analogy: null,
+                tips: ["Continue acompanhando suas finanças!"]
+            };
+        }
+
         if (!currentTopic) return null;
 
         // Se for uma análise geral (ex: dashboard), combina conteúdo estático com análise dinâmica
@@ -61,7 +103,7 @@ export const EduProvider = ({ children }) => {
             hideMascot,
             updateFinancialData,
             getLessonContent,
-            mascotState // Expondo o estado do mascote
+            mascotState
         }}>
             {children}
         </EduContext.Provider>

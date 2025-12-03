@@ -3,6 +3,7 @@ import { X, Lightbulb, GraduationCap } from 'lucide-react';
 import { useEdu } from '../contexts/EduContext';
 
 const MASCOT_IMAGES = {
+    wallet: '/assets/fin_wallet_boy.png',
     coin: '/assets/fin_coin_boy.png',
     bill: '/assets/fin_bill_boy.png',
     gold: '/assets/fin_gold_boy.png'
@@ -56,9 +57,14 @@ const EduMascot = () => {
                             <p className="font-medium text-green-800 mb-1">
                                 {content.analysis.status}
                             </p>
-                            <p className="text-sm text-green-700">
+                            <p className="text-sm text-green-700 mb-2">
                                 {content.analysis.analogy}
                             </p>
+                            {content.analysis.explanation && (
+                                <p className="text-sm text-green-800 font-bold italic border-t border-green-200 pt-2 mt-2">
+                                    "{content.analysis.explanation}"
+                                </p>
+                            )}
                         </div>
                     )}
 
@@ -78,8 +84,7 @@ const EduMascot = () => {
                         alt={`Mascote FIN - Modo ${mascotState}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'; // Fallback
+                            e.target.style.display = 'none'; // Oculta a imagem se falhar
                         }}
                     />
                 </div>

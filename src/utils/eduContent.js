@@ -71,6 +71,23 @@ export const EDU_CONTENT = {
     }
 };
 
+export const MASCOT_EXPLANATIONS = {
+    coin: "Estou como Moedinha porque estamos com pouco dinheiro ou gastando muito. Vamos economizar para eu crescer!",
+    bill: "Estou como Dinheiro porque suas contas estão equilibradas. Continue assim!",
+    gold: "Estou como Ouro porque você está economizando muito bem! Parabéns!"
+};
+
+export const TRANSITION_MESSAGES = {
+    upgrade: {
+        title: "Parabéns! Eu Evoluí!",
+        message: "Uau! Suas finanças melhoraram e eu cresci! Continue cuidando bem do seu dinheiro."
+    },
+    downgrade: {
+        title: "Cuidado! Eu Encolhi...",
+        message: "Ops! Parece que gastamos demais. Mas não se preocupe, vou te ajudar a colocar tudo em ordem de novo."
+    }
+};
+
 export const analyzeFinances = (receitas, despesas) => {
     const totalReceitas = receitas || 0;
     const totalDespesas = despesas || 0;
@@ -80,39 +97,49 @@ export const analyzeFinances = (receitas, despesas) => {
     let analysis = {
         status: "",
         analogy: "",
-        tip: ""
+        tip: "",
+        explanation: "" // New field for mascot explanation
     };
 
     if (totalReceitas === 0 && totalDespesas === 0) {
         analysis.status = "Tudo calmo por aqui.";
         analysis.analogy = "Seu caderno está em branco. Que tal começar a anotar?";
         analysis.tip = "Adicione sua primeira receita ou despesa para começarmos.";
+        analysis.explanation = MASCOT_EXPLANATIONS.coin;
         return analysis;
     }
 
     if (saldo > 0) {
-        if (percentualGasto < 50) {
+        // Calcular percentual de economia
+        const percentualEconomia = ((totalReceitas - totalDespesas) / totalReceitas) * 100;
+
+        if (percentualEconomia > 75) {
             analysis.status = "Uau! Você está cuidando muito bem do seu dinheiro.";
             analysis.analogy = "Sua plantinha financeira está crescendo forte e saudável! Eu estou virando Ouro!";
             analysis.tip = "Que tal guardar esse dinheiro extra para um sonho grande?";
-        } else if (percentualGasto < 90) {
+            analysis.explanation = MASCOT_EXPLANATIONS.gold;
+        } else if (percentualEconomia > 10) {
             analysis.status = "Muito bem! Você está no azul.";
             analysis.analogy = "Seu barco está navegando em águas tranquilas. Estou me sentindo uma nota de Dinheiro forte!";
             analysis.tip = "Continue assim e tente diminuir um pouquinho as despesas supérfluas.";
+            analysis.explanation = MASCOT_EXPLANATIONS.bill;
         } else {
             analysis.status = "Cuidado, você está gastando quase tudo que ganha.";
             analysis.analogy = "Seu copo está cheio até a borda. Qualquer gota a mais pode transbordar. Estou encolhendo e virando uma Moedinha.";
             analysis.tip = "Tente segurar os gastos nos próximos dias para não ficar no vermelho.";
+            analysis.explanation = MASCOT_EXPLANATIONS.coin;
         }
     } else if (saldo === 0) {
         analysis.status = "Empate técnico! Você gastou exatamente o que ganhou.";
         analysis.analogy = "É como uma balança perfeitamente equilibrada, mas perigosa. Cuidado para eu não virar Moedinha!";
         analysis.tip = "Tente gastar um pouquinho menos no próximo mês para sobrar algo.";
+        analysis.explanation = MASCOT_EXPLANATIONS.coin;
     } else {
         // Saldo negativo
-        analysis.status = "Atenção! Você gastou mais do que ganhou.";
-        analysis.analogy = "Sua mochila de gastos está muito pesada para carregar. Virei uma Moedinha triste.";
-        analysis.tip = "Revise suas despesas urgentes. Corte o que não for essencial agora.";
+        analysis.status = "Alerta Vermelho! Você gastou mais do que ganhou.";
+        analysis.analogy = "Estamos no vermelho! Virei uma Moedinha preocupada.";
+        analysis.tip = "Pare de gastar agora! Revise onde pode cortar para sair do vermelho.";
+        analysis.explanation = MASCOT_EXPLANATIONS.coin;
     }
 
     return analysis;
