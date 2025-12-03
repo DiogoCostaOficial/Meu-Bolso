@@ -49,6 +49,10 @@ const LayoutNovo = ({ children }) => {
     { path: '/configuracoes', icon: Settings, label: 'Configurações' },
   ];
 
+  if (user?.tipo === 'admin') {
+    menuItems.push({ path: '/admin', icon: LayoutDashboard, label: 'Painel Admin' });
+  }
+
   return (
     <EduProvider>
       <div className="min-h-screen bg-gray-50 flex">
