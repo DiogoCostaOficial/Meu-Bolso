@@ -1,14 +1,14 @@
-// src/components/auth/LoginNovo.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { ModeToggle } from '../mode-toggle';
 import { toast } from 'sonner';
+import { GoogleLogin } from '@react-oauth/google';
 
 const LoginNovo = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginGoogle } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -246,6 +246,49 @@ const LoginNovo = () => {
                 'Entrar'
               )}
             </button>
+
+            {!modoAdmin && (
+              <>
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">Ou continue com</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        const result = await loginGoogle({
+                          token: credentialResponse.credential
+                        });
+
+                        if (result.success) {
+                          toast.success(`Bem-vindo, ${result.user.nome}!`);
+                          navigate('/dashboard');
+                        } else {
+                          toast.error(result.message);
+                        }
+                      } catch (error) {
+                        console.error('Erro no login Google:', error);
+                        toast.error('Erro ao conectar com Google');
+                      }
+                    }}
+                    onError={() => {
+                      toast.error('Erro ao conectar com Google');
+                    }}
+                    useOneTap
+                    theme="filled_blue"
+                    shape="pill"
+                    text="continue_with"
+                    width="100%"
+                  />
+                </div>
+              </>
+            )}
           </form>
 
           {/* Links */}
