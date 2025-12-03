@@ -178,11 +178,11 @@ const Orcamento = () => {
     }
 
     setLoading(true);
+    setLoading(true);
     try {
-      const response = await api.get('/user/dados');
-      const userData = response.data.dados || {};
+      // OTIMIZAÇÃO: Enviar apenas o orçamento do mês atual
+      // O backend substituirá apenas os dados deste período
 
-      // Prepare budget data
       const novoOrcamento = {
         mes: mesSelecionado,
         rendaPrevista,
@@ -191,23 +191,8 @@ const Orcamento = () => {
         categorias // Categories already contain updated gastoAtual
       };
 
-      // Get existing budgets or initialize array
-      const orcamentos = Array.isArray(userData.orcamentos) ? userData.orcamentos : [];
-
-      // Remove existing budget for this month if it exists
-      const orcamentosFiltrados = orcamentos.filter(o => o.mes !== mesSelecionado);
-
-      // Add the new budget
-      orcamentosFiltrados.push(novoOrcamento);
-
-      // Update user data with new budgets array
-      const updatedData = {
-        ...userData,
-        orcamentos: orcamentosFiltrados
-      };
-
-      // Save to backend
-      await api.post('/user/dados', { dados: updatedData });
+      // Salvar no backend (enviando apenas este orçamento)
+      await api.post('/user/dados', { orcamentos: [novoOrcamento] });
 
       setOrcamentoSalvo(true);
       setMensagemFeedback({ tipo: 'sucesso', texto: 'Orçamento salvo com sucesso!' });

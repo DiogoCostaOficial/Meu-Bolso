@@ -337,6 +337,39 @@ const salvarComTratamento = async (dados) => {
 - Não precisa remover a função `salvarReceitas` existente
 - O hook é compatível com o código atual
 
+## 🚀 Otimização de Backend (Updates Parciais) - IMPLEMENTADO
+
+Além do debounce no frontend, o backend foi otimizado para aceitar atualizações parciais.
+Isso elimina a necessidade de buscar todos os dados (`api.get`) antes de salvar.
+
+### Como funciona
+
+Agora você pode enviar apenas o que mudou:
+
+```javascript
+// Antes (Lento)
+const response = await api.get('/user/dados');
+const dados = response.data.dados;
+await api.post('/user/dados', { dados: { ...dados, receitas: novasReceitas } });
+
+// Agora (Rápido)
+await api.post('/user/dados', { receitas: novasReceitas });
+```
+
+### O que foi alterado
+
+1. **Database (`server/utils/database.js`)**:
+   - Lógica de salvamento dividida por tipo (receitas, despesas, orçamentos).
+   - Deleta apenas registros do tipo que está sendo salvo.
+   - Para orçamentos, deleta apenas o mês que está sendo salvo.
+
+2. **Páginas Atualizadas**:
+   - `Receitas.jsx`: Removeu `api.get`, envia apenas `{ receitas: ... }`.
+   - `Despesas.jsx`: Removeu `api.get`, envia apenas `{ despesas: ... }`.
+   - `Orcamento.jsx`: Removeu `api.get`, envia apenas `{ orcamentos: [mesAtual] }`.
+
+Isso reduz drasticamente o tráfego de rede e o tempo de processamento no banco de dados.
+
 ## ❓ Precisa de Ajuda?
 
 Se tiver dúvidas ou problemas:

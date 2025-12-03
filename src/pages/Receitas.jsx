@@ -88,18 +88,11 @@ const Receitas = () => {
 
   const salvarReceitas = async (novasReceitas) => {
     try {
-      // Obter dados atuais do usuário
-      const response = await api.get('/user/dados');
-      const userData = response.data.dados || {};
+      // OTIMIZAÇÃO: Enviar apenas as receitas para atualização parcial
+      // Não é mais necessário buscar todos os dados do usuário antes
 
-      // Atualizar apenas as receitas
-      const updatedData = {
-        ...userData,
-        receitas: novasReceitas
-      };
+      await api.post('/user/dados', { receitas: novasReceitas });
 
-      // Salvar no backend
-      await api.post('/user/dados', { dados: updatedData });
       setReceitas(novasReceitas);
       console.log('✅ Receitas salvas com sucesso');
     } catch (error) {

@@ -193,30 +193,53 @@ const salvarDadosUsuario = async (userId, dados) => {
     // 1. TRANSAÇÕES (RECEITAS E DESPESAS) - OTIMIZADO COM UPSERT
     // =========================================================================
 
-    // Coletar todas as transações recebidas (receitas + despesas)
+    // Coletar todas as transações recebidas para UPSERT
     const incomingTransactions = [];
+
+    // 1.1 TRATAMENTO DE RECEITAS (Se fornecido no payload)
     if (dados.receitas && Array.isArray(dados.receitas)) {
-      dados.receitas.forEach(r => incomingTransactions.push({ ...r, tipo: 'receita' }));
-    }
-    if (dados.despesas && Array.isArray(dados.despesas)) {
-      dados.despesas.forEach(d => incomingTransactions.push({ ...d, tipo: 'despesa' }));
-    }
+      const receitaIds = dados.receitas.map(r => r.id).filter(id => id);
 
-    if (incomingTransactions.length > 0) {
-      // A. Identificar IDs para manter/atualizar
-      const incomingIds = incomingTransactions.map(t => t.id).filter(id => id);
-
-      // B. Deletar apenas o que NÃO está na lista recebida (Limpeza seletiva)
-      // Nota: Usamos unnest para performance com arrays grandes
-      if (incomingIds.length > 0) {
+      // Se houver IDs, deleta apenas os que não estão na lista (mas são do tipo receita)
+      if (receitaIds.length > 0) {
         await client.query(`
           DELETE FROM transactions 
           WHERE user_id = $1 
+          AND tipo = 'receita'
           AND id NOT IN (SELECT unnest($2::text[]))
-        `, [userId, incomingIds]);
+        `, [userId, receitaIds]);
+      } else {
+        // Se a lista for vazia, deleta todas as receitas
+        await client.query(`DELETE FROM transactions WHERE user_id = $1 AND tipo = 'receita'`, [userId]);
       }
 
-      // C. Upsert (Inserir ou Atualizar) cada transação
+      // Adiciona ao array de upsert
+      dados.receitas.forEach(r => incomingTransactions.push({ ...r, tipo: 'receita' }));
+    }
+
+    // 1.2 TRATAMENTO DE DESPESAS (Se fornecido no payload)
+    if (dados.despesas && Array.isArray(dados.despesas)) {
+      const despesaIds = dados.despesas.map(d => d.id).filter(id => id);
+
+      // Se houver IDs, deleta apenas os que não estão na lista (mas são do tipo despesa)
+      if (despesaIds.length > 0) {
+        await client.query(`
+          DELETE FROM transactions 
+          WHERE user_id = $1 
+          AND tipo = 'despesa'
+          AND id NOT IN (SELECT unnest($2::text[]))
+        `, [userId, despesaIds]);
+      } else {
+        // Se a lista for vazia, deleta todas as despesas
+        await client.query(`DELETE FROM transactions WHERE user_id = $1 AND tipo = 'despesa'`, [userId]);
+      }
+
+      // Adiciona ao array de upsert
+      dados.despesas.forEach(d => incomingTransactions.push({ ...d, tipo: 'despesa' }));
+    }
+
+    // 1.3 UPSERT (Inserir ou Atualizar) para todas as transações coletadas
+    if (incomingTransactions.length > 0) {
       for (const t of incomingTransactions) {
         await client.query(`
           INSERT INTO transactions (id, user_id, descricao, valor, data, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
@@ -251,9 +274,6 @@ const salvarDadosUsuario = async (userId, dados) => {
           t.observacao
         ]);
       }
-    } else if (dados.receitas || dados.despesas) {
-      // Se as chaves existem mas estão vazias, significa que o usuário deletou tudo
-      await client.query('DELETE FROM transactions WHERE user_id = $1', [userId]);
     }
 
     // =========================================================================
@@ -289,11 +309,26 @@ const salvarDadosUsuario = async (userId, dados) => {
     }
 
     // =========================================================================
-    // 3. ORÇAMENTOS (Mantido recriação pois IDs são dinâmicos no frontend atual)
+    // 3. ORÇAMENTOS (Otimizado para atualização parcial por período)
     // =========================================================================
-    // Como os orçamentos são poucos registros, o impacto é mínimo.
     if (dados.orcamentos && Array.isArray(dados.orcamentos)) {
-      await client.query('DELETE FROM budgets WHERE user_id = $1', [userId]);
+      // Identificar quais meses (períodos) estão sendo atualizados
+      const periodos = [...new Set(dados.orcamentos.map(o => o.mes))].filter(p => p);
+
+      if (periodos.length > 0) {
+        // Deleta apenas os orçamentos dos meses que estão sendo atualizados
+        await client.query(`
+          DELETE FROM budgets 
+          WHERE user_id = $1 
+          AND periodo = ANY($2::text[])
+        `, [userId, periodos]);
+      } else {
+        // Se a lista for vazia mas a chave existe, assumimos que é para limpar tudo?
+        // Para segurança em atualizações parciais, se a lista for vazia, melhor não deletar tudo
+        // a menos que seja explicitamente solicitado.
+        // Mantendo comportamento conservador: se vazio, não faz nada (ou poderia ser deletar tudo se fosse full sync)
+        // Vamos assumir que se veio vazio, não há nada para atualizar.
+      }
 
       for (const orcamento of dados.orcamentos) {
         // 1. Insert Meta Data

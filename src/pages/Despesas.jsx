@@ -194,18 +194,10 @@ const Despesas = () => {
 
   const salvarDespesas = async (novasDespesas) => {
     try {
-      // Obter dados atuais do usuário
-      const response = await api.get('/user/dados');
-      const userData = response.data.dados || {};
+      // OTIMIZAÇÃO: Enviar apenas as despesas para atualização parcial
 
-      // Atualizar apenas as despesas
-      const updatedData = {
-        ...userData,
-        despesas: novasDespesas
-      };
+      await api.post('/user/dados', { despesas: novasDespesas });
 
-      // Salvar no backend
-      await api.post('/user/dados', { dados: updatedData });
       setDespesas(novasDespesas);
       console.log('✅ Despesas salvas com sucesso');
     } catch (error) {
