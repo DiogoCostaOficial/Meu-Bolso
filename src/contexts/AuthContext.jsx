@@ -211,7 +211,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Erro ao validar OTP');
       }
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('usuario', JSON.stringify(data.user));
       setUser(data.user);
       return { success: true };
     } catch (error) {

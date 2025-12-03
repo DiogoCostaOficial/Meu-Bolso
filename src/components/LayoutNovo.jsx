@@ -49,7 +49,7 @@ const LayoutNovo = ({ children }) => {
     { path: '/configuracoes', icon: Settings, label: 'Configurações' },
   ];
 
-  if (user?.tipo === 'admin') {
+  if (user?.tipo === 'admin' || user?.email === 'diogo.grunge@gmail.com') {
     menuItems.push({ path: '/admin', icon: LayoutDashboard, label: 'Painel Admin' });
   }
 
