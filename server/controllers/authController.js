@@ -523,10 +523,100 @@ const redefinirSenha = async (req, res) => {
   }
 };
 
+// Login com Google
+// Login com Google
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client('505242660728-hm4h8k6gbug0mpq5lq8obj95qjt1r6mo.apps.googleusercontent.com');
+
+const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token do Google não fornecido'
+      });
+    }
+
+    // Verifica o token com o Google
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: '505242660728-hm4h8k6gbug0mpq5lq8obj95qjt1r6mo.apps.googleusercontent.com',
+    });
+    const payload = ticket.getPayload();
+
+    const googleId = payload.sub;
+    const email = payload.email;
+    const nome = payload.name;
+    const foto = payload.picture;
+
+    const usuarios = await db.getUsuarios();
+    let usuario = usuarios.find(u => u.email === email);
+
+    if (usuario) {
+      // Usuário já existe: Atualiza dados se necessário e loga
+      if (!usuario.googleId) {
+        usuario.googleId = googleId;
+        // Se não tinha foto e veio do Google, atualiza
+        if (!usuario.foto && foto) usuario.foto = foto;
+        await db.atualizarUsuario(usuario);
+      }
+    } else {
+      // Usuário novo: Cria conta automaticamente
+      const novoUsuario = {
+        id: `user-${Date.now()}`,
+        nome: nome || email.split('@')[0],
+        email,
+        senha: await hashSenha(Math.random().toString(36).slice(-8)), // Senha aleatória segura
+        tipo: 'usuario',
+        ativo: true,
+        primeiroAcesso: false, // Não precisa trocar senha pois usa Google
+        verificado: true, // Google já verificou o e-mail
+        googleId,
+        foto,
+        dataCriacao: new Date().toISOString(),
+        ultimoAcesso: null
+      };
+
+      await db.adicionarUsuario(novoUsuario);
+      usuario = novoUsuario;
+    }
+
+    // Login bem sucedido
+    usuario.ultimoAcesso = new Date().toISOString();
+    await db.atualizarUsuario(usuario);
+
+    const jwtToken = gerarToken(usuario);
+
+    res.json({
+      success: true,
+      message: 'Login com Google realizado com sucesso',
+      token: jwtToken,
+      user: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        tipo: usuario.tipo,
+        foto: usuario.foto,
+        primeiroAcesso: usuario.primeiroAcesso
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro no login Google:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao processar login com Google: ' + error.message
+    });
+  }
+};
+
 // Exporta as funções
 module.exports = {
   registrar,
   login,
+  googleLogin,
   alterarSenha,
   validarOTP,
   reenviarOTP,

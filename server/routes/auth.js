@@ -7,6 +7,7 @@ const { verificarToken } = require('../middleware/auth');
 // Rotas públicas (não precisam de autenticação)
 router.post('/registrar', authController.registrar);
 router.post('/login', authController.login);
+router.post('/google', authController.googleLogin);
 router.post('/validar-otp', authController.validarOTP);
 router.post('/reenviar-otp', authController.reenviarOTP);
 router.post('/solicitar-recuperacao', authController.solicitarRecuperacaoSenha);

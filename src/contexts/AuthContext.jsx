@@ -26,6 +26,45 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Função de login
+  // Login com Google
+  const loginGoogle = async (googleData) => {
+    try {
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+
+      const response = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(googleData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao fazer login com Google');
+      }
+
+      // Salva token e dados do usuário
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('usuario', JSON.stringify(data.user));
+      setUser(data.user);
+
+      return {
+        success: true,
+        user: data.user
+      };
+    } catch (error) {
+      console.error('Erro no login Google:', error);
+      return {
+        success: false,
+        message: error.message || 'Erro ao conectar com Google'
+      };
+    }
+  };
+
   // Função de login
   const login = async (email, senha, username = null) => {
     try {
@@ -260,6 +299,7 @@ export const AuthProvider = ({ children }) => {
     updateUser,
     requestPasswordReset,
     resetPassword,
+    loginGoogle,
   };
 
   return (

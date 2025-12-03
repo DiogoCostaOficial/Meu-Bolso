@@ -1,8 +1,8 @@
-// src/components/auth/Login.jsx
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
 import { validarEmail } from '../utils/validations';
 import Toast from '../layout/Toast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,7 +16,7 @@ const Login = () => {
     senha: ''
   });
   const [erros, setErros] = useState({});
-  const { login } = useAuth();
+  const { login, loginGoogle } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -153,6 +153,47 @@ const Login = () => {
               </>
             )}
           </button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Ou continue com</span>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                try {
+                  // OTIMIZAÇÃO: Enviamos o token direto para o backend validar
+                  // Isso é muito mais seguro do que decodificar no frontend
+                  const result = await loginGoogle({
+                    token: credentialResponse.credential
+                  });
+
+                  if (result.success) {
+                    setToast({ mensagem: `Bem-vindo, ${result.user.nome}!`, tipo: 'sucesso' });
+                    navigate('/dashboard');
+                  } else {
+                    setToast({ mensagem: result.message, tipo: 'erro' });
+                  }
+                } catch (error) {
+                  console.error('Erro no login Google:', error);
+                  setToast({ mensagem: 'Erro ao conectar com Google', tipo: 'erro' });
+                }
+              }}
+              onError={() => {
+                setToast({ mensagem: 'Erro ao conectar com Google', tipo: 'erro' });
+              }}
+              useOneTap
+              theme="filled_blue"
+              shape="pill"
+              text="continue_with"
+              width="100%"
+            />
+          </div>
         </form>
 
         {/* Links */}
