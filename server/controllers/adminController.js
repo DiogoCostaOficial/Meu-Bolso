@@ -11,7 +11,22 @@ const obterEstatisticas = async (req, res) => {
       if (!a.ultimoAcesso) return 1;
       if (!b.ultimoAcesso) return -1;
       return new Date(b.ultimoAcesso) - new Date(a.ultimoAcesso);
-    }).map(u => ({ ...u, tipo: u.tipo || 'usuario' }));
+    }).map(u => ({
+      id: u.id,
+      nome: u.nome,
+      email: u.email,
+      tipo: u.tipo || 'usuario',
+      ultimoAcesso: u.ultimoAcesso,
+      dataCriacao: u.dataCriacao,
+      verificado: u.verificado,
+      avatar: u.avatar
+    }));
+
+    // Calcular novos usuários hoje
+    const hoje = new Date().toISOString().split('T')[0];
+    const novosUsuariosHoje = usuarios.filter(u =>
+      u.dataCriacao && u.dataCriacao.startsWith(hoje)
+    ).length;
 
     res.json({
       sucesso: true,
@@ -19,6 +34,7 @@ const obterEstatisticas = async (req, res) => {
         totalUsuarios,
         usuariosComAcesso,
         usuariosSemAcesso,
+        novosUsuariosHoje,
         usuarios: usuariosOrdenados
       }
     });

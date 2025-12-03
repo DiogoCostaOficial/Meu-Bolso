@@ -50,7 +50,7 @@ const LayoutNovo = ({ children }) => {
   ];
 
   if (user?.tipo === 'admin' || user?.email === 'diogo.grunge@gmail.com') {
-    menuItems.push({ path: '/admin', icon: LayoutDashboard, label: 'Painel Admin' });
+    menuItems.unshift({ path: '/admin', icon: LayoutDashboard, label: 'Painel Admin' });
   }
 
   return (
