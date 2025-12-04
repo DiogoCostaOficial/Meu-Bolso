@@ -7,7 +7,7 @@ import LayoutNovo from './LayoutNovo';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation(); // Hook para obter a localização atual
-  
+
   // Derivar variáveis para compatibilidade
   const autenticado = !!user;
   const usuario = user;
@@ -28,7 +28,9 @@ const ProtectedRoute = ({ children }) => {
 
   // Lógica para proteger a rota /admin
   const isAdminRoute = location.pathname.startsWith('/admin');
-  if (isAdminRoute && usuario?.tipo !== 'admin') {
+  const isDiogo = usuario?.email === 'diogo.grunge@gmail.com';
+
+  if (isAdminRoute && usuario?.tipo !== 'admin' && !isDiogo) {
     // Se tentar acessar /admin e não for admin, redireciona para o dashboard
     return <Navigate to="/dashboard" replace />;
   }
