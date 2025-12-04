@@ -212,8 +212,15 @@ const login = async (req, res) => {
     usuario.ultimoAcesso = new Date().toISOString();
     await db.atualizarUsuario(usuario);
 
-    // Gera token
-    const token = gerarToken(usuario);
+    // Gera token (apenas dados necessários)
+    const payloadToken = {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      tipo: usuario.tipo,
+      primeiroAcesso: usuario.primeiroAcesso
+    };
+    const token = gerarToken(payloadToken);
 
     res.json({
       success: true,
@@ -587,7 +594,14 @@ const googleLogin = async (req, res) => {
     usuario.ultimoAcesso = new Date().toISOString();
     await db.atualizarUsuario(usuario);
 
-    const jwtToken = gerarToken(usuario);
+    const payloadToken = {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      tipo: usuario.tipo,
+      primeiroAcesso: usuario.primeiroAcesso
+    };
+    const jwtToken = gerarToken(payloadToken);
 
     res.json({
       success: true,

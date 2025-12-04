@@ -2,7 +2,10 @@ const db = require('../utils/database');
 
 const obterEstatisticas = async (req, res) => {
   try {
+    console.log('📊 Admin: Obtendo estatísticas...');
     const usuarios = await db.getUsuarios();
+    console.log(`📊 Admin: ${usuarios.length} usuários encontrados.`);
+
     const totalUsuarios = usuarios.length;
     const usuariosComAcesso = usuarios.filter(u => !!u.ultimoAcesso).length;
     const usuariosSemAcesso = totalUsuarios - usuariosComAcesso;

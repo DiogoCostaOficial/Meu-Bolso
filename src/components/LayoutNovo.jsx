@@ -37,7 +37,7 @@ const LayoutNovo = ({ children }) => {
   };
 
   const menuItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/orcamento', icon: Wallet, label: 'Orçamento' },
     { path: '/receitas', icon: TrendingUp, label: 'Receitas' },
     { path: '/despesas', icon: TrendingDown, label: 'Despesas' },
