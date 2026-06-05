@@ -62,7 +62,9 @@ const atualizarPerfil = async (req, res) => {
 };
 
 const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const supabaseUrl = (process.env.SUPABASE_URL || '').trim();
+const supabaseKey = (process.env.SUPABASE_ANON_KEY || '').trim();
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const uploadAvatar = async (req, res) => {
   try {
