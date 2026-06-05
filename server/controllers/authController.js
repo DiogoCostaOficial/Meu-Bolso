@@ -533,7 +533,7 @@ const redefinirSenha = async (req, res) => {
 // Login com Google
 // Login com Google
 const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client('505242660728-hm4h8k6gbug0mpq5lq8obj95qjt1r6mo.apps.googleusercontent.com');
+const client = new OAuth2Client('505242660728-umlemlt3e590grpjjc82uarg7l76spte.apps.googleusercontent.com');
 
 const googleLogin = async (req, res) => {
   try {
@@ -549,7 +549,7 @@ const googleLogin = async (req, res) => {
     // Verifica o token com o Google
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: '505242660728-hm4h8k6gbug0mpq5lq8obj95qjt1r6mo.apps.googleusercontent.com',
+      audience: '505242660728-umlemlt3e590grpjjc82uarg7l76spte.apps.googleusercontent.com',
     });
     const payload = ticket.getPayload();
 
