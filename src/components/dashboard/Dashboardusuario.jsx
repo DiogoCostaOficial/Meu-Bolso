@@ -17,14 +17,14 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Settings, 
-  LogOut, 
-  TrendingUp, 
-  Activity, 
+import {
+  User,
+  Mail,
+  Phone,
+  Settings,
+  LogOut,
+  TrendingUp,
+  Activity,
   Users,
   DollarSign,
   Loader2
@@ -131,15 +131,14 @@ const Dashboard = () => {
       {toastAtivo && (
         <div className="fixed top-4 right-4 z-50 animate-slide-in">
           <div
-            className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg border-l-4 ${
-              toastAtivo.tipo === 'sucesso'
+            className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg border-l-4 ${toastAtivo.tipo === 'sucesso'
                 ? 'bg-green-50 border-green-500 text-green-800'
                 : toastAtivo.tipo === 'erro'
-                ? 'bg-red-50 border-red-500 text-red-800'
-                : toastAtivo.tipo === 'aviso'
-                ? 'bg-yellow-50 border-yellow-500 text-yellow-800'
-                : 'bg-blue-50 border-blue-500 text-blue-800'
-            } transition-all duration-300 ease-in-out max-w-md`}
+                  ? 'bg-red-50 border-red-500 text-red-800'
+                  : toastAtivo.tipo === 'aviso'
+                    ? 'bg-yellow-50 border-yellow-500 text-yellow-800'
+                    : 'bg-blue-50 border-blue-500 text-blue-800'
+              } transition-all duration-300 ease-in-out max-w-md`}
           >
             <p className="flex-1 text-sm font-medium">{toastAtivo.mensagem}</p>
             <button
@@ -170,9 +169,9 @@ const Dashboard = () => {
               <button
                 onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-300"
-               >
-               <LayoutDashboard className="w-4 h-4" />
-               Voltar para Dashboard
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Voltar para Dashboard
               </button>
 
 
@@ -259,7 +258,7 @@ const Dashboard = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="valor"

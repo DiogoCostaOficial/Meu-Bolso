@@ -141,7 +141,7 @@ const Orcamento = () => {
     setCategorias(prevCategorias => {
       const novasCategorias = prevCategorias.map(cat => {
         const gastoTotal = despesas
-          .filter(d => d.categoria === cat.nome)
+          .filter(d => d.categoria === cat.nome && d.somarNoOrcamento !== false)
           .reduce((acc, d) => acc + d.valor, 0);
         return { ...cat, gastoAtual: gastoTotal };
       });

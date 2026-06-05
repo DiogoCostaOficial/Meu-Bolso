@@ -1,0 +1,14 @@
+--- Resumo Q1 2026 ---
+Despesas Fixas: Total=6841.96, Média Mensal=2280.65
+Educação: Total=2833.91, Média Mensal=944.64
+Investimentos: Total=3346.31, Média Mensal=1115.44
+Lazer: Total=1395.82, Média Mensal=465.27
+Reserva de Emergência: Total=1659.00, Média Mensal=553.00
+Total Médio Mensal Q1: 5359.00
+
+--- Percentuais Atuais (Baseados no Total Médio de 5359.00) ---
+Despesas Fixas: 42.56%
+Educação: 17.63%
+Investimentos: 20.81%
+Lazer: 8.68%
+Reserva de Emergência: 10.32%

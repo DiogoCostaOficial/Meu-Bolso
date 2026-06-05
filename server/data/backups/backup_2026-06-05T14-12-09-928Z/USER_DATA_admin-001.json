@@ -1,0 +1,955 @@
+{
+  "receitas": [
+    {
+      "descricao": "Salário Pai",
+      "valor": 6000,
+      "data": "2026-05-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1766145944001
+    },
+    {
+      "descricao": "Salário Mãe",
+      "valor": 4000,
+      "data": "2026-05-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1766145944002
+    },
+    {
+      "descricao": "Salário Pai",
+      "valor": 6000,
+      "data": "2026-01-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476948079
+    },
+    {
+      "descricao": "Salário Mãe",
+      "valor": 4000,
+      "data": "2026-01-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476948080
+    },
+    {
+      "descricao": "Salário Pai",
+      "valor": 6000,
+      "data": "2026-02-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476913124
+    },
+    {
+      "descricao": "Salário Mãe",
+      "valor": 4000,
+      "data": "2026-02-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476913125
+    },
+    {
+      "descricao": "Salário Pai",
+      "valor": 6000,
+      "data": "2026-03-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476480628
+    },
+    {
+      "descricao": "Salário Mãe",
+      "valor": 4000,
+      "data": "2026-03-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476480629
+    },
+    {
+      "descricao": "Salário Pai",
+      "valor": 6000,
+      "data": "2026-04-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476368242
+    },
+    {
+      "descricao": "Salário Mãe",
+      "valor": 4000,
+      "data": "2026-04-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário Principal",
+      "observacoes": "Líquido CLT",
+      "recorrente": true,
+      "id": 1779476368243
+    }
+  ],
+  "despesas": [
+    {
+      "descricao": "Aluguel",
+      "valor": 2000,
+      "data": "2026-05-10",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "Casa 3 quartos",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945001,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Condomínio",
+      "valor": 500,
+      "data": "2026-05-10",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945002,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Mensalidade Escolar (Filho)",
+      "valor": 1200,
+      "data": "2026-05-05",
+      "categoria": "Educação",
+      "subcategoria": "Diversos Educação",
+      "observacoes": "Ensino Fundamental",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945003,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Curso de Inglês",
+      "valor": 300,
+      "data": "2026-05-07",
+      "categoria": "Educação",
+      "subcategoria": "Idiomas",
+      "observacoes": "Inglês Filho",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945004,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Supermercado Mês",
+      "valor": 1600,
+      "data": "2026-05-08",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Mercado",
+      "observacoes": "Compras do mês",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945005,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Delivery e Restaurantes",
+      "valor": 400,
+      "data": "2026-05-15",
+      "categoria": "Lazer",
+      "subcategoria": "Junkie Food",
+      "observacoes": "Finais de semana",
+      "recorrente": false,
+      "pago": true,
+      "id": 1766145945006,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Plano de Saúde Familiar",
+      "valor": 900,
+      "data": "2026-05-12",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Saúde",
+      "observacoes": "Coparticipação familiar",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945007,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Farmácia",
+      "valor": 100,
+      "data": "2026-05-18",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Saúde",
+      "observacoes": "Vitaminas",
+      "recorrente": false,
+      "pago": true,
+      "id": 1766145945008,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Combustível (Carro)",
+      "valor": 600,
+      "data": "2026-05-14",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Carro",
+      "observacoes": "Gasolina mês",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945009,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Uber / App de Transporte",
+      "valor": 200,
+      "data": "2026-05-20",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Transporte",
+      "observacoes": "",
+      "recorrente": false,
+      "pago": true,
+      "id": 1766145945010,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Energia Elétrica",
+      "valor": 250,
+      "data": "2026-05-20",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945011,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Água",
+      "valor": 100,
+      "data": "2026-05-20",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945012,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Internet e TV",
+      "valor": 150,
+      "data": "2026-05-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "Plano fibra + TV",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945013,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Streaming (Netflix/Disney)",
+      "valor": 100,
+      "data": "2026-05-15",
+      "categoria": "Lazer",
+      "subcategoria": "Assinaturas",
+      "observacoes": "",
+      "recorrente": true,
+      "pago": true,
+      "id": 1766145945014,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Passeios e Cinema",
+      "valor": 250,
+      "data": "2026-05-25",
+      "categoria": "Lazer",
+      "subcategoria": "Rolês e Passeios",
+      "observacoes": "Finais de semana com o filho",
+      "recorrente": false,
+      "pago": false,
+      "id": 1766145945015,
+      "statusPagamento": "pago",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Moradia",
+      "valor": 2353.46,
+      "data": "2026-01-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477144052,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Educação",
+      "valor": 1478.64,
+      "data": "2026-01-15",
+      "categoria": "Educação",
+      "subcategoria": "Diversos Educação",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477144053,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Alimentação",
+      "valor": 1562.73,
+      "data": "2026-01-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Mercado",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477144054,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Saúde",
+      "valor": 737.55,
+      "data": "2026-01-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Saúde",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477144055,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Transporte",
+      "valor": 348.17,
+      "data": "2026-01-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Transporte",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477144056,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Lazer",
+      "valor": 205.62,
+      "data": "2026-01-15",
+      "categoria": "Lazer",
+      "subcategoria": "Rolês e Passeios",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477144057,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Despesas Fixas",
+      "valor": 123.61,
+      "data": "2026-01-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Diversos Fixos",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477144058,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Moradia",
+      "valor": 2885.17,
+      "data": "2026-02-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779476888845,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Educação",
+      "valor": 1482.8,
+      "data": "2026-02-15",
+      "categoria": "Educação",
+      "subcategoria": "Diversos Educação",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779476888846,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Alimentação",
+      "valor": 2131.59,
+      "data": "2026-02-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Mercado",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779476888847,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Saúde",
+      "valor": 802.5,
+      "data": "2026-02-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Saúde",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779476888848,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Transporte",
+      "valor": 401.72,
+      "data": "2026-02-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Transporte",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779476888849,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Lazer",
+      "valor": 251.06,
+      "data": "2026-02-15",
+      "categoria": "Lazer",
+      "subcategoria": "Rolês e Passeios",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779476888850,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Despesas Fixas",
+      "valor": 220.88,
+      "data": "2026-02-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Diversos Fixos",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779476888851,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Moradia",
+      "valor": 2675.99,
+      "data": "2026-03-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477046375,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Educação",
+      "valor": 1541.96,
+      "data": "2026-03-15",
+      "categoria": "Educação",
+      "subcategoria": "Diversos Educação",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477046376,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Alimentação",
+      "valor": 1960.06,
+      "data": "2026-03-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Mercado",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477046377,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Saúde",
+      "valor": 811.88,
+      "data": "2026-03-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Saúde",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477046378,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Transporte",
+      "valor": 366.3,
+      "data": "2026-03-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Transporte",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477046379,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Lazer",
+      "valor": 207.01,
+      "data": "2026-03-15",
+      "categoria": "Lazer",
+      "subcategoria": "Rolês e Passeios",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477046380,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Despesas Fixas",
+      "valor": -38.93,
+      "data": "2026-03-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Diversos Fixos",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477046381,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Moradia",
+      "valor": 2916.64,
+      "data": "2026-04-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477179178,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Educação",
+      "valor": 1561.04,
+      "data": "2026-04-15",
+      "categoria": "Educação",
+      "subcategoria": "Diversos Educação",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477179179,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Alimentação",
+      "valor": 2042.16,
+      "data": "2026-04-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Mercado",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477179180,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Saúde",
+      "valor": 794.53,
+      "data": "2026-04-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Saúde",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477179181,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Transporte",
+      "valor": 380.93,
+      "data": "2026-04-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Transporte",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477179182,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Lazer",
+      "valor": 218.81,
+      "data": "2026-04-15",
+      "categoria": "Lazer",
+      "subcategoria": "Rolês e Passeios",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477179183,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "descricao": "Despesa Despesas Fixas",
+      "valor": -318.15,
+      "data": "2026-04-15",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Diversos Fixos",
+      "observacoes": "Gerado automaticamente",
+      "recorrente": true,
+      "pago": true,
+      "id": 1779477179184,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "id": 1779488207891,
+      "descricao": "TETSTE ECLETICA",
+      "valor": 5000,
+      "data": "2026-05-22",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Diversos Fixos",
+      "observacoes": "teste",
+      "parcelado": false,
+      "numeroParcelas": 1,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "id": 1779488266911,
+      "descricao": "teste 2",
+      "valor": 20000,
+      "data": "2026-05-22",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Diversos Fixos",
+      "observacoes": "",
+      "parcelado": false,
+      "numeroParcelas": 1,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    },
+    {
+      "id": 1779488294937,
+      "descricao": "teste3",
+      "valor": 100000,
+      "data": "2026-05-22",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Diversos Fixos",
+      "observacoes": "",
+      "parcelado": false,
+      "numeroParcelas": 1,
+      "statusPagamento": "pendente",
+      "dataVencimento": "",
+      "somarNoOrcamento": true
+    }
+  ],
+  "categorias": [],
+  "orcamentos": [
+    {
+      "mes": "2026-05",
+      "rendaPrevista": "10000.00",
+      "dividas": "0.00",
+      "rendaReal": "10000.00",
+      "categorias": [
+        {
+          "nome": "Despesas Fixas",
+          "percentual": 68,
+          "gastoAtual": 6800,
+          "cor": "#EF4444"
+        },
+        {
+          "nome": "Lazer",
+          "percentual": 7,
+          "gastoAtual": 700,
+          "cor": "#3B82F6"
+        },
+        {
+          "nome": "Educação",
+          "percentual": 15,
+          "gastoAtual": 1500,
+          "cor": "#10B981"
+        },
+        {
+          "nome": "Investimentos",
+          "percentual": 10,
+          "gastoAtual": 1000,
+          "cor": "#8B5CF6"
+        },
+        {
+          "nome": "Reserva de Emergência",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#F59E0B"
+        }
+      ]
+    },
+    {
+      "mes": "2026-01",
+      "rendaPrevista": "10000.00",
+      "dividas": "0.00",
+      "rendaReal": "10000.00",
+      "categorias": [
+        {
+          "nome": "Despesas Fixas",
+          "percentual": 77,
+          "gastoAtual": 5243.53,
+          "cor": "#EF4444"
+        },
+        {
+          "nome": "Lazer",
+          "percentual": 3,
+          "gastoAtual": 204.29,
+          "cor": "#3B82F6"
+        },
+        {
+          "nome": "Educação",
+          "percentual": 20,
+          "gastoAtual": 1361.96,
+          "cor": "#10B981"
+        },
+        {
+          "nome": "Investimentos",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#8B5CF6"
+        },
+        {
+          "nome": "Reserva de Emergência",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#F59E0B"
+        }
+      ]
+    },
+    {
+      "mes": "2026-02",
+      "rendaPrevista": "10000.00",
+      "dividas": "0.00",
+      "rendaReal": "10000.00",
+      "categorias": [
+        {
+          "nome": "Despesas Fixas",
+          "percentual": 77,
+          "gastoAtual": 6295.3,
+          "cor": "#EF4444"
+        },
+        {
+          "nome": "Lazer",
+          "percentual": 3,
+          "gastoAtual": 245.27,
+          "cor": "#3B82F6"
+        },
+        {
+          "nome": "Educação",
+          "percentual": 20,
+          "gastoAtual": 1635.14,
+          "cor": "#10B981"
+        },
+        {
+          "nome": "Investimentos",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#8B5CF6"
+        },
+        {
+          "nome": "Reserva de Emergência",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#F59E0B"
+        }
+      ]
+    },
+    {
+      "mes": "2026-03",
+      "rendaPrevista": "10000.00",
+      "dividas": "0.00",
+      "rendaReal": "10000.00",
+      "categorias": [
+        {
+          "nome": "Despesas Fixas",
+          "percentual": 77,
+          "gastoAtual": 5793.69,
+          "cor": "#EF4444"
+        },
+        {
+          "nome": "Lazer",
+          "percentual": 3,
+          "gastoAtual": 225.73,
+          "cor": "#3B82F6"
+        },
+        {
+          "nome": "Educação",
+          "percentual": 20,
+          "gastoAtual": 1504.85,
+          "cor": "#10B981"
+        },
+        {
+          "nome": "Investimentos",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#8B5CF6"
+        },
+        {
+          "nome": "Reserva de Emergência",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#F59E0B"
+        }
+      ]
+    },
+    {
+      "mes": "2026-04",
+      "rendaPrevista": "10000.00",
+      "dividas": "0.00",
+      "rendaReal": "10000.00",
+      "categorias": [
+        {
+          "nome": "Despesas Fixas",
+          "percentual": 77,
+          "gastoAtual": 5848.9,
+          "cor": "#EF4444"
+        },
+        {
+          "nome": "Lazer",
+          "percentual": 3,
+          "gastoAtual": 227.88,
+          "cor": "#3B82F6"
+        },
+        {
+          "nome": "Educação",
+          "percentual": 20,
+          "gastoAtual": 1519.19,
+          "cor": "#10B981"
+        },
+        {
+          "nome": "Investimentos",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#8B5CF6"
+        },
+        {
+          "nome": "Reserva de Emergência",
+          "percentual": 0,
+          "gastoAtual": 0,
+          "cor": "#F59E0B"
+        }
+      ]
+    }
+  ],
+  "cartoes": [
+    {
+      "id": "a6e3b39e-ee80-49fd-ad05-da78378eb8d8",
+      "nome": "Novo Cartão Nubank",
+      "valores": {}
+    },
+    {
+      "id": "dd30b487-82cd-4c6c-9fb9-dd52d0cf6ee0",
+      "nome": "Novo Cartão santander",
+      "valores": {}
+    }
+  ]
+}

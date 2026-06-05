@@ -1,0 +1,121 @@
+{
+  "timestamp": "2025-11-15T00:06:08.169Z",
+  "usuario": {
+    "id": "user-1763162160964",
+    "nome": "Diogo",
+    "email": "diogo.grunge@gmail.com",
+    "tipo": "admin"
+  },
+  "verificacoes": {
+    "database": {
+      "sucesso": true,
+      "usuario": {
+        "id": "user-1763162160964",
+        "nome": "Diogo",
+        "email": "diogo.grunge@gmail.com",
+        "tipo": "admin"
+      },
+      "permissoes": {
+        "basico": {
+          "existe": true,
+          "ativo": true,
+          "verificado": true,
+          "tipo": true
+        },
+        "configuracoes": {
+          "temConfiguracoes": true,
+          "notificacoesEmail": true,
+          "tema": true,
+          "idioma": true
+        },
+        "seguranca": {
+          "temSenha": true,
+          "senhaHashValida": true,
+          "dataCriacao": true,
+          "ultimoAcesso": true
+        },
+        "migracao": {
+          "foiMigrado": true,
+          "dataMigracao": "2025-11-14T23:57:55.082Z",
+          "origem": "admin-001"
+        }
+      },
+      "estatisticas": {
+        "total": 13,
+        "passou": 13,
+        "percentual": 100
+      }
+    },
+    "acessos": {
+      "api": {
+        "estatisticas_sistema": {
+          "permitido": true,
+          "mensagem": "Acesso permitido"
+        },
+        "listar_usuarios": {
+          "permitido": true,
+          "mensagem": "Acesso permitido"
+        },
+        "editar_usuarios": {
+          "permitido": true,
+          "mensagem": "Acesso permitido"
+        },
+        "excluir_usuarios": {
+          "permitido": true,
+          "mensagem": "Acesso permitido"
+        },
+        "acesso_painel_admin": {
+          "permitido": true,
+          "mensagem": "Acesso permitido"
+        }
+      },
+      "frontend": {},
+      "geral": {
+        "token": {
+          "sucesso": true,
+          "tipo": "admin",
+          "expiracao": "15/11/2025, 21:06:08"
+        },
+        "permissoes": {
+          "eAdmin": true,
+          "estaAtivo": true,
+          "estaVerificado": true,
+          "temConfiguracoes": true
+        }
+      }
+    },
+    "rotas": [
+      {
+        "metodo": "GET",
+        "path": "/api/admin/estatisticas",
+        "descricao": "Estatísticas do sistema"
+      },
+      {
+        "metodo": "GET",
+        "path": "/api/admin/usuarios",
+        "descricao": "Listar todos os usuários"
+      },
+      {
+        "metodo": "GET",
+        "path": "/api/admin/usuarios/:id",
+        "descricao": "Buscar usuário por ID"
+      },
+      {
+        "metodo": "PUT",
+        "path": "/api/admin/usuarios/:id",
+        "descricao": "Atualizar usuário"
+      },
+      {
+        "metodo": "DELETE",
+        "path": "/api/admin/usuarios/:id",
+        "descricao": "Excluir usuário"
+      }
+    ]
+  },
+  "status": {
+    "eAdministrador": true,
+    "permissoesCompletas": true,
+    "tokenValido": true,
+    "acessoTotal": true
+  }
+}

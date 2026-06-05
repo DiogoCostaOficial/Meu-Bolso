@@ -1,0 +1,119 @@
+{
+  "usuarios": [
+    {
+      "id": "admin-001",
+      "nome": "Administrador",
+      "email": "admin@admin.com",
+      "senha": "$2a$10$YrXNLU.MsoOSt541oPsJrumID4j89fbvaQ0CkUz8YzmXmTFRrmwuK",
+      "tipo": "admin",
+      "ativo": true,
+      "verificado": true,
+      "primeiroAcesso": false,
+      "dataCriacao": "2025-01-01T00:00:00.000Z",
+      "ultimoAcesso": "2026-05-22T22:18:58.850Z",
+      "configuracoes": {
+        "notificacoesEmail": true,
+        "tema": "light",
+        "idioma": "pt-BR"
+      }
+    },
+    {
+      "id": "user-1763162160964",
+      "nome": "Diogo Costa",
+      "email": "diogo.grunge@gmail.com",
+      "senha": "$2a$10$MBHdL98ElXQ10FuztAYa9uUNRWl0TpUCFR9kCDkmmsmR0sEaENRQO",
+      "tipo": "usuario",
+      "ativo": true,
+      "primeiroAcesso": false,
+      "verificado": true,
+      "otpCodigo": null,
+      "otpExpira": null,
+      "dataCriacao": "2025-11-14T23:16:00.964Z",
+      "ultimoAcesso": "2026-05-31T19:09:25.722Z",
+      "avatar": "http://localhost:5000/uploads/avatar-1764005134315-346725849.jpg",
+      "googleId": "109015114580046566331",
+      "foto": "https://lh3.googleusercontent.com/a/ACg8ocJkCsp4ISfj9Y7wYxHXl-uPR0WKq8tGTuFu_y6FmRxagkbCmH1hjw=s96-c"
+    }
+  ],
+  "receitas": [],
+  "despesas": [],
+  "categorias": [
+    {
+      "id": "cat-001",
+      "nome": "Salário",
+      "tipo": "receita",
+      "cor": "#10b981",
+      "icone": "💰"
+    },
+    {
+      "id": "cat-002",
+      "nome": "Freelance",
+      "tipo": "receita",
+      "cor": "#3b82f6",
+      "icone": "💼"
+    },
+    {
+      "id": "cat-003",
+      "nome": "Investimentos",
+      "tipo": "receita",
+      "cor": "#8b5cf6",
+      "icone": "📈"
+    },
+    {
+      "id": "cat-004",
+      "nome": "Alimentação",
+      "tipo": "despesa",
+      "cor": "#ef4444",
+      "icone": "🍔"
+    },
+    {
+      "id": "cat-005",
+      "nome": "Transporte",
+      "tipo": "despesa",
+      "cor": "#f59e0b",
+      "icone": "🚗"
+    },
+    {
+      "id": "cat-006",
+      "nome": "Moradia",
+      "tipo": "despesa",
+      "cor": "#ec4899",
+      "icone": "🏠"
+    },
+    {
+      "id": "cat-007",
+      "nome": "Saúde",
+      "tipo": "despesa",
+      "cor": "#06b6d4",
+      "icone": "🏥"
+    },
+    {
+      "id": "cat-008",
+      "nome": "Educação",
+      "tipo": "despesa",
+      "cor": "#8b5cf6",
+      "icone": "📚"
+    },
+    {
+      "id": "cat-009",
+      "nome": "Lazer",
+      "tipo": "despesa",
+      "cor": "#f97316",
+      "icone": "🎮"
+    },
+    {
+      "id": "cat-010",
+      "nome": "Outros",
+      "tipo": "despesa",
+      "cor": "#6b7280",
+      "icone": "📦"
+    }
+  ],
+  "orcamentos": [],
+  "metas": [],
+  "configuracoes": {
+    "versao": "1.0.0",
+    "ultimaAtualizacao": "2025-01-01T00:00:00.000Z",
+    "manutencao": false
+  }
+}

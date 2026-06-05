@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEdu } from '../contexts/EduContext';
+import { useTheme } from '../components/theme-provider';
 import EduHelpButton from '../components/EduHelpButton';
 import {
   Wallet, TrendingUp, TrendingDown, CreditCard,
@@ -15,6 +16,7 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const { showLesson, updateFinancialData } = useEdu();
   const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] = useState({
@@ -126,13 +128,13 @@ const Dashboard = () => {
   // Calcular totais por categoria dinamicamente
   const categoriasTotais = categorias.map(cat => {
     const total = despesasFiltradas
-      .filter(d => d.categoria === cat.nome)
+      .filter(d => d.categoria === cat.nome && d.somarNoOrcamento !== false)
       .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0);
     return { ...cat, total };
   }).filter(cat => cat.total > 0);
 
-  const totalReceitas = calculateTotal(receitasFiltradas);
-  const totalDespesas = calculateTotal(despesasFiltradas); // Soma de TODAS as despesas filtradas
+  const totalReceitas = calculateTotal(receitasFiltradas.filter(r => r.somarNoOrcamento !== false));
+  const totalDespesas = calculateTotal(despesasFiltradas.filter(d => d.somarNoOrcamento !== false)); // Soma apenas despesas que devem ser somadas
   // Atualizar dados do mascote com base nos valores filtrados
   useEffect(() => {
     updateFinancialData(totalReceitas, totalDespesas);
@@ -195,19 +197,19 @@ const Dashboard = () => {
       {/* Cabeçalho com Filtro de Ano */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-          <p className="text-gray-600 mt-1">Visão geral das suas finanças</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
+          <p className="text-gray-600 dark:text-slate-400 mt-1">Visão geral das suas finanças</p>
         </div>
 
         <div className="flex items-center gap-3">
           <EduHelpButton topic="dashboard" />
 
-          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200">
-            <Calendar className="w-5 h-5 text-blue-600" />
+          <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-md border border-gray-200 dark:border-slate-800">
+            <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-500" />
             <select
               value={mesSelecionado}
               onChange={(e) => setMesSelecionado(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium text-gray-700"
+              className="px-3 py-1.5 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 font-medium text-gray-700 dark:text-slate-200"
             >
               {meses.map(mes => (
                 <option key={mes.valor} value={mes.valor}>
@@ -218,7 +220,7 @@ const Dashboard = () => {
             <select
               value={anoSelecionado}
               onChange={(e) => setAnoSelecionado(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium text-gray-700"
+              className="px-3 py-1.5 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 font-medium text-gray-700 dark:text-slate-200"
             >
               {gerarListaAnos().map(ano => (
                 <option key={ano} value={ano}>
@@ -235,16 +237,16 @@ const Dashboard = () => {
         {cards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+            <div key={index} className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-slate-800">
               <div className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1 font-medium">{card.title}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400 mb-1 font-medium">{card.title}</p>
                     <p className={`text-2xl font-bold ${card.color}`}>
                       {card.isPercentage ? card.value : formatCurrency(card.value)}
                     </p>
                   </div>
-                  <div className={`p-3 rounded-full ${card.bgColor}`}>
+                  <div className={`p-3 rounded-full ${card.bgColor} dark:bg-opacity-20`}>
                     <Icon className={card.color} size={24} />
                   </div>
                 </div>
@@ -255,14 +257,14 @@ const Dashboard = () => {
       </div>
 
       {/* Card de Percentual de Sobras */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-800">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600 mb-1 font-medium">Status Financeiro</p>
+            <p className="text-sm text-gray-600 dark:text-slate-400 mb-1 font-medium">Status Financeiro</p>
             <p className={`text-3xl font-bold ${percentualSobra >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatPercent(percentualSobra)}
             </p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
               {saldoFinal >= 0 ? 'Sobrando no mês' : 'Déficit no mês'}
             </p>
           </div>
@@ -270,7 +272,7 @@ const Dashboard = () => {
             <div className="text-4xl mb-2">
               {percentualSobra >= 20 ? '🎉' : percentualSobra >= 10 ? '👍' : percentualSobra >= 0 ? '⚠️' : '❌'}
             </div>
-            <p className="text-sm font-semibold text-gray-600">
+            <p className="text-sm font-semibold text-gray-600 dark:text-slate-300">
               {percentualSobra >= 20 ? 'Excelente!' : percentualSobra >= 10 ? 'Bom' : percentualSobra >= 0 ? 'Atenção' : 'Déficit'}
             </p>
           </div>
@@ -280,9 +282,9 @@ const Dashboard = () => {
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gráfico de Pizza */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900">Distribuição de Gastos</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-slate-800">
+          <div className="p-6 border-b border-gray-200 dark:border-slate-800">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Distribuição de Gastos</h3>
           </div>
           <div className="p-6">
             {pieData.length > 0 ? (
@@ -293,7 +295,7 @@ const Dashboard = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -302,12 +304,12 @@ const Dashboard = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value)} />
+                  <Tooltip contentStyle={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', border: 'none', borderRadius: '8px' }} formatter={(value) => formatCurrency(value)} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px] text-gray-500">
+              <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-slate-500">
                 Sem dados de despesas para este ano
               </div>
             )}
@@ -315,23 +317,22 @@ const Dashboard = () => {
         </div>
 
         {/* Gráfico de Barras */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900">Gastos por Categoria</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-slate-800">
+          <div className="p-6 border-b border-gray-200 dark:border-slate-800">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Gastos por Categoria</h3>
           </div>
           <div className="p-6">
             {categoriasTotais.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={categoriasTotais} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => `R$${value}`} />
-                  <YAxis dataKey="nome" type="category" width={100} />
-                  <Tooltip formatter={(value) => formatCurrency(value)} />
+                  <XAxis type="number" tickFormatter={(value) => `R$${value}`} stroke={theme === 'dark' ? '#94a3b8' : '#64748b'} />
+                  <YAxis dataKey="nome" type="category" width={100} stroke={theme === 'dark' ? '#94a3b8' : '#64748b'} />
+                  <Tooltip contentStyle={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', border: 'none', borderRadius: '8px' }} formatter={(value) => formatCurrency(value)} />
                   <Bar dataKey="total" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px] text-gray-500">
+              <div className="flex items-center justify-center h-[300px] text-gray-500 dark:text-slate-500">
                 Sem dados de despesas para este ano
               </div>
             )}

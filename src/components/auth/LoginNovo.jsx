@@ -101,22 +101,22 @@ const LoginNovo = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-gray-900 transition-colors duration-300 px-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 transition-colors duration-300 px-4 relative">
       <div className="absolute top-4 right-4">
         <ModeToggle />
       </div>
       <div className="max-w-md w-full">
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-800 transition-colors">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
               <Lock className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Bem-vindo de volta!
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-slate-400">
               {modoAdmin ? 'Login Administrativo' : 'Entre com suas credenciais para acessar'}
             </p>
           </div>
@@ -128,21 +128,19 @@ const LoginNovo = () => {
               onClick={() => setModoAdmin(!modoAdmin)}
               className={`text-sm font-medium transition-colors ${modoAdmin
                 ? 'text-red-600 hover:text-red-700'
-                : 'text-blue-600 hover:text-blue-700'
+                : 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
                 }`}
             >
               {modoAdmin ? '↩️ Voltar para login normal' : '🔑 Login Administrativo'}
             </button>
           </div>
 
-
-
           {/* Formulário */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Username (apenas modo admin) */}
             {modoAdmin && (
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   Usuário Administrativo
                 </label>
                 <div className="relative">
@@ -155,8 +153,8 @@ const LoginNovo = () => {
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border ${errors.username ? 'border-red-300' : 'border-gray-300'
-                      } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                    className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.username ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
+                      } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                     placeholder="admin"
                     disabled={loading}
                   />
@@ -164,14 +162,14 @@ const LoginNovo = () => {
                 {errors.username && (
                   <p className="mt-1 text-sm text-red-600">{errors.username}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">Use 'admin' para acesso especial</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-slate-500">Use 'admin' para acesso especial</p>
               </div>
             )}
 
             {/* E-mail (apenas modo normal) */}
             {!modoAdmin && (
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   E-mail
                 </label>
                 <div className="relative">
@@ -184,8 +182,8 @@ const LoginNovo = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-300' : 'border-gray-300'
-                      } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                    className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
+                      } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                     placeholder="seu@email.com"
                     disabled={loading}
                   />
@@ -198,7 +196,7 @@ const LoginNovo = () => {
 
             {/* Senha */}
             <div>
-              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Senha
               </label>
               <div className="relative">
@@ -211,8 +209,8 @@ const LoginNovo = () => {
                   name="senha"
                   value={formData.senha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.senha ? 'border-red-300' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.senha ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
+                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
@@ -225,7 +223,7 @@ const LoginNovo = () => {
             <div className="flex justify-end">
               <Link
                 to="/esqueci-senha"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition"
+                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition"
               >
                 Esqueceu a senha?
               </Link>
@@ -251,10 +249,10 @@ const LoginNovo = () => {
               <>
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
+                    <div className="w-full border-t border-gray-300 dark:border-slate-700"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Ou continue com</span>
+                    <span className="px-2 bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 transition-colors">Ou continue com</span>
                   </div>
                 </div>
 
@@ -281,7 +279,7 @@ const LoginNovo = () => {
                       toast.error('Erro ao conectar com Google');
                     }}
                     useOneTap
-                    theme="filled_blue"
+                    theme={localStorage.getItem('vite-ui-theme') === 'dark' ? 'filled_black' : 'filled_blue'}
                     shape="pill"
                     text="continue_with"
                     width="100%"
@@ -293,11 +291,11 @@ const LoginNovo = () => {
 
           {/* Links */}
           <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-slate-400">
               Não tem uma conta?{' '}
               <Link
                 to="/cadastro"
-                className="font-medium text-blue-600 hover:text-blue-700 transition"
+                className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition"
               >
                 Cadastre-se
               </Link>
@@ -305,7 +303,7 @@ const LoginNovo = () => {
 
             <Link
               to="/"
-              className="block text-sm text-gray-500 hover:text-gray-700 transition"
+              className="block text-sm text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition"
             >
               ← Voltar para página inicial
             </Link>
@@ -313,9 +311,9 @@ const LoginNovo = () => {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center text-sm text-gray-600 dark:text-slate-500">
           Ao entrar, você concorda com nossos{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-700">
+          <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
             Termos de Uso
           </a>
         </p>

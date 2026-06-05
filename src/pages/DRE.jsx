@@ -290,7 +290,7 @@ const DRE = () => {
                 onChange={(e) => setAnoSelecionado(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {[2020, 2021, 2022, 2023, 2024, 2025].map(ano => (
+                {Array.from({ length: new Date().getFullYear() - 2020 + 2 }, (_, i) => 2020 + i).map(ano => (
                   <option key={ano} value={ano.toString()}>
                     {ano}
                   </option>

@@ -133,47 +133,47 @@ const ValidarOTP = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 px-4 transition-colors duration-300">
       <div className="max-w-md w-full">
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-800 transition-colors">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Verificação de Conta
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-slate-400">
               Digite o código de 6 dígitos enviado para
             </p>
-            <p className="text-indigo-600 font-semibold mt-1 flex items-center justify-center">
+            <p className="text-blue-600 dark:text-blue-400 font-semibold mt-1 flex items-center justify-center">
               <Mail className="w-4 h-4 mr-2" />
               {email}
             </p>
           </div>
 
           {/* Timer */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg flex items-center justify-center">
-            <Clock className="w-5 h-5 text-indigo-600 mr-2" />
-            <span className="text-indigo-600 font-semibold">
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center border border-blue-100 dark:border-blue-900/30">
+            <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+            <span className="text-blue-600 dark:text-blue-400 font-semibold">
               Código expira em: {formatarTempo(tempoRestante)}
             </span>
           </div>
 
           {/* Mensagens */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+              <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start">
-              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
-              <p className="text-sm text-green-800">{success}</p>
+            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/30 rounded-lg flex items-start">
+              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3 flex-shrink-0" />
+              <p className="text-sm text-green-800 dark:text-green-300">{success}</p>
             </div>
           )}
 
@@ -191,7 +191,7 @@ const ValidarOTP = () => {
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={index === 0 ? handlePaste : undefined}
-                  className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+                  className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
                   disabled={loading}
                 />
               ))}
@@ -216,13 +216,13 @@ const ValidarOTP = () => {
 
           {/* Reenviar código */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-gray-600 dark:text-slate-400 mb-3">
               Não recebeu o código?
             </p>
             <button
               onClick={handleResend}
               disabled={resendLoading || tempoRestante > 540} // Permite reenviar após 1 minuto
-              className="text-indigo-600 hover:text-indigo-700 font-medium text-sm disabled:text-gray-400 disabled:cursor-not-allowed transition"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm disabled:text-gray-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed transition"
             >
               {resendLoading ? (
                 <span className="flex items-center justify-center">
@@ -236,10 +236,10 @@ const ValidarOTP = () => {
           </div>
 
           {/* Voltar */}
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center border-t border-slate-100 dark:border-slate-800 pt-6">
             <button
               onClick={() => navigate('/login')}
-              className="text-sm text-gray-500 hover:text-gray-700 transition"
+              className="text-sm text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition"
             >
               ← Voltar para o login
             </button>
@@ -247,9 +247,9 @@ const ValidarOTP = () => {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center text-sm text-gray-600 dark:text-slate-500">
           Precisa de ajuda?{' '}
-          <a href="#" className="text-indigo-600 hover:text-indigo-700">
+          <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
             Entre em contato
           </a>
         </p>

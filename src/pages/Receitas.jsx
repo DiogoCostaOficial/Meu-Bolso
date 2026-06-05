@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, DollarSign, Calendar, Tag, FileText, TrendingUp, Filter, X, ChevronUp, ChevronDown, Check, XCircle, GraduationCap } from 'lucide-react';
+import { Plus, Trash2, Edit, DollarSign, Calendar, Tag, FileText, TrendingUp, Filter, X, ChevronUp, ChevronDown, Check, XCircle, GraduationCap, ArrowUpDown } from 'lucide-react';
 import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
@@ -14,11 +14,11 @@ const Receitas = () => {
   const [filtrosMinimizados, setFiltrosMinimizados] = useState(false);
   // NOVO: Estados para edição inline
   const [editingItemId, setEditingItemId] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'data', direction: 'desc' });
   const [inlineEditForm, setInlineEditForm] = useState({
-    descricao: '',
-    valor: '',
     categoria: '',
-    subcategoria: ''
+    subcategoria: '',
+    somarNoOrcamento: true
   });
   const [novaReceita, setNovaReceita] = useState({
     descricao: '',
@@ -27,7 +27,8 @@ const Receitas = () => {
     categoria: 'Receita Principal', // Categoria padrão
     subcategoria: '',
     observacoes: '',
-    recorrente: false
+    recorrente: false,
+    somarNoOrcamento: true
   });
   const [quantidadeTitulos, setQuantidadeTitulos] = useState(1);
   const [filtros, setFiltros] = useState({
@@ -138,7 +139,8 @@ const Receitas = () => {
       const receitaParaSalvar = {
         ...novaReceita,
         id: editando.id,
-        valor: valorNumerico
+        valor: valorNumerico,
+        somarNoOrcamento: novaReceita.somarNoOrcamento !== undefined ? novaReceita.somarNoOrcamento : true
       };
       receitasAtualizadas = receitas.map(r =>
         r.id === editando.id ? receitaParaSalvar : r
@@ -158,7 +160,8 @@ const Receitas = () => {
           ...novaReceita,
           id: timestamp + i,
           valor: valorNumerico,
-          data: dataReceita.toISOString().split('T')[0]
+          data: dataReceita.toISOString().split('T')[0],
+          somarNoOrcamento: novaReceita.somarNoOrcamento !== undefined ? novaReceita.somarNoOrcamento : true
         });
       }
 
@@ -176,7 +179,8 @@ const Receitas = () => {
       descricao: receita.descricao,
       valor: receita.valor,
       categoria: receita.categoria,
-      subcategoria: receita.subcategoria || ''
+      subcategoria: receita.subcategoria || '',
+      somarNoOrcamento: receita.somarNoOrcamento !== undefined ? receita.somarNoOrcamento : true
     });
     setMostrarFormulario(false);
   };
@@ -211,12 +215,12 @@ const Receitas = () => {
     // Usar debounce para edição inline
     debouncedSave(updatedReceitas);
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '' });
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', somarNoOrcamento: true });
   };
   // NOVO: Cancelar edição inline
   const handleInlineCancel = () => {
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '' });
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', somarNoOrcamento: true });
   };
   const excluirReceita = (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta receita?')) {
@@ -232,10 +236,10 @@ const Receitas = () => {
       descricao: '',
       valor: '',
       data: new Date().toISOString().split('T')[0],
-      categoria: '',
       subcategoria: '',
       observacoes: '',
-      recorrente: false
+      recorrente: false,
+      somarNoOrcamento: true
     });
     setQuantidadeTitulos(1);
     setMostrarFormulario(false);
@@ -277,15 +281,55 @@ const Receitas = () => {
     if (filtros.descricao && !receita.descricao.toLowerCase().includes(filtros.descricao.toLowerCase())) return false;
     return true;
   });
-  const totalReceitas = receitasFiltradas.reduce((acc, r) => acc + (parseFloat(r.valor) || 0), 0);
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedReceitas = React.useMemo(() => {
+    let sortableItems = [...receitasFiltradas];
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (sortConfig.key === 'valor') {
+          aValue = parseFloat(aValue);
+          bValue = parseFloat(bValue);
+        }
+
+        // Normalização para strings
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [receitasFiltradas, sortConfig]);
+
+
+  const totalReceitas = receitasFiltradas
+    .filter(r => r.somarNoOrcamento !== false)
+    .reduce((acc, r) => acc + (parseFloat(r.valor) || 0), 0);
   const categoriasAtivas = [...new Set(receitasFiltradas.map(r => r.categoria))].length;
   const subcategoriasAtivas = [...new Set(receitasFiltradas.filter(r => r.subcategoria).map(r => r.subcategoria))].length;
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-6 bg-transparent min-h-screen transition-colors duration-300">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold text-gray-900">Receitas</h1>
-          <p className="text-gray-600 mt-2">Gerencie suas fontes de renda</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Receitas</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1">Gerencie suas entradas e acompanhe sua evolução financeira.</p>
         </div>
         <div className="flex gap-3">
           <EduHelpButton topic="receitas" />
@@ -304,21 +348,22 @@ const Receitas = () => {
 
       {/* NOVO POSICIONAMENTO: Formulário de Nova Receita aparece AQUI */}
       {mostrarFormulario && (
-        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            {editando ? 'Editar Receita' : 'Adicionar Nova Receita'}
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 transition-all animate-in fade-in slide-in-from-top-4 duration-300">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+            <DollarSign className="w-6 h-6 text-green-600 dark:text-green-500" />
+            {editando ? 'Editar Receita' : 'Nova Receita'}
           </h2>
           <form onSubmit={adicionarReceita} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <FileText className="inline w-4 h-4 mr-1" />
                   Descrição *
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Salário, Freelance, Aluguel"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  placeholder="Ex: Salário, Venda, Freelance..."
                   value={novaReceita.descricao}
                   onChange={(e) => setNovaReceita({ ...novaReceita, descricao: e.target.value })}
                   required
@@ -326,7 +371,7 @@ const Receitas = () => {
               </div>
               {!editando && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                     <Calendar className="inline w-4 h-4 mr-1" />
                     Quantidade de Títulos *
                   </label>
@@ -335,7 +380,7 @@ const Receitas = () => {
                     min="1"
                     max="60"
                     placeholder="Ex: 6 (para 6 meses)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                     value={quantidadeTitulos}
                     onChange={(e) => setQuantidadeTitulos(e.target.value)}
                     required
@@ -346,7 +391,7 @@ const Receitas = () => {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <DollarSign className="inline w-4 h-4 mr-1" />
                   Valor *
                 </label>
@@ -355,32 +400,32 @@ const Receitas = () => {
                   step="0.01"
                   min="0.01"
                   placeholder="0.00"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                   value={novaReceita.valor}
                   onChange={(e) => setNovaReceita({ ...novaReceita, valor: e.target.value })}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Calendar className="inline w-4 h-4 mr-1" />
                   Data *
                 </label>
                 <input
                   type="date"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                   value={novaReceita.data}
                   onChange={(e) => setNovaReceita({ ...novaReceita, data: e.target.value })}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Tag className="inline w-4 h-4 mr-1" />
                   Categoria *
                 </label>
                 <select
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                   value={novaReceita.categoria}
                   onChange={(e) => setNovaReceita({ ...novaReceita, categoria: e.target.value, subcategoria: '' })}
                   required
@@ -392,12 +437,12 @@ const Receitas = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Tag className="inline w-4 h-4 mr-1" />
                   Subcategoria
                 </label>
                 <select
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-gray-100"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors disabled:opacity-50"
                   value={novaReceita.subcategoria}
                   onChange={(e) => setNovaReceita({ ...novaReceita, subcategoria: e.target.value })}
                   disabled={!novaReceita.categoria}
@@ -410,12 +455,12 @@ const Receitas = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Observações (Opcional)
               </label>
               <textarea
                 placeholder="Adicione detalhes adicionais sobre a receita..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                 rows="3"
                 value={novaReceita.observacoes}
                 onChange={(e) => setNovaReceita({ ...novaReceita, observacoes: e.target.value })}
@@ -425,19 +470,31 @@ const Receitas = () => {
               <input
                 type="checkbox"
                 id="recorrente"
-                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                className="w-4 h-4 text-green-600 dark:text-green-500 border-gray-300 dark:border-slate-700 rounded focus:ring-green-500"
                 checked={novaReceita.recorrente}
                 onChange={(e) => setNovaReceita({ ...novaReceita, recorrente: e.target.checked })}
               />
-              <label htmlFor="recorrente" className="ml-2 text-sm text-gray-700">
+              <label htmlFor="recorrente" className="ml-2 text-sm text-gray-700 dark:text-slate-300">
                 Receita recorrente (mensal)
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="somarNoOrcamento"
+                className="w-4 h-4 text-green-600 dark:text-green-500 border-gray-300 dark:border-slate-700 rounded focus:ring-green-500"
+                checked={novaReceita.somarNoOrcamento}
+                onChange={(e) => setNovaReceita({ ...novaReceita, somarNoOrcamento: e.target.checked })}
+              />
+              <label htmlFor="somarNoOrcamento" className="ml-2 text-sm text-gray-700 dark:text-slate-300 font-bold">
+                Somar ao Orçamento e Relatórios
               </label>
             </div>
             <div className="flex gap-4">
               <button
                 type="button"
                 onClick={resetarFormulario}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                className="flex-1 px-6 py-3 border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -452,23 +509,23 @@ const Receitas = () => {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 transition-colors">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Filter className="w-5 h-5 text-blue-600" />
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+            <Filter className="w-5 h-5 text-blue-600 dark:text-blue-500" />
             Filtros
           </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={limparFiltros}
-              className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2"
+              className="px-4 py-2 text-sm bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition flex items-center gap-2"
             >
               <X className="w-4 h-4" />
               Limpar Filtros
             </button>
             <button
               onClick={() => setFiltrosMinimizados(!filtrosMinimizados)}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
               title={filtrosMinimizados ? "Expandir Filtros" : "Minimizar Filtros"}
             >
               {filtrosMinimizados ? (
@@ -482,9 +539,9 @@ const Receitas = () => {
         {!filtrosMinimizados && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Categoria</label>
               <select
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 value={filtros.categoria}
                 onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value, subcategoria: '' })}
               >
@@ -495,9 +552,9 @@ const Receitas = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Subcategoria</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Subcategoria</label>
               <select
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-100"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
                 value={filtros.subcategoria}
                 onChange={(e) => setFiltros({ ...filtros, subcategoria: e.target.value })}
                 disabled={!filtros.categoria}
@@ -509,9 +566,9 @@ const Receitas = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Mês</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Mês</label>
               <select
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 value={filtros.mes}
                 onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}
               >
@@ -522,9 +579,9 @@ const Receitas = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Ano</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Ano</label>
               <select
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 value={filtros.ano}
                 onChange={(e) => setFiltros({ ...filtros, ano: e.target.value })}
               >
@@ -534,10 +591,10 @@ const Receitas = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Data Início</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Data Início</label>
               <input
                 type="date"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 value={filtros.dataInicio}
                 onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })}
               />
@@ -597,11 +654,66 @@ const Receitas = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subcategoria</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                  onClick={() => handleSort('data')}
+                >
+                  <div className="flex items-center gap-1">
+                    Data
+                    {sortConfig.key === 'data' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                    {sortConfig.key !== 'data' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                  </div>
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                  onClick={() => handleSort('descricao')}
+                >
+                  <div className="flex items-center gap-1">
+                    Descrição
+                    {sortConfig.key === 'descricao' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                    {sortConfig.key !== 'descricao' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                  </div>
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                  onClick={() => handleSort('categoria')}
+                >
+                  <div className="flex items-center gap-1">
+                    Categoria
+                    {sortConfig.key === 'categoria' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                    {sortConfig.key !== 'categoria' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                  </div>
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                  onClick={() => handleSort('subcategoria')}
+                >
+                  <div className="flex items-center gap-1">
+                    Subcategoria
+                    {sortConfig.key === 'subcategoria' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                    {sortConfig.key !== 'subcategoria' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                  </div>
+                </th>
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                  onClick={() => handleSort('valor')}
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    Valor
+                    {sortConfig.key === 'valor' && (
+                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                    )}
+                    {sortConfig.key !== 'valor' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                  </div>
+                </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
               </tr>
             </thead>
@@ -621,8 +733,7 @@ const Receitas = () => {
                   </td>
                 </tr>
               ) : (
-                receitasFiltradas
-                  .sort((a, b) => new Date(b.data) - new Date(a.data))
+                sortedReceitas
                   .map((receita) => (
                     <tr key={receita.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -630,20 +741,38 @@ const Receitas = () => {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {editingItemId === receita.id ? (
-                          <input
-                            type="text"
-                            name="descricao"
-                            value={inlineEditForm.descricao}
-                            onChange={handleInlineChange}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none"
-                          />
+                          <>
+                            <input
+                              type="text"
+                              name="descricao"
+                              value={inlineEditForm.descricao}
+                              onChange={handleInlineChange}
+                              className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            />
+                            {/* Campo de Somar ao Orçamento na Edição Inline */}
+                            <label className="flex items-center cursor-pointer text-xs mt-2">
+                              <input
+                                type="checkbox"
+                                name="somarNoOrcamento"
+                                checked={inlineEditForm.somarNoOrcamento}
+                                onChange={(e) => setInlineEditForm(prev => ({ ...prev, somarNoOrcamento: e.target.checked }))}
+                                className="form-checkbox h-3 w-3 text-green-600 rounded focus:ring-green-500 mr-1"
+                              />
+                              <span className="text-gray-700 font-bold">Somar ao Orçamento</span>
+                            </label>
+                          </>
                         ) : (
                           <div>
-                            <div className="flex items-center gap-2 font-medium">
+                            <div className="flex items-center gap-2 font-medium text-gray-900">
                               {receita.descricao}
                               {receita.recorrente && (
                                 <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-semibold">
                                   Recorrente
+                                </span>
+                              )}
+                              {receita.somarNoOrcamento === false && (
+                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase border border-gray-200">
+                                  Apenas DRE
                                 </span>
                               )}
                             </div>

@@ -1,0 +1,39 @@
+{
+  "timestamp": "2025-11-14T23:57:55.093Z",
+  "sourceEmail": "admin@admin.com",
+  "targetEmail": "diogo.grunge@gmail.com",
+  "success": true,
+  "message": "Migração concluída com sucesso",
+  "backupFile": "C:\\PROJETOS\\FINANÇAS\\financas-facil\\server\\data\\backups\\database-backup-2025-11-14T23-57-55-059Z.json",
+  "migratedUser": {
+    "id": "user-1763162160964",
+    "email": "diogo.grunge@gmail.com",
+    "tipo": "admin",
+    "dataMigracao": "2025-11-14T23:57:55.082Z"
+  },
+  "verification": {
+    "success": true,
+    "checks": [
+      {
+        "name": "Tipo admin",
+        "test": true
+      },
+      {
+        "name": "Status ativo",
+        "test": true
+      },
+      {
+        "name": "Status verificado",
+        "test": true
+      },
+      {
+        "name": "Metadata de migração",
+        "test": true
+      },
+      {
+        "name": "Configurações existem",
+        "test": true
+      }
+    ]
+  }
+}

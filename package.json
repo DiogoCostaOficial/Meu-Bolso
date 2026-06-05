@@ -9,8 +9,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "server": "cd server && npm run dev",
+    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
     "install:all": "npm install && cd server && npm install",
-    "setup": "npm run install:all && cd server && cp .env.example .env"
+    "setup": "npm run install:all && cd server && cp .env.example .env",
+    "lint": "vite lint || echo 'Lint script not configured'",
+    "type-check": "tsc --noEmit",
+    "release": "semantic-release"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -38,10 +42,33 @@
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
     "jsdom": "^27.2.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.18",
     "typescript": "^5.9.3",
     "vite": "^7.1.9"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ]
+    ]
   }
 }

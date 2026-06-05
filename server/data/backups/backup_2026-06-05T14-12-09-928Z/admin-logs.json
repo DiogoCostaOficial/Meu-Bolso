@@ -1,0 +1,401 @@
+[
+  {
+    "timestamp": "2025-11-15T01:08:56.287Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:09:38.777Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:10:27.039Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:12:10.705Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:16:56.520Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:17:40.406Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:18:13.713Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:18:51.444Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:19:19.354Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:19:52.308Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:43:18.684Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:45:04.533Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:55:24.619Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:59:05.512Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T01:59:48.709Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T02:00:47.458Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T02:00:47.588Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "alteracao_senha",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T22:53:56.252Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T22:54:08.718Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T23:40:54.437Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-15T23:52:24.321Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T01:04:57.293Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T01:18:16.940Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:08:53.733Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:16:00.082Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:16:52.924Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:17:43.314Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:18:11.599Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:25:17.618Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:25:48.433Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T03:27:06.880Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T14:33:20.777Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T14:45:25.032Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-16T17:02:23.784Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-17T16:17:32.290Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-19T11:17:23.832Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-19T12:25:31.253Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-20T20:45:59.509Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-23T16:05:13.107Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-24T01:09:49.935Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-25T21:58:10.707Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-27T19:39:29.449Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-27T21:27:23.937Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-27T21:34:52.022Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-11-29T00:27:41.906Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-12-01T00:23:47.085Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-12-02T01:52:29.215Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-12-02T01:56:14.958Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-12-03T17:31:51.718Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-12-19T11:56:47.079Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-12-19T11:56:58.799Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2025-12-19T12:04:12.122Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2026-03-06T15:21:44.177Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2026-03-06T15:22:12.536Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2026-05-22T17:30:10.823Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2026-05-22T22:12:30.311Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  },
+  {
+    "timestamp": "2026-05-22T22:18:58.879Z",
+    "usuarioId": "admin-001",
+    "ip": "::1",
+    "tipo": "login_especial",
+    "userAgent": "N/A"
+  }
+]

@@ -2,6 +2,7 @@ import React from 'react';
 import { useEdu } from '../contexts/EduContext';
 
 const MASCOT_IMAGES = {
+    wallet: '/assets/fin_wallet_boy.png',
     coin: '/assets/fin_coin_boy.png',
     bill: '/assets/fin_bill_boy.png',
     gold: '/assets/fin_gold_boy.png'

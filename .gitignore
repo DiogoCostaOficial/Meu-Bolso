@@ -2,6 +2,8 @@
 node_modules/
 server/node_modules/
 new_node_modules/
+/.pnp
+.pnp.js
 
 # Variáveis de ambiente (IMPORTANTE!)
 .env
@@ -23,56 +25,63 @@ yarn-error.log*
 *.log
 server/*.log
 
-# Build
+# Build e Saída
 dist/
 dist-ssr/
 build/
-*.local
+out/
+/.next/
+bin/
+obj/
 
-# Editor
+# Vercel
+.vercel
+
+# Testes
+coverage/
+.nyc_output/
+junit.xml
+
+# Editor e IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 .DS_Store
+.project
+.settings/
+.classpath
 
-# Testes
-coverage/
-.nyc_output/
+# Sistemas Operacionais
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
 
 # Temporários
 *.tmp
 *.temp
 .cache/
+.vite/
+.parcel-cache/
+.eslintcache
 
-# Sistemas Operacionais
-Thumbs.db
-.DS_Store
-desktop.ini
-
-# Package lock duplicados
+# Outros
 Error_package-lock.json
 new_package-lock.json
-
-# Arquivos específicos do Windows
 *.lnk
-$RECYCLE.BIN/
-
-# Backup
 *.backup
 *.bak
 *.old
+~$*
 
-# Certificados SSL (se houver)
+# Certificados SSL
 *.pem
 *.key
 *.cert
 *.crt
 
-# Uploads de usuários (se houver)
+# Uploads
 uploads/
 temp/
 
-# Documentos temporários
-~$*

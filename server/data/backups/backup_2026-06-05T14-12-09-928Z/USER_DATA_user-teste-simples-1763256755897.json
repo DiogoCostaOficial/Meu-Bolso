@@ -1,0 +1,54 @@
+{
+  "receitas": [
+    {
+      "id": 1,
+      "descricao": "Salário Teste Simples",
+      "valor": 5000,
+      "data": "2025-01-05",
+      "categoria": "Receita Principal",
+      "subcategoria": "Salário",
+      "observacoes": "Receita de teste simples",
+      "recorrente": false
+    },
+    {
+      "id": 2,
+      "descricao": "Freelance Teste Simples",
+      "valor": 2000,
+      "data": "2025-01-15",
+      "categoria": "Receita Principal",
+      "subcategoria": "Freelance",
+      "observacoes": "Receita de teste simples",
+      "recorrente": false
+    }
+  ],
+  "despesas": [
+    {
+      "id": 1,
+      "descricao": "Aluguel Teste Simples",
+      "valor": 1500,
+      "data": "2025-01-10",
+      "categoria": "Despesas Fixas",
+      "subcategoria": "Moradia",
+      "observacoes": "Despesa de teste simples",
+      "parcelado": false,
+      "numeroParcelas": 1,
+      "statusPagamento": "pago",
+      "dataVencimento": "2025-01-10"
+    },
+    {
+      "id": 2,
+      "descricao": "Supermercado Teste Simples",
+      "valor": 500,
+      "data": "2025-01-20",
+      "categoria": "Lazer",
+      "subcategoria": "Alimentação",
+      "observacoes": "Despesa de teste simples",
+      "parcelado": false,
+      "numeroParcelas": 1,
+      "statusPagamento": "pago",
+      "dataVencimento": "2025-01-20"
+    }
+  ],
+  "categorias": [],
+  "orcamentos": []
+}

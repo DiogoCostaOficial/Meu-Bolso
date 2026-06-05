@@ -95,17 +95,17 @@ const CadastroNovo = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 px-4 py-12 transition-colors duration-300">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-800 transition-colors">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
               <User className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Crie sua conta
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-slate-400">
               Comece a organizar suas finanças hoje
             </p>
           </div>
@@ -119,7 +119,7 @@ const CadastroNovo = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Nome completo
               </label>
               <div className="relative">
@@ -132,8 +132,8 @@ const CadastroNovo = () => {
                   name="nome"
                   value={formData.nome}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.nome ? 'border-red-300' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.nome ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
+                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                   placeholder="João Silva"
                   disabled={loading}
                 />
@@ -144,7 +144,7 @@ const CadastroNovo = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 E-mail
               </label>
               <div className="relative">
@@ -157,8 +157,8 @@ const CadastroNovo = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-300' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
+                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                   placeholder="seu@email.com"
                   disabled={loading}
                 />
@@ -169,7 +169,7 @@ const CadastroNovo = () => {
             </div>
 
             <div>
-              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Senha
               </label>
               <div className="relative">
@@ -182,8 +182,8 @@ const CadastroNovo = () => {
                   name="senha"
                   value={formData.senha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.senha ? 'border-red-300' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.senha ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
+                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
@@ -194,7 +194,7 @@ const CadastroNovo = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmarSenha" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmarSenha" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 Confirmar senha
               </label>
               <div className="relative">
@@ -207,8 +207,8 @@ const CadastroNovo = () => {
                   name="confirmarSenha"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.confirmarSenha ? 'border-red-300' : 'border-gray-300'
-                    } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.confirmarSenha ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
+                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
@@ -235,11 +235,11 @@ const CadastroNovo = () => {
           </form>
 
           <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-slate-400">
               Já tem uma conta?{' '}
               <Link
                 to="/login"
-                className="font-medium text-purple-600 hover:text-purple-700 transition"
+                className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition"
               >
                 Faça login
               </Link>
@@ -247,16 +247,16 @@ const CadastroNovo = () => {
 
             <Link
               to="/"
-              className="block text-sm text-gray-500 hover:text-gray-700 transition"
+              className="block text-sm text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition"
             >
               ← Voltar para página inicial
             </Link>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center text-sm text-gray-600 dark:text-slate-500">
           Ao criar uma conta, você concorda com nossos{' '}
-          <a href="#" className="text-purple-600 hover:text-purple-700">
+          <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
             Termos de Uso
           </a>
         </p>

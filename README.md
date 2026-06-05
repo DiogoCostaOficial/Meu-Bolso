@@ -1,7 +1,8 @@
 # 💰 Finanças Fácil - Sistema de Controle Financeiro
 
+[![CI/CD Pipeline](https://github.com/seu-usuario/financas-facil/actions/workflows/ci.yml/badge.svg)](https://github.com/seu-usuario/financas-facil/actions/workflows/ci.yml)
+[![Release Pipeline](https://github.com/seu-usuario/financas-facil/actions/workflows/release.yml/badge.svg)](https://github.com/seu-usuario/financas-facil/actions/workflows/release.yml)
 [![Versão](https://img.shields.io/badge/versão-2.0.0-blue.svg)](https://github.com/seu-usuario/financas-facil)
-[![Status](https://img.shields.io/badge/status-ativo-success.svg)](https://github.com/seu-usuario/financas-facil)
 [![Licença](https://img.shields.io/badge/licença-MIT-green.svg)](LICENSE)
 
 Sistema completo de controle financeiro pessoal com **autenticação segura**, perfis isolados e painel administrativo.
@@ -33,14 +34,16 @@ Sistema completo de controle financeiro pessoal com **autenticação segura**, p
 
 ## 🚀 Instalação Rápida
 
-### Opção 1: Script Automático (Windows)
+### Opção 1: Scripts Automáticos (Recomendado)
 
+**No Windows (PowerShell):**
+```powershell
+.\scripts\setup.ps1
+```
+
+**No Linux/macOS (Bash):**
 ```bash
-# Execute o script de setup
-setup.bat
-
-# Depois, inicie tudo de uma vez
-start-tudo.bat
+bash scripts/setup.sh
 ```
 
 ### Opção 2: Manual

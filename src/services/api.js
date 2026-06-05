@@ -28,6 +28,25 @@ api.interceptors.request.use(
   }
 );
 
+// Interceptor para lidar com erros 401 (Não autorizado)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn('Sessão expirada ou token inválido. Redirecionando para login...');
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+
+      // Evita redirecionamento se já estiver na página de login ou cadastro
+      const path = window.location.pathname;
+      if (!path.includes('/login') && !path.includes('/cadastro')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Função auxiliar para lidar com respostas da API
 const handleResponse = (response) => {
   const d = response && response.data ? response.data : {};
@@ -230,7 +249,47 @@ export const userService = {
     } catch (error) {
       return handleError(error);
     }
-  }
+  },
+  async obterDados() {
+      try {
+        const response = await api.get('/user/dados');
+        return handleResponse(response);
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async salvarDados(dados) {
+      try {
+        const response = await api.post('/user/dados', dados);
+        return handleResponse(response);
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async adicionarTransacao(transacao) {
+      try {
+        const response = await api.post('/user/transactions', transacao);
+        return handleResponse(response);
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async atualizarTransacao(id, transacao) {
+      try {
+        const response = await api.put(`/user/transactions/${id}`, transacao);
+        return handleResponse(response);
+      } catch (error) {
+        return handleError(error);
+      }
+    },
+    async deletarTransacao(id) {
+      try {
+        const response = await api.delete(`/user/transactions/${id}`);
+        return handleResponse(response);
+      } catch (error) {
+        return handleError(error);
+      }
+    }
 };
 
 export const dataService = {

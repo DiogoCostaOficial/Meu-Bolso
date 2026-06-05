@@ -28,4 +28,9 @@ router.post('/upload-avatar', verificarToken, upload.single('avatar'), userContr
 router.get('/dados', verificarToken, userController.obterDados);
 router.post('/dados', verificarToken, userController.salvarDados);
 
+// Rotas incrementais para transações individuais (Performance com Supabase / Optimistic UI)
+router.post('/transactions', verificarToken, userController.adicionarTransacao);
+router.put('/transactions/:id', verificarToken, userController.atualizarTransacao);
+router.delete('/transactions/:id', verificarToken, userController.deletarTransacao);
+
 module.exports = router;

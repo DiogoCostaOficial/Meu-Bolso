@@ -1,0 +1,62 @@
+{
+  "usuario": {
+    "email": "admin@admin.com",
+    "nome": "Administrador",
+    "senha": "admin123",
+    "tipo": "admin",
+    "criadoEm": "2025-11-16T03:13:48.359Z"
+  },
+  "receitas": [],
+  "despesas": [],
+  "orcamentos": [],
+  "categorias": [
+    {
+      "id": 1,
+      "nome": "Salário",
+      "tipo": "receita",
+      "cor": "#10b981"
+    },
+    {
+      "id": 2,
+      "nome": "Freelance",
+      "tipo": "receita",
+      "cor": "#3b82f6"
+    },
+    {
+      "id": 3,
+      "nome": "Investimentos",
+      "tipo": "receita",
+      "cor": "#8b5cf6"
+    },
+    {
+      "id": 4,
+      "nome": "Alimentação",
+      "tipo": "despesa",
+      "cor": "#ef4444"
+    },
+    {
+      "id": 5,
+      "nome": "Transporte",
+      "tipo": "despesa",
+      "cor": "#f59e0b"
+    },
+    {
+      "id": 6,
+      "nome": "Moradia",
+      "tipo": "despesa",
+      "cor": "#ec4899"
+    },
+    {
+      "id": 7,
+      "nome": "Saúde",
+      "tipo": "despesa",
+      "cor": "#06b6d4"
+    },
+    {
+      "id": 8,
+      "nome": "Educação",
+      "tipo": "despesa",
+      "cor": "#84cc16"
+    }
+  ]
+}

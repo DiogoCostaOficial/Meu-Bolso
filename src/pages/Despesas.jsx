@@ -17,7 +17,8 @@ import {
   Search,
   CheckCircle, // Novo ícone para 'pago'
   TrendingDown, // Adicionado para o card de despesas
-  GraduationCap
+  GraduationCap,
+  ArrowUpDown // Import for sorting
 } from 'lucide-react';
 import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
@@ -98,13 +99,15 @@ const Despesas = () => {
     statusPagamento: '' // Campo para edição em massa de status
   });
   const [editingItemId, setEditingItemId] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'data', direction: 'desc' });
   const [inlineEditForm, setInlineEditForm] = useState({
     descricao: '',
     valor: '',
     categoria: '',
     subcategoria: '',
     observacoes: '', // Campo de observações para edição inline
-    dataVencimento: '' // Campo de data de vencimento para edição inline
+    dataVencimento: '', // Campo de data de vencimento para edição inline
+    somarNoOrcamento: true // Campo para definir se soma no orçamento
   });
 
   // Função para obter as subcategorias disponíveis para uma dada categoria (Baseada no estado atual)
@@ -130,7 +133,8 @@ const Despesas = () => {
     parcelado: false,
     numeroParcelas: 1,
     statusPagamento: 'pendente', // Status inicial para novas despesas
-    dataVencimento: '' // Campo para data de vencimento
+    dataVencimento: '', // Campo para data de vencimento
+    somarNoOrcamento: true // Padrão: somar ao orçamento
   });
 
   // Gera lista de anos (últimos 5 anos + próximos 2 anos)
@@ -183,7 +187,8 @@ const Despesas = () => {
         ...d,
         statusPagamento: d.statusPagamento || 'pendente',
         observacoes: d.observacoes || '',
-        dataVencimento: d.dataVencimento || ''
+        dataVencimento: d.dataVencimento || '',
+        somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true
       }));
       setDespesas(despesasComDefaults);
     } catch (error) {
@@ -252,6 +257,11 @@ const Despesas = () => {
     return 0;
   };
 
+  const handleCheckboxChange = e => {
+    const { name, checked } = e.target;
+    setFormulario(prev => ({ ...prev, [name]: checked }));
+  };
+
   // Função para adicionar meses a uma data (usada para parcelamento)
   const adicionarMeses = (dataString, meses) => {
     const data = new Date(dataString + 'T00:00:00');
@@ -289,7 +299,8 @@ const Despesas = () => {
           parcelado: formulario.parcelado,
           numeroParcelas: formulario.numeroParcelas,
           statusPagamento: 'pendente', // Status padrão para parcelas
-          dataVencimento: formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '' // Data de vencimento para parcelas
+          dataVencimento: formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '', // Data de vencimento para parcelas
+          somarNoOrcamento: formulario.somarNoOrcamento
         };
         novasDespesas.push(novaDespesa);
       }
@@ -305,7 +316,8 @@ const Despesas = () => {
         parcelado: formulario.parcelado,
         numeroParcelas: formulario.numeroParcelas,
         statusPagamento: 'pendente', // Status padrão para despesa única
-        dataVencimento: formulario.dataVencimento || '' // Data de vencimento para despesa única
+        dataVencimento: formulario.dataVencimento || '', // Data de vencimento para despesa única
+        somarNoOrcamento: formulario.somarNoOrcamento
       };
       novasDespesas.push(novaDespesa);
     }
@@ -329,7 +341,8 @@ const Despesas = () => {
       parcelado: false,
       numeroParcelas: 1,
       statusPagamento: 'pendente', // Resetar status para padrão
-      dataVencimento: '' // Resetar data de vencimento
+      dataVencimento: '', // Resetar data de vencimento
+      somarNoOrcamento: true // Resetar para padrão
     });
     setEditando(null);
     setMostrarFormulario(false);
@@ -344,7 +357,8 @@ const Despesas = () => {
       categoria: despesa.categoria,
       subcategoria: despesa.subcategoria,
       observacoes: despesa.observacoes, // Preencher observações
-      dataVencimento: despesa.dataVencimento // Preencher data de vencimento
+      dataVencimento: despesa.dataVencimento, // Preencher data de vencimento
+      somarNoOrcamento: despesa.somarNoOrcamento !== undefined ? despesa.somarNoOrcamento : true
     });
     setMostrarFormulario(false);
     setMostrarBulkEditForm(false);
@@ -381,12 +395,12 @@ const Despesas = () => {
     // Usar debounce para edição inline
     debouncedSave(updatedDespesas);
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '' }); // Resetar campos
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', somarNoOrcamento: true }); // Resetar campos
   };
 
   const handleInlineCancel = () => {
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '' }); // Resetar campos
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', somarNoOrcamento: true }); // Resetar campos
   };
 
   const excluirDespesa = id => {
@@ -509,6 +523,37 @@ const Despesas = () => {
     return passaNoFiltro;
   });
 
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedDespesas = React.useMemo(() => {
+    let sortableItems = [...despesasFiltradas];
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Normalização para ordenação correta
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [despesasFiltradas, sortConfig]);
+
   // Cálculos para os cards de resumo
   const totalDespesasFiltradas = despesasFiltradas.reduce((acc, d) => acc + d.valor, 0);
   const categoriasAtivasDespesas = [...new Set(despesasFiltradas.map(d => d.categoria))].length;
@@ -604,6 +649,10 @@ const Despesas = () => {
         if (bulkEditForm.statusPagamento) {
           newDespesa.statusPagamento = bulkEditForm.statusPagamento;
         }
+        // Atualiza somarNoOrcamento na edição em massa
+        if (bulkEditForm.somarNoOrcamento !== undefined) {
+          newDespesa.somarNoOrcamento = bulkEditForm.somarNoOrcamento;
+        }
         return newDespesa;
       }
       return despesa;
@@ -612,39 +661,70 @@ const Despesas = () => {
     // Usar debounce para edição em massa
     debouncedSave(updatedDespesas);
     setSelectedDespesas([]);
-    setBulkEditForm({ descricao: '', categoria: '', subcategoria: '', statusPagamento: '' }); // Resetar status
+    setBulkEditForm({ descricao: '', categoria: '', subcategoria: '', statusPagamento: '', somarNoOrcamento: undefined }); // Resetar status
     setMostrarBulkEditForm(false);
     alert(`${selectedDespesas.length} despesa(s) atualizada(s) com sucesso!`);
   };
 
+  const handleMarkSelectedAsPaid = () => {
+    if (selectedDespesas.length === 0) {
+      alert('Selecione ao menos uma despesa.');
+      return;
+    }
+
+    // Filtra apenas as despesas selecionadas que estão pendentes
+    const despesasParaAtualizar = despesas.filter(d =>
+      selectedDespesas.includes(d.id) && d.statusPagamento !== 'pago'
+    );
+
+    if (despesasParaAtualizar.length === 0) {
+      alert('Nenhuma das despesas selecionadas está pendente.');
+      return;
+    }
+
+    const updatedDespesas = despesas.map(d => {
+      if (selectedDespesas.includes(d.id) && d.statusPagamento !== 'pago') {
+        return { ...d, statusPagamento: 'pago' };
+      }
+      return d;
+    });
+
+    debouncedSave(updatedDespesas);
+    setSelectedDespesas([]);
+    alert(`${despesasParaAtualizar.length} despesa(s) marcada(s) como paga(s) com sucesso!`);
+  };
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
-        Gerenciador de Despesas
-      </h1>
-      <div className="flex justify-end mb-6 gap-3">
-        <EduHelpButton topic="despesas" />
-        <button
-          onClick={() => {
-            setMostrarFormulario(true);
-            setEditando(null);
-            setIsFormMinimized(false);
-            setMostrarBulkEditForm(false);
-            setEditingItemId(null);
-          }}
-          className="px-6 py-3 bg-red-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition flex items-center gap-2 text-lg font-medium"
-        >
-          <Plus className="w-5 h-5" />
-          Nova Despesa
-        </button>
+    <div className="space-y-6 bg-transparent min-h-screen transition-colors duration-300">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Despesas</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1">Gerencie seus gastos e mantenha sua saúde financeira em dia.</p>
+        </div>
+        <div className="flex justify-end mb-6 gap-3">
+          <EduHelpButton topic="despesas" />
+          <button
+            onClick={() => {
+              setMostrarFormulario(true);
+              setEditando(null);
+              setIsFormMinimized(false);
+              setMostrarBulkEditForm(false);
+              setEditingItemId(null);
+            }}
+            className="px-6 py-3 bg-red-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition flex items-center gap-2 text-lg font-medium"
+          >
+            <Plus className="w-5 h-5" />
+            Nova Despesa
+          </button>
+        </div>
       </div>
       {/* NOVO POSICIONAMENTO: Formulário de Nova Despesa */}
       {
         mostrarFormulario && (
-          <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 transition-all animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <CreditCard className="w-6 h-6 text-red-600" />
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-500" />
                 {editando ? 'Editar Despesa' : 'Adicionar Nova Despesa'}
               </h2>
               <button
@@ -804,6 +884,21 @@ const Despesas = () => {
                     </div>
                   )}
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-4">
+                    <label htmlFor="somarNoOrcamento" className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="somarNoOrcamento"
+                        name="somarNoOrcamento"
+                        checked={formulario.somarNoOrcamento}
+                        onChange={handleCheckboxChange}
+                        className="form-checkbox h-5 w-5 text-red-600 rounded focus:ring-red-500"
+                      />
+                      <span className="ml-2 text-gray-700 text-sm font-bold">Somar ao Orçamento e Relatórios</span>
+                    </label>
+                  </div>
+                </div>
                 {/* Exibir valor de cada parcela */}
                 {formulario.parcelado && parseFloat(formulario.valor) > 0 && parseInt(formulario.numeroParcelas, 10) > 0 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -839,25 +934,34 @@ const Despesas = () => {
         )
       }
       {/* Seção de Filtros */}
-      <div className="bg-white p-6 rounded-lg shadow-lg">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 transition-colors">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Filter className="w-6 h-6 text-blue-600" />
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+            <Filter className="w-5 h-5 text-blue-600 dark:text-blue-500" />
             Filtros
           </h2>
-          <button
-            onClick={() => setIsFiltrosMinimized(!isFiltrosMinimized)}
-            className="text-gray-500 hover:text-gray-700"
-            title={isFiltrosMinimized ? "Expandir Filtros" : "Minimizar Filtros"}
-          >
-            {isFiltrosMinimized ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={limparFiltros}
+              className="px-4 py-2 text-sm bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition flex items-center gap-2"
+            >
+              <XCircle className="w-4 h-4" />
+              Limpar Filtros
+            </button>
+            <button
+              onClick={() => setIsFiltrosMinimized(!isFiltrosMinimized)}
+              className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+              title={isFiltrosMinimized ? "Expandir Filtros" : "Minimizar Filtros"}
+            >
+              {isFiltrosMinimized ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
         {!isFiltrosMinimized && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label htmlFor="filtroCategoria" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroCategoria" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Tag className="inline w-4 h-4 mr-1" />
                   Categoria
                 </label>
@@ -865,7 +969,7 @@ const Despesas = () => {
                   id="filtroCategoria"
                   value={filtroCategoria}
                   onChange={e => setFiltroCategoria(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-white"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
                 >
                   <option value="">Todas as categorias</option>
                   {categorias.map(cat => (
@@ -876,7 +980,7 @@ const Despesas = () => {
                 </select>
               </div>
               <div>
-                <label htmlFor="filtroSubcategoria" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroSubcategoria" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Layers className="inline w-4 h-4 mr-1" />
                   Subcategoria
                 </label>
@@ -884,9 +988,7 @@ const Despesas = () => {
                   id="filtroSubcategoria"
                   value={filtroSubcategoria}
                   onChange={e => setFiltroSubcategoria(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-white"
-                  // Desabilita o filtro de subcategoria se nenhuma categoria estiver selecionada
-                  // ou se a categoria selecionada não tiver subcategorias.
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 disabled:opacity-50"
                   disabled={filtroCategoria && getAvailableSubcategories(filtroCategoria).length === 0}
                 >
                   <option value="">Todas as subcategorias</option>
@@ -904,7 +1006,7 @@ const Despesas = () => {
                 </select>
               </div>
               <div>
-                <label htmlFor="filtroMes" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroMes" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Calendar className="inline w-4 h-4 mr-1" />
                   Mês
                 </label>
@@ -912,7 +1014,7 @@ const Despesas = () => {
                   id="filtroMes"
                   value={filtroMes}
                   onChange={e => setFiltroMes(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-white"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
                 >
                   <option value="">Selecione o mês</option>
                   {mesesDoAno.map(mes => (
@@ -923,7 +1025,7 @@ const Despesas = () => {
                 </select>
               </div>
               <div>
-                <label htmlFor="filtroAno" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroAno" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Calendar className="inline w-4 h-4 mr-1" />
                   Ano
                 </label>
@@ -931,7 +1033,7 @@ const Despesas = () => {
                   id="filtroAno"
                   value={filtroAno}
                   onChange={e => setFiltroAno(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-white"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
                 >
                   {gerarListaAnos().map(ano => (
                     <option key={ano} value={ano}>
@@ -943,7 +1045,7 @@ const Despesas = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="filtroDataInicio" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroDataInicio" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   Data Início
                 </label>
                 <input
@@ -952,7 +1054,7 @@ const Despesas = () => {
                   value={filtroDataInicio}
                   onChange={e => setFiltroDataInicio(e.target.value)}
                   disabled={!!filtroMes}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 disabled:opacity-50"
                 />
                 {filtroMes && (
                   <p className="text-xs text-orange-600 mt-1">
@@ -1071,6 +1173,32 @@ const Despesas = () => {
                 {mostrarBulkEditForm ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </button>
             </div>
+
+            {/* Ações Rápidas */}
+            <div className="flex flex-wrap gap-3 mb-6 p-4 bg-orange-50 rounded-lg border border-orange-100">
+              <span className="text-sm font-semibold text-orange-800 w-full mb-1">Ações Rápidas:</span>
+              <button
+                onClick={handleMarkSelectedAsPaid}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition flex items-center gap-2 text-sm font-medium"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Marcar Selecionados como Pago
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Deseja realmente excluir as ${selectedDespesas.length} despesas selecionadas?`)) {
+                    const novasDespesas = despesas.filter(d => !selectedDespesas.includes(d.id));
+                    saveImmediately(novasDespesas);
+                    setSelectedDespesas([]);
+                    alert(`${selectedDespesas.length} despesas excluídas com sucesso!`);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition flex items-center gap-2 text-sm font-medium"
+              >
+                <Trash2 className="w-4 h-4" />
+                Excluir Selecionados
+              </button>
+            </div>
             {mostrarBulkEditForm && (
               <form onSubmit={handleBulkEditSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1150,6 +1278,25 @@ const Despesas = () => {
                       <option value="pendente">Pendente</option>
                     </select>
                   </div>
+                  <div>
+                    <label htmlFor="bulkSomarNoOrcamento" className="block text-sm font-medium text-gray-700 mb-1">
+                      Somar ao Orçamento (opcional)
+                    </label>
+                    <select
+                      id="bulkSomarNoOrcamento"
+                      name="somarNoOrcamento"
+                      value={bulkEditForm.somarNoOrcamento === undefined ? '' : bulkEditForm.somarNoOrcamento.toString()}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? undefined : e.target.value === 'true';
+                        setBulkEditForm(prev => ({ ...prev, somarNoOrcamento: val }));
+                      }}
+                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="">Não alterar</option>
+                      <option value="true">Sim</option>
+                      <option value="false">Não (Apenas DRE)</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="flex justify-end space-x-3">
                   <button
@@ -1213,24 +1360,78 @@ const Despesas = () => {
                           className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Data
+                      <th
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                        onClick={() => handleSort('data')}
+                      >
+                        <div className="flex items-center gap-1">
+                          Data
+                          {sortConfig.key === 'data' && (
+                            sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          )}
+                          {sortConfig.key !== 'data' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                        </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Descrição
+                      <th
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                        onClick={() => handleSort('descricao')}
+                      >
+                        <div className="flex items-center gap-1">
+                          Descrição
+                          {sortConfig.key === 'descricao' && (
+                            sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          )}
+                          {sortConfig.key !== 'descricao' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                        </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Categoria
+                      <th
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                        onClick={() => handleSort('categoria')}
+                      >
+                        <div className="flex items-center gap-1">
+                          Categoria
+                          {sortConfig.key === 'categoria' && (
+                            sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          )}
+                          {sortConfig.key !== 'categoria' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                        </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Subcategoria
+                      <th
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                        onClick={() => handleSort('subcategoria')}
+                      >
+                        <div className="flex items-center gap-1">
+                          Subcategoria
+                          {sortConfig.key === 'subcategoria' && (
+                            sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          )}
+                          {sortConfig.key !== 'subcategoria' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                        </div>
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Valor
+                      <th
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                        onClick={() => handleSort('valor')}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          Valor
+                          {sortConfig.key === 'valor' && (
+                            sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          )}
+                          {sortConfig.key !== 'valor' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                        </div>
                       </th>
                       {/* Coluna para Status */}
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                      <th
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
+                        onClick={() => handleSort('statusPagamento')}
+                      >
+                        <div className="flex items-center justify-center gap-1">
+                          Status
+                          {sortConfig.key === 'statusPagamento' && (
+                            sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          )}
+                          {sortConfig.key !== 'statusPagamento' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
+                        </div>
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Ações
@@ -1238,7 +1439,7 @@ const Despesas = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {despesasFiltradas.map(despesa => (
+                    {sortedDespesas.map(despesa => (
                       <tr key={despesa.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <input
@@ -1278,6 +1479,17 @@ const Despesas = () => {
                                 onChange={handleInlineChange}
                                 className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs"
                               />
+                              {/* Campo de Somar ao Orçamento na Edição Inline */}
+                              <label className="flex items-center cursor-pointer text-xs">
+                                <input
+                                  type="checkbox"
+                                  name="somarNoOrcamento"
+                                  checked={inlineEditForm.somarNoOrcamento}
+                                  onChange={(e) => setInlineEditForm(prev => ({ ...prev, somarNoOrcamento: e.target.checked }))}
+                                  className="form-checkbox h-3 w-3 text-red-600 rounded focus:ring-red-500 mr-1"
+                                />
+                                <span className="text-gray-700 font-bold">Somar ao Orçamento</span>
+                              </label>
                             </div>
                           ) : (
                             <>
@@ -1287,6 +1499,11 @@ const Despesas = () => {
                               )}
                               {despesa.dataVencimento && (
                                 <p className="text-xs text-red-500 mt-1">Vencimento: {formatarData(despesa.dataVencimento)}</p>
+                              )}
+                              {despesa.somarNoOrcamento === false && (
+                                <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase border border-gray-200">
+                                  Apenas DRE
+                                </span>
                               )}
                             </>
                           )}

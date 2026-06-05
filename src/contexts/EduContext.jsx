@@ -7,7 +7,7 @@ export const EduProvider = ({ children }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [currentTopic, setCurrentTopic] = useState(null);
     const [financialData, setFinancialData] = useState({ receitas: 0, despesas: 0 });
-    const [mascotState, setMascotState] = useState('coin'); // 'coin', 'bill', 'gold'
+    const [mascotState, setMascotState] = useState('coin'); // 'wallet', 'coin', 'bill', 'gold'
     const [transitionMessage, setTransitionMessage] = useState(null);
 
     const showLesson = (topic) => {
@@ -39,7 +39,7 @@ export const EduProvider = ({ children }) => {
         let newState = 'coin';
 
         if (saldo < 0) {
-            newState = 'coin'; // Negativo é Moeda
+            newState = 'wallet'; // Negativo é Carteira (Triste)
         } else if (percentualEconomia <= 10) {
             newState = 'coin'; // Até 10% de economia é Moeda
         } else if (percentualEconomia <= 75) {
@@ -50,8 +50,8 @@ export const EduProvider = ({ children }) => {
 
         // Verificar transição
         if (newState !== mascotState) {
-            // Definir hierarquia: coin < bill < gold
-            const hierarchy = { coin: 1, bill: 2, gold: 3 };
+            // Definir hierarquia: wallet < coin < bill < gold
+            const hierarchy = { wallet: 0, coin: 1, bill: 2, gold: 3 };
             const oldRank = hierarchy[mascotState] !== undefined ? hierarchy[mascotState] : 1;
             const newRank = hierarchy[newState];
 

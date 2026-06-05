@@ -171,11 +171,12 @@ async function migrateData() {
                     // Migrar Categorias Personalizadas
                     if (userData.categorias) {
                         for (const cat of userData.categorias) {
+                            const categoryId = cat.id || `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                             await client.query(`
                 INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, true)
                 ON CONFLICT (id) DO NOTHING
-              `, [cat.id, user.id, cat.nome, cat.tipo, cat.subcategorias, cat.cor, cat.icone]);
+              `, [categoryId, user.id, cat.nome, cat.tipo, cat.subcategorias, cat.cor, cat.icone]);
                         }
                     }
 

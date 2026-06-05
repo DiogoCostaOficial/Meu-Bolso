@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guia de Migração - Finanças Fácil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --primary-light: #1e293b;
+      --accent: #2563eb;
+      --text: #334155;
+      --text-dark: #0f172a;
+      --bg-page: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --success: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 50px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    /* Actions bar at the top (hidden during print) */
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .badge-info {
+      font-size: 13px;
+      color: var(--text);
+      background: var(--bg-page);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* Header styling */
+    header {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .logo-icon {
+      font-size: 32px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #64748b;
+      margin-top: 8px;
+    }
+
+    /* Section styling */
+    section {
+      margin-bottom: 35px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .step-card {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .step-number {
+      background: var(--accent);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text-dark);
+    }
+
+    code {
+      font-family: monospace;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #0f172a;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    .important-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .important-title {
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    /* Print styling rules */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+
+      .container {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+      }
+
+      .actions {
+        display: none;
+      }
+
+      .step-card {
+        page-break-inside: avoid;
+      }
+
+      pre {
+        background: #f1f5f9;
+        color: #0f172a;
+        border: 1px solid var(--border);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top actions bar -->
+    <div class="actions">
+      <span class="badge-info">📄 Gerador de Relatório de Migração</span>
+      <button class="btn" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Salvar como PDF / Imprimir
+      </button>
+    </div>
+
+    <!-- Document Header -->
+    <header>
+      <div class="logo-container">
+        <span class="logo-icon">📊</span>
+        <h1>Guia de Migração de Computador</h1>
+      </div>
+      <p class="subtitle">Finanças Fácil - Sistema de Controle Financeiro</p>
+    </header>
+
+    <!-- Context/Intro -->
+    <section>
+      <h2>Visão Geral</h2>
+      <p>Este guia orienta o processo de migração e inicialização do projeto <strong>Finanças Fácil</strong> para um novo computador. O sistema possui um frontend (React/Vite) e um backend (Node.js/Express) integrado com banco de dados PostgreSQL hospedado no Supabase (nuvem).</p>
+    </section>
+
+    <!-- Checklist & Steps -->
+    <section>
+      <h2>Passos para Funcionamento</h2>
+
+      <!-- Step 1 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <div class="step-title">Instalar o Node.js</div>
+        </div>
+        <p>O novo computador precisa possuir o ambiente de execução JavaScript Node.js instalado.</p>
+        <p>👉 Acesse <a href="https://nodejs.org/" target="_blank">nodejs.org</a>, baixe e instale a versão recente <strong>LTS</strong> recomendada.</p>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <div class="step-title">Preparar Arquivos de Configuração (.env)</div>
+        </div>
+        <p>Garanta que as variáveis de ambiente com segredos estejam presentes. Se não existirem, copie e preencha a partir dos arquivos de exemplo.</p>
+        <p><strong>Configuração do Backend (<code>server/.env</code>):</strong></p>
+        <pre><code>PORT=5000
+NODE_ENV=development
+JWT_SECRET=sua_chave_secreta_aqui
+JWT_EXPIRE=7d
+
+# Envio de E-mail (Opcional)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=seu_email@gmail.com
+EMAIL_PASS=sua_senha_de_app_do_gmail</code></pre>
+        <p><strong>Configuração do Frontend (<code>.env</code> na raiz):</strong></p>
+        <pre><code>VITE_API_URL=http://localhost:5000/api</code></pre>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">3</div>
+          <div class="step-title">Instalar Dependências (node_modules)</div>
+        </div>
+        <p>As pastas <code>node_modules</code> antigas devem ser apagadas antes da cópia do projeto para evitar conflito de sistemas operacionais.</p>
+        <p><strong>No Windows (Recomendado):</strong> execute o script automático clicando duas vezes em:</p>
+        <p><code>setup.bat</code> (localizado na raiz do projeto)</p>
+        <p><strong>No terminal (Manual):</strong></p>
+        <pre><code># Instalar dependências do Frontend (raiz)
+npm install
+
+# Instalar dependências do Backend (pasta server)
+cd server
+npm install</code></pre>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">4</div>
+          <div class="step-title">Iniciar o Sistema</div>
+        </div>
+        <p>Com as dependências instaladas e arquivos de configuração criados, inicialize os servidores.</p>
+        <p><strong>No Windows (Recomendado):</strong> execute o script de inicialização dupla clicando em:</p>
+        <p><code>start-tudo.bat</code> (localizado na raiz do projeto)</p>
+        <p><strong>No terminal (Manual):</strong> execute em dois terminais separados:</p>
+        <pre><code># Terminal 1 - Iniciar Backend
+cd server
+npm run dev
+
+# Terminal 2 - Iniciar Frontend
+npm run dev</code></pre>
+      </div>
+    </section>
+
+    <!-- Important notes -->
+    <section>
+      <div class="important-box">
+        <div class="important-title">
+          <span>⚠️</span> Nota Sobre os Dados
+        </div>
+        <p>Como o banco de dados é hospedado remotamente (Supabase na Nuvem), todas as transações, orçamentos e cadastros existentes estarão acessíveis imediatamente no novo computador assim que o login for realizado com sucesso.</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>Gerado em: <span id="generation-date"></span> — Finanças Fácil</p>
+    </footer>
+  </div>
+
+  <script>
+    // Formatar data local de geração
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    document.getElementById('generation-date').textContent = new Date().toLocaleDateString('pt-BR', options);
+  </script>
+</body>
+</html>
