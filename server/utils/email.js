@@ -119,12 +119,12 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
           <div class="warning">
             <p style="margin: 0;">
               <span class="warning-icon">⚠️</span>
-              <strong>Importante:</strong> Este código expira em <strong>10 minutos</strong> e pode ser usado apenas uma vez.
+              <strong>Importante:</strong> Este código expira em <strong>2 minutos</strong> e pode ser usado apenas uma vez.
             </p>
           </div>
 
           <div class="info-box">
-            <p style="margin: 5px 0;">✅ Válido por 10 minutos</p>
+            <p style="margin: 5px 0;">✅ Válido por 2 minutos</p>
             <p style="margin: 5px 0;">🔒 Mantenha este código em segurança</p>
             <p style="margin: 5px 0;">🚫 Nunca compartilhe com ninguém</p>
           </div>

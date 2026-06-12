@@ -16,7 +16,7 @@ const ValidarOTP = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
-  const [tempoRestante, setTempoRestante] = useState(600); // 10 minutos em segundos
+  const [tempoRestante, setTempoRestante] = useState(120); // 2 minutos em segundos
 
   // Countdown timer
   useEffect(() => {
@@ -119,7 +119,7 @@ const ValidarOTP = () => {
 
       if (result.success) {
         setSuccess('Novo código enviado para seu e-mail!');
-        setTempoRestante(600); // Reinicia o timer
+        setTempoRestante(120); // Reinicia o timer para 2 minutos
         setCodigo(['', '', '', '', '', '']);
         document.getElementById('otp-0')?.focus();
       } else {
@@ -221,7 +221,7 @@ const ValidarOTP = () => {
             </p>
             <button
               onClick={handleResend}
-              disabled={resendLoading || tempoRestante > 540} // Permite reenviar após 1 minuto
+              disabled={resendLoading || tempoRestante > 60} // Permite reenviar após 1 minuto
               className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm disabled:text-gray-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed transition"
             >
               {resendLoading ? (

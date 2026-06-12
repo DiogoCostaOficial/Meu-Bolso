@@ -85,3 +85,6 @@ new_package-lock.json
 uploads/
 temp/
 
+
+.vercel
+.env*

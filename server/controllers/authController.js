@@ -77,7 +77,7 @@ const registrar = async (req, res) => {
 
     // Cria novo usuário
     const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpira = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const otpExpira = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // 2 minutos
     const novoUsuario = {
       id: `user-${Date.now()}`,
       nome,
@@ -313,7 +313,7 @@ const reenviarOTP = async (req, res) => {
 
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
     usuario.otpCodigo = codigo;
-    usuario.otpExpira = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    usuario.otpExpira = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // 2 minutos
     await db.atualizarUsuario(usuario);
 
     await enviarCodigoOTP(email, usuario.nome, codigo);

@@ -1,7 +1,12 @@
 node_modules
-build
-dist
+**/node_modules
+new_node_modules
+backup-antes-toon
 .git
 .trae
 .log
 .figma
+tmp
+server/tmp
+dist
+build

@@ -107,7 +107,15 @@ const buscarDadosUsuario = async (userId) => {
     try {
         const filePath = getUserDataFile(userId);
         const fileContent = await fs.readFile(filePath, 'utf8');
-        return JSON.parse(fileContent);
+        const parsed = JSON.parse(fileContent);
+        if (parsed.despesas && Array.isArray(parsed.despesas)) {
+            parsed.despesas = parsed.despesas.map(d => ({
+                ...d,
+                dataLancamento: d.dataLancamento || d.data, // preserve original launch date
+                data: d.dataVencimento || d.data // prioritize due date
+            }));
+        }
+        return parsed;
     } catch (error) {
         // Return empty structure if no data found
         return {
@@ -174,7 +182,9 @@ const adicionarTransacao = async (userId, transacao) => {
             id: transacao.id,
             descricao: transacao.descricao,
             valor: parseFloat(transacao.valor),
-            data: transacao.data,
+            data: transacao.dataLancamento || transacao.data, // USE ORIGINAL LAUNCH DATE
+            dataCompra: transacao.dataCompra || null,
+            dataVencimento: transacao.dataVencimento || null,
             categoria: transacao.categoria,
             subcategoria: transacao.subcategoria || null,
             status: transacao.status || null,
@@ -213,7 +223,9 @@ const atualizarTransacao = async (userId, transacaoId, transacao) => {
             ...existing,
             descricao: transacao.descricao !== undefined ? transacao.descricao : existing.descricao,
             valor: transacao.valor !== undefined ? parseFloat(transacao.valor) : existing.valor,
-            data: transacao.data !== undefined ? transacao.data : existing.data,
+            data: transacao.dataLancamento !== undefined ? transacao.dataLancamento : (transacao.data !== undefined ? transacao.data : existing.data),
+            dataCompra: transacao.dataCompra !== undefined ? transacao.dataCompra : existing.dataCompra,
+            dataVencimento: transacao.dataVencimento !== undefined ? transacao.dataVencimento : existing.dataVencimento,
             categoria: transacao.categoria !== undefined ? transacao.categoria : existing.categoria,
             subcategoria: transacao.subcategoria !== undefined ? transacao.subcategoria : existing.subcategoria,
             status: transacao.status !== undefined ? transacao.status : existing.status,

@@ -81,6 +81,7 @@ const buscarDadosUsuario = async (userId) => {
         const despesasRes = await client.query("SELECT * FROM transactions WHERE user_id = $1 AND tipo = 'despesa'", [userId]);
         const categoriasRes = await client.query("SELECT * FROM categories WHERE user_id = $1", [userId]);
         const orcamentosRes = await client.query("SELECT * FROM budgets WHERE user_id = $1", [userId]);
+        const cartoesRes = await client.query("SELECT * FROM cards WHERE user_id = $1", [userId]);
 
         // Reconstruct Budgets from flat SQL rows
         const rawBudgets = orcamentosRes.rows;
@@ -143,6 +144,7 @@ const buscarDadosUsuario = async (userId) => {
                 descricao: r.descricao,
                 valor: parseFloat(r.valor),
                 data: r.data instanceof Date ? r.data.toISOString().split('T')[0] : r.data,
+                dataCompra: r.data_compra instanceof Date ? r.data_compra.toISOString().split('T')[0] : r.data_compra,
                 categoria: r.categoria,
                 subcategoria: r.subcategoria,
                 status: r.status,
@@ -152,20 +154,27 @@ const buscarDadosUsuario = async (userId) => {
                 parcelaAtual: r.parcela_atual,
                 observacao: r.observacao
             })),
-            despesas: despesasRes.rows.map(r => ({
-                id: r.id,
-                descricao: r.descricao,
-                valor: parseFloat(r.valor),
-                data: r.data instanceof Date ? r.data.toISOString().split('T')[0] : r.data,
-                categoria: r.categoria,
-                subcategoria: r.subcategoria,
-                status: r.status,
-                statusPagamento: r.status_pagamento,
-                parcelado: r.parcelado,
-                parcelas: r.parcelas_total,
-                parcelaAtual: r.parcela_atual,
-                observacao: r.observacao
-            })),
+            despesas: despesasRes.rows.map(r => {
+                const dataVenc = r.data_vencimento instanceof Date ? r.data_vencimento.toISOString().split('T')[0] : r.data_vencimento;
+                const dataDesp = r.data instanceof Date ? r.data.toISOString().split('T')[0] : r.data;
+                return {
+                    id: r.id,
+                    descricao: r.descricao,
+                    valor: parseFloat(r.valor),
+                    data: dataVenc || dataDesp, // Prioritize due date for organization/reports
+                    dataLancamento: dataDesp, // launch/expense date
+                    dataCompra: r.data_compra instanceof Date ? r.data_compra.toISOString().split('T')[0] : r.data_compra,
+                    categoria: r.categoria,
+                    subcategoria: r.subcategoria,
+                    status: r.status,
+                    statusPagamento: r.status_pagamento,
+                    parcelado: r.parcelado,
+                    parcelas: r.parcelas_total,
+                    parcelaAtual: r.parcela_atual,
+                    observacao: r.observacao,
+                    dataVencimento: dataVenc || ''
+                };
+            }),
             categorias: categoriasRes.rows.map(c => ({
                 id: c.id,
                 nome: c.nome,
@@ -174,11 +183,16 @@ const buscarDadosUsuario = async (userId) => {
                 cor: c.cor,
                 icone: c.icone
             })),
-            orcamentos: finalOrcamentos
+            orcamentos: finalOrcamentos,
+            cartoes: cartoesRes.rows.map(c => ({
+                id: c.id,
+                nome: c.nome,
+                valores: typeof c.valores === 'string' ? JSON.parse(c.valores) : (c.valores || {})
+            }))
         };
     } catch (err) {
         console.error('Erro ao buscar dados do usuário:', err);
-        return { receitas: [], despesas: [], categorias: [], orcamentos: [] };
+        return { receitas: [], despesas: [], categorias: [], orcamentos: [], cartoes: [] };
     } finally {
         client.release();
     }
@@ -229,7 +243,9 @@ const salvarDadosUsuario = async (userId, dados) => {
             const tUserIds = incomingTransactions.map(() => userId);
             const tDescs = incomingTransactions.map(t => t.descricao);
             const tVals = incomingTransactions.map(t => t.valor);
-            const tDatas = incomingTransactions.map(t => t.data);
+            const tDatas = incomingTransactions.map(t => t.dataLancamento || t.data);
+            const tDatasCompra = incomingTransactions.map(t => t.dataCompra || null);
+            const tDatasVencimento = incomingTransactions.map(t => t.dataVencimento || null);
             const tCats = incomingTransactions.map(t => t.categoria);
             const tSubcats = incomingTransactions.map(t => t.subcategoria);
             const tTipos = incomingTransactions.map(t => t.tipo);
@@ -242,19 +258,21 @@ const salvarDadosUsuario = async (userId, dados) => {
 
             await client.query(`
         INSERT INTO transactions (
-          id, user_id, descricao, valor, data, categoria, subcategoria, 
+          id, user_id, descricao, valor, data, data_compra, data_vencimento, categoria, subcategoria, 
           tipo, status, status_pagamento, parcelado, parcelas_total, 
           parcela_atual, observacao
         )
         SELECT * FROM UNNEST(
-          $1::text[], $2::text[], $3::text[], $4::numeric[], $5::date[], $6::text[], $7::text[],
-          $8::text[], $9::text[], $10::text[], $11::boolean[], $12::integer[],
-          $13::integer[], $14::text[]
+          $1::text[], $2::text[], $3::text[], $4::numeric[], $5::date[], $6::date[], $7::date[], $8::text[], $9::text[],
+          $10::text[], $11::text[], $12::text[], $13::boolean[], $14::integer[],
+          $15::integer[], $16::text[]
         )
         ON CONFLICT (id) DO UPDATE SET
           descricao = EXCLUDED.descricao,
           valor = EXCLUDED.valor,
           data = EXCLUDED.data,
+          data_compra = EXCLUDED.data_compra,
+          data_vencimento = EXCLUDED.data_vencimento,
           categoria = EXCLUDED.categoria,
           subcategoria = EXCLUDED.subcategoria,
           tipo = EXCLUDED.tipo,
@@ -265,7 +283,7 @@ const salvarDadosUsuario = async (userId, dados) => {
           parcela_atual = EXCLUDED.parcela_atual,
           observacao = EXCLUDED.observacao
       `, [
-                tIds, tUserIds, tDescs, tVals, tDatas, tCats, tSubcats,
+                tIds, tUserIds, tDescs, tVals, tDatas, tDatasCompra, tDatasVencimento, tCats, tSubcats,
                 tTipos, tStatus, tStatusPg, tParcelado, tParcelas,
                 tParcelaAtual, tObs
             ]);
@@ -378,6 +396,39 @@ const salvarDadosUsuario = async (userId, dados) => {
             }
         }
 
+        // =========================================================================
+        // 4. CARTÕES - BATCH UPSERT
+        // =========================================================================
+        if (dados.cartoes && Array.isArray(dados.cartoes)) {
+            const cardIds = dados.cartoes.map(c => c.id).filter(id => id);
+            if (cardIds.length > 0) {
+                await client.query(`
+          DELETE FROM cards 
+          WHERE user_id = $1 AND id NOT IN (SELECT unnest($2::text[]))
+        `, [userId, cardIds]);
+            } else {
+                await client.query('DELETE FROM cards WHERE user_id = $1', [userId]);
+            }
+
+            if (dados.cartoes.length > 0) {
+                const cIds = dados.cartoes.map(c => c.id);
+                const cUserIds = dados.cartoes.map(() => userId);
+                const cNomes = dados.cartoes.map(c => c.nome);
+                const cValores = dados.cartoes.map(c => typeof c.valores === 'object' ? JSON.stringify(c.valores) : '{}');
+
+                await client.query(`
+          INSERT INTO cards (id, user_id, nome, valores)
+          SELECT id, user_id, nome, valores::jsonb
+          FROM UNNEST(
+            $1::text[], $2::text[], $3::text[], $4::text[]
+          ) AS x(id, user_id, nome, valores)
+          ON CONFLICT (id) DO UPDATE SET
+            nome = EXCLUDED.nome,
+            valores = EXCLUDED.valores
+        `, [cIds, cUserIds, cNomes, cValores]);
+            }
+        }
+
         await client.query('COMMIT');
         return true;
     } catch (err) {
@@ -409,16 +460,18 @@ const adicionarTransacao = async (userId, transacao) => {
     try {
         await pool.query(`
             INSERT INTO transactions (
-                id, user_id, descricao, valor, data, categoria, subcategoria, 
+                id, user_id, descricao, valor, data, data_compra, data_vencimento, categoria, subcategoria, 
                 tipo, status, status_pagamento, parcelado, parcelas_total, 
                 parcela_atual, observacao
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         `, [
             transacao.id,
             userId,
             transacao.descricao,
             transacao.valor,
-            transacao.data,
+            transacao.dataLancamento || transacao.data,
+            transacao.dataCompra || null,
+            transacao.dataVencimento || null,
             transacao.categoria,
             transacao.subcategoria || null,
             transacao.tipo,
@@ -443,20 +496,24 @@ const atualizarTransacao = async (userId, transacaoId, transacao) => {
                 descricao = $1,
                 valor = $2,
                 data = $3,
-                categoria = $4,
-                subcategoria = $5,
-                tipo = $6,
-                status = $7,
-                status_pagamento = $8,
-                parcelado = $9,
-                parcelas_total = $10,
-                parcela_atual = $11,
-                observacao = $12
-            WHERE id = $13 AND user_id = $14
+                data_compra = $4,
+                data_vencimento = $5,
+                categoria = $6,
+                subcategoria = $7,
+                tipo = $8,
+                status = $9,
+                status_pagamento = $10,
+                parcelado = $11,
+                parcelas_total = $12,
+                parcela_atual = $13,
+                observacao = $14
+            WHERE id = $15 AND user_id = $16
         `, [
             transacao.descricao,
             transacao.valor,
-            transacao.data,
+            transacao.dataLancamento || transacao.data,
+            transacao.dataCompra || null,
+            transacao.dataVencimento || null,
             transacao.categoria,
             transacao.subcategoria || null,
             transacao.tipo,

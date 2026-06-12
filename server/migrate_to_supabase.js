@@ -47,6 +47,8 @@ async function createTables() {
         descricao TEXT,
         valor NUMERIC,
         data DATE,
+        data_compra DATE,
+        data_vencimento DATE,
         categoria TEXT,
         subcategoria TEXT,
         tipo TEXT, -- 'receita' ou 'despesa'
@@ -58,6 +60,16 @@ async function createTables() {
         observacao TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+        // Garantir que a coluna data_compra existe se a tabela já foi criada anteriormente
+        await client.query(`
+      ALTER TABLE transactions ADD COLUMN IF NOT EXISTS data_compra DATE;
+    `);
+
+        // Garantir que a coluna data_vencimento existe se a tabela já foi criada anteriormente
+        await client.query(`
+      ALTER TABLE transactions ADD COLUMN IF NOT EXISTS data_vencimento DATE;
     `);
 
         // Tabela Categories (Categorias personalizadas)
@@ -83,6 +95,17 @@ async function createTables() {
         categoria TEXT,
         valor_limite NUMERIC,
         periodo TEXT, -- 'mensal', 'anual', etc.
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+        // Tabela Cards (Cartões)
+        await client.query(`
+      CREATE TABLE IF NOT EXISTS cards (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+        nome TEXT,
+        valores JSONB DEFAULT '{}'::jsonb,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -150,10 +173,10 @@ async function migrateData() {
                     if (userData.receitas) {
                         for (const rec of userData.receitas) {
                             await client.query(`
-                INSERT INTO transactions (id, user_id, descricao, valor, data, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, 'receita', $8, $9, $10, $11, $12, $13)
+                INSERT INTO transactions (id, user_id, descricao, valor, data, data_compra, data_vencimento, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'receita', $10, $11, $12, $13, $14, $15)
                 ON CONFLICT (id) DO NOTHING
-              `, [rec.id, user.id, rec.descricao, rec.valor, rec.data, rec.categoria, rec.subcategoria, rec.status, rec.statusPagamento, rec.parcelado, rec.parcelas, rec.parcelaAtual, rec.observacao]);
+              `, [rec.id, user.id, rec.descricao, rec.valor, rec.data, rec.dataCompra || null, rec.dataVencimento || null, rec.categoria, rec.subcategoria, rec.status, rec.statusPagamento, rec.parcelado, rec.parcelas, rec.parcelaAtual, rec.observacao]);
                         }
                     }
 
@@ -161,10 +184,10 @@ async function migrateData() {
                     if (userData.despesas) {
                         for (const desp of userData.despesas) {
                             await client.query(`
-                INSERT INTO transactions (id, user_id, descricao, valor, data, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, 'despesa', $8, $9, $10, $11, $12, $13)
+                INSERT INTO transactions (id, user_id, descricao, valor, data, data_compra, data_vencimento, categoria, subcategoria, tipo, status, status_pagamento, parcelado, parcelas_total, parcela_atual, observacao)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'despesa', $10, $11, $12, $13, $14, $15)
                 ON CONFLICT (id) DO NOTHING
-              `, [desp.id, user.id, desp.descricao, desp.valor, desp.data, desp.categoria, desp.subcategoria, desp.status, desp.statusPagamento, desp.parcelado, desp.parcelas, desp.parcelaAtual, desp.observacao]);
+              `, [desp.id, user.id, desp.descricao, desp.valor, desp.data, desp.dataCompra || null, desp.dataVencimento || null, desp.categoria, desp.subcategoria, desp.status, desp.statusPagamento, desp.parcelado, desp.parcelas, desp.parcelaAtual, desp.observacao]);
                         }
                     }
 
@@ -188,6 +211,17 @@ async function migrateData() {
                 VALUES ($1, $2, $3, $4, $5)
                 ON CONFLICT (id) DO NOTHING
               `, [orc.id || `orc-${Date.now()}-${Math.random()}`, user.id, orc.categoria, orc.valorLimite, orc.periodo]);
+                        }
+                    }
+
+                    // Migrar Cartões
+                    if (userData.cartoes) {
+                        for (const card of userData.cartoes) {
+                            await client.query(`
+                INSERT INTO cards (id, user_id, nome, valores)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (id) DO NOTHING
+              `, [card.id || `card-${Date.now()}-${Math.random()}`, user.id, card.nome, JSON.stringify(card.valores || {})]);
                         }
                     }
 

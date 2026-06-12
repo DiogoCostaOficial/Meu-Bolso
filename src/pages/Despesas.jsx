@@ -107,6 +107,8 @@ const Despesas = () => {
     subcategoria: '',
     observacoes: '', // Campo de observações para edição inline
     dataVencimento: '', // Campo de data de vencimento para edição inline
+    dataCompra: '', // Campo de data da compra para edição inline
+    dataLancamento: '', // Campo de data de lançamento para edição inline
     somarNoOrcamento: true // Campo para definir se soma no orçamento
   });
 
@@ -127,6 +129,7 @@ const Despesas = () => {
     descricao: '',
     valor: '',
     data: new Date().toISOString().split('T')[0],
+    dataLancamento: new Date().toISOString().split('T')[0], // Data original de lançamento
     categoria: initialDefaultCategory,
     subcategoria: initialDefaultSubcategory,
     observacoes: '',
@@ -134,6 +137,7 @@ const Despesas = () => {
     numeroParcelas: 1,
     statusPagamento: 'pendente', // Status inicial para novas despesas
     dataVencimento: '', // Campo para data de vencimento
+    dataCompra: '', // Campo para data da compra
     somarNoOrcamento: true // Padrão: somar ao orçamento
   });
 
@@ -182,12 +186,14 @@ const Despesas = () => {
       const userData = response.data.dados || {};
       const despesasData = userData.despesas || [];
 
-      // Garante que todas as despesas carregadas tenham statusPagamento, observacoes e dataVencimento
+      // Garante que todas as despesas carregadas tenham statusPagamento, observacoes, dataVencimento, dataCompra e dataLancamento
       const despesasComDefaults = despesasData.map(d => ({
         ...d,
-        statusPagamento: d.statusPagamento || 'pendente',
-        observacoes: d.observacoes || '',
+        statusPagamento: d.statusPagamento || d.status_pagamento || 'pendente',
+        observacoes: d.observacoes || d.observacao || '',
         dataVencimento: d.dataVencimento || '',
+        dataCompra: d.dataCompra || '',
+        dataLancamento: d.dataLancamento || d.data,
         somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true
       }));
       setDespesas(despesasComDefaults);
@@ -287,29 +293,34 @@ const Despesas = () => {
     if (formulario.parcelado) {
       const valorPorParcela = parseFloat(formulario.valor) / formulario.numeroParcelas;
       for (let i = 0; i < formulario.numeroParcelas; i++) {
-        const dataParcela = adicionarMeses(formulario.data, i);
+        const dataParcela = adicionarMeses(formulario.dataLancamento || formulario.data, i);
+        const dataVencParcela = formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '';
         const novaDespesa = {
           id: Date.now() + i, // ID único para cada parcela
           descricao: `${formulario.descricao} (Parcela ${i + 1}/${formulario.numeroParcelas})`,
           valor: valorPorParcela,
-          data: dataParcela,
+          data: dataVencParcela || dataParcela, // Effective grouping/reporting date
+          dataLancamento: dataParcela, // Original launch date
           categoria: formulario.categoria,
           subcategoria: formulario.subcategoria,
           observacoes: formulario.observacoes,
           parcelado: formulario.parcelado,
           numeroParcelas: formulario.numeroParcelas,
           statusPagamento: 'pendente', // Status padrão para parcelas
-          dataVencimento: formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '', // Data de vencimento para parcelas
+          dataVencimento: dataVencParcela, // Data de vencimento para parcelas
+          dataCompra: formulario.dataCompra || '', // Data de compra para parcelas
           somarNoOrcamento: formulario.somarNoOrcamento
         };
         novasDespesas.push(novaDespesa);
       }
     } else {
+      const dataDesp = formulario.dataLancamento || formulario.data;
       const novaDespesa = {
         id: Date.now(),
         descricao: formulario.descricao,
         valor: parseFloat(formulario.valor),
-        data: formulario.data,
+        data: formulario.dataVencimento || dataDesp, // Effective grouping/reporting date
+        dataLancamento: dataDesp, // Original launch date
         categoria: formulario.categoria,
         subcategoria: formulario.subcategoria,
         observacoes: formulario.observacoes,
@@ -317,6 +328,7 @@ const Despesas = () => {
         numeroParcelas: formulario.numeroParcelas,
         statusPagamento: 'pendente', // Status padrão para despesa única
         dataVencimento: formulario.dataVencimento || '', // Data de vencimento para despesa única
+        dataCompra: formulario.dataCompra || '', // Data da compra para despesa única
         somarNoOrcamento: formulario.somarNoOrcamento
       };
       novasDespesas.push(novaDespesa);
@@ -342,6 +354,8 @@ const Despesas = () => {
       numeroParcelas: 1,
       statusPagamento: 'pendente', // Resetar status para padrão
       dataVencimento: '', // Resetar data de vencimento
+      dataCompra: '', // Resetar data da compra
+      dataLancamento: new Date().toISOString().split('T')[0], // Resetar data de lançamento
       somarNoOrcamento: true // Resetar para padrão
     });
     setEditando(null);
@@ -358,6 +372,8 @@ const Despesas = () => {
       subcategoria: despesa.subcategoria,
       observacoes: despesa.observacoes, // Preencher observações
       dataVencimento: despesa.dataVencimento, // Preencher data de vencimento
+      dataCompra: despesa.dataCompra || '', // Preencher data da compra
+      dataLancamento: despesa.dataLancamento || despesa.data, // Preencher data de lançamento
       somarNoOrcamento: despesa.somarNoOrcamento !== undefined ? despesa.somarNoOrcamento : true
     });
     setMostrarFormulario(false);
@@ -388,6 +404,7 @@ const Despesas = () => {
       d.id === id ? {
         ...d,
         ...inlineEditForm,
+        data: inlineEditForm.dataVencimento || inlineEditForm.dataLancamento || d.data, // Compute effective date
         valor: valorNumerico
       } : d
     );
@@ -395,12 +412,12 @@ const Despesas = () => {
     // Usar debounce para edição inline
     debouncedSave(updatedDespesas);
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', somarNoOrcamento: true }); // Resetar campos
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true }); // Resetar campos
   };
 
   const handleInlineCancel = () => {
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', somarNoOrcamento: true }); // Resetar campos
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true }); // Resetar campos
   };
 
   const excluirDespesa = id => {
@@ -774,14 +791,14 @@ const Despesas = () => {
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="data" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="dataLancamento" className="block text-sm font-medium text-gray-700 mb-2">
                       Data da Despesa
                     </label>
                     <input
                       type="date"
-                      id="data"
-                      name="data"
-                      value={formulario.data}
+                      id="dataLancamento"
+                      name="dataLancamento"
+                      value={formulario.dataLancamento || formulario.data}
                       onChange={handleChange}
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
                       required
@@ -797,6 +814,20 @@ const Despesas = () => {
                       id="dataVencimento"
                       name="dataVencimento"
                       value={formulario.dataVencimento}
+                      onChange={handleChange}
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                    />
+                  </div>
+                  {/* NOVO: Campo para Data da Compra */}
+                  <div>
+                    <label htmlFor="dataCompra" className="block text-sm font-medium text-gray-700 mb-2">
+                      Data da Compra (opcional)
+                    </label>
+                    <input
+                      type="date"
+                      id="dataCompra"
+                      name="dataCompra"
+                      value={formulario.dataCompra || ''}
                       onChange={handleChange}
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
                     />
@@ -1471,6 +1502,17 @@ const Despesas = () => {
                                 className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs"
                                 placeholder="Observações..."
                               />
+                              {/* Campo de Data de Lançamento na Edição Inline */}
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[10px] text-gray-500 font-medium">Data da Despesa:</label>
+                                <input
+                                  type="date"
+                                  name="dataLancamento"
+                                  value={inlineEditForm.dataLancamento || ''}
+                                  onChange={handleInlineChange}
+                                  className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs"
+                                />
+                              </div>
                               {/* Campo de Data de Vencimento na Edição Inline */}
                               <input
                                 type="date"
@@ -1479,6 +1521,17 @@ const Despesas = () => {
                                 onChange={handleInlineChange}
                                 className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs"
                               />
+                              {/* Campo de Data da Compra na Edição Inline */}
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[10px] text-gray-500 font-medium">Data da Compra:</label>
+                                <input
+                                  type="date"
+                                  name="dataCompra"
+                                  value={inlineEditForm.dataCompra || ''}
+                                  onChange={handleInlineChange}
+                                  className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs"
+                                />
+                              </div>
                               {/* Campo de Somar ao Orçamento na Edição Inline */}
                               <label className="flex items-center cursor-pointer text-xs">
                                 <input
@@ -1499,6 +1552,12 @@ const Despesas = () => {
                               )}
                               {despesa.dataVencimento && (
                                 <p className="text-xs text-red-500 mt-1">Vencimento: {formatarData(despesa.dataVencimento)}</p>
+                              )}
+                              {despesa.dataVencimento && despesa.dataLancamento && despesa.dataLancamento !== despesa.dataVencimento && (
+                                <p className="text-xs text-gray-500 mt-1">Lançamento: {formatarData(despesa.dataLancamento)}</p>
+                              )}
+                              {despesa.dataCompra && (
+                                <p className="text-xs text-orange-600 mt-1">Compra: {formatarData(despesa.dataCompra)}</p>
                               )}
                               {despesa.somarNoOrcamento === false && (
                                 <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase border border-gray-200">
