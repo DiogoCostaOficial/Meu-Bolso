@@ -75,6 +75,34 @@ const KNOWLEDGE_BASE = [
     keywords: ['cartao', 'cartoes', 'credito', 'fatura', 'limite'],
     matches: [],
     response: "A tela de **Cartões** ajuda a simular o limite e o fechamento da fatura do seu cartão. Lembre-se: o limite do cartão não é salário extra, é apenas uma facilidade de pagamento que você terá que pagar no dia do vencimento da fatura."
+  },
+  // 8. Gestão de Orçamento
+  {
+    keywords: ['gestao', 'gerir', 'economizar', 'dicas', 'planejar', 'sobrar', 'limite'],
+    matches: ['orcamento', 'orcamentos'],
+    response: "Para fazer uma boa **Gestão de Orçamento**:\n" +
+              "1. No início do mês, defina limites realistas para cada categoria na tela de **Orçamento**.\n" +
+              "2. Acompanhe a barra de progresso: se a barra estiver perto do vermelho, reduza os gastos daquela categoria.\n" +
+              "3. Foque na regra básica: **Gaste menos do que ganha**! Se sobrar dinheiro, transfira o excedente para investimentos ou crie uma reserva de emergência."
+  },
+  // 9. Como usar o DRE
+  {
+    keywords: ['como usar', 'usar', 'analisar', 'verificao', 'entender'],
+    matches: ['dre', 'placar', 'lucro', 'prejuizo'],
+    response: "Para usar o **DRE** de forma eficiente:\n" +
+              "• Acesse a tela no final de cada mês.\n" +
+              "• Se a última linha (Resultado) estiver **verde**, você teve **Lucro** (parabéns!).\n" +
+              "• Se estiver **vermelha**, você teve **Prejuízo** (gastou mais do que recebeu).\n" +
+              "• O DRE serve justamente para você comparar o desempenho de meses diferentes e descobrir se a sua saúde financeira está melhorando ou piorando."
+  },
+  // 10. Fluxo de Caixa
+  {
+    keywords: ['fluxo de caixa', 'fluxo', 'caixa', 'entradas e saidas', 'movimentacoes'],
+    matches: ['dinheiro', 'saldo'],
+    response: "O **Fluxo de Caixa** é o acompanhamento diário do dinheiro que entra e sai:\n" +
+              "• **Entradas (Receitas):** Todo valor recebido (salário, bônus, Pix).\n" +
+              "• **Saídas (Despesas):** Todo valor pago (contas, lanches, faturas).\n" +
+              "• Ter um fluxo de caixa saudável significa que as suas entradas acontecem *antes* das suas saídas, garantindo que você nunca fique sem saldo para pagar as contas no dia do vencimento."
   }
 ];
 
