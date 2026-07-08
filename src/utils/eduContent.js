@@ -78,6 +78,16 @@ export const EDU_CONTENT = {
             "Utilize as bandeirinhas no topo para acompanhar seus gastos em outras moedas.",
             "Com o Meu Bolso, cuidar do seu dinheiro agora é global!"
         ]
+    },
+    atualizacoes_sistema: {
+        title: "Novidades Quentinhas no Meu Bolso! 🚀",
+        explanation: "Olá, eu sou o FIN e trouxe novidades super legais que acabaram de sair do forno para facilitar seu controle financeiro hoje!",
+        analogy: "É como se o seu carro de controle de gastos ganhasse dois novos botões no painel para facilitar sua viagem.",
+        tips: [
+            "🟢 Status nas Despesas: Agora ao criar uma despesa, você decide se ela já está 'Paga' ou ainda 'Pendente'. Chega de dúvidas sobre o que foi quitado!",
+            "💬 Converse Comigo: Agora você pode digitar suas dúvidas direto no meu balão de fala! Pergunte coisas como 'o que são as datas da despesa?' ou 'para que serve o status pendente' que eu te explico na hora de forma simples!",
+            "Use e abuse dessas facilidades no seu dia a dia!"
+        ]
     }
 };
 
