@@ -311,7 +311,7 @@ const Despesas = () => {
           observacoes: formulario.observacoes,
           parcelado: formulario.parcelado,
           numeroParcelas: formulario.numeroParcelas,
-          statusPagamento: 'pendente', // Status padrão para parcelas
+          statusPagamento: formulario.statusPagamento || 'pendente', // Status definido pelo usuário
           dataVencimento: dataVencParcela, // Data de vencimento para parcelas
           dataCompra: formulario.dataCompra || '', // Data de compra para parcelas
           somarNoOrcamento: formulario.somarNoOrcamento
@@ -331,7 +331,7 @@ const Despesas = () => {
         observacoes: formulario.observacoes,
         parcelado: formulario.parcelado,
         numeroParcelas: formulario.numeroParcelas,
-        statusPagamento: 'pendente', // Status padrão para despesa única
+        statusPagamento: formulario.statusPagamento || 'pendente', // Status definido pelo usuário
         dataVencimento: formulario.dataVencimento || '', // Data de vencimento para despesa única
         dataCompra: formulario.dataCompra || '', // Data da compra para despesa única
         somarNoOrcamento: formulario.somarNoOrcamento
@@ -868,6 +868,22 @@ const Despesas = () => {
                           {sub}
                         </option>
                       ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="statusPagamento" className="block text-sm font-medium text-gray-700 mb-2">
+                      Status de Pagamento
+                    </label>
+                    <select
+                      id="statusPagamento"
+                      name="statusPagamento"
+                      value={formulario.statusPagamento || 'pendente'}
+                      onChange={handleChange}
+                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      required
+                    >
+                      <option value="pendente">Pendente</option>
+                      <option value="pago">Pago</option>
                     </select>
                   </div>
                 </div>
