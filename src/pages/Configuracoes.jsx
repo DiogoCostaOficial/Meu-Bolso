@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../components/theme-provider';
 import { userService, authService } from '../services/api';
 import { User, Lock, Save, Check, AlertCircle, Camera, Upload, Layers, Trash2, Plus, XCircle, Settings, Shield } from 'lucide-react';
+import { removeDuplicates } from '../utils/arrayUtils';
 
 const Configuracoes = () => {
     const { user, updateUser } = useAuth();
@@ -274,7 +275,8 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
             setLoadingLocal(true);
             const response = await userService.obterDados();
             if (response.success && response.data && response.data.categorias) {
-                setCategorias(response.data.categorias);
+                const categoriasUnicas = removeDuplicates(response.data.categorias, 'nome');
+                setCategorias(categoriasUnicas);
             }
         } catch (error) {
             console.error('Erro ao carregar categorias:', error);

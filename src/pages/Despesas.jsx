@@ -21,6 +21,7 @@ import {
   ArrowUpDown // Import for sorting
 } from 'lucide-react';
 import api from '../services/api';
+import { removeDuplicates } from '../utils/arrayUtils';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
@@ -167,8 +168,9 @@ const Despesas = () => {
   const carregarCategorias = async () => {
     try {
       const response = await api.get('/user/dados');
-      if (response.data.success && response.data.dados && response.data.dados.categorias && response.data.dados.categorias.length > 0) {
-        setCategorias(response.data.dados.categorias);
+      if (response.data && response.data.dados && Array.isArray(response.data.dados.categorias) && response.data.dados.categorias.length > 0) {
+        const categoriasUnicas = removeDuplicates(response.data.dados.categorias, 'nome');
+        setCategorias(categoriasUnicas);
       } else {
         // Se não houver categorias no backend, usa as padrão
         setCategorias(categoriasDefault);

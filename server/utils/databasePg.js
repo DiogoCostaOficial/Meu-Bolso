@@ -32,6 +32,8 @@ const getUsuarios = async () => {
             primeiroAcesso: u.primeiro_acesso,
             otpCodigo: u.otp_codigo,
             otpExpira: u.otp_expiracao ? u.otp_expiracao.toISOString() : null,
+            dataCriacao: u.created_at ? u.created_at.toISOString() : null,
+            ultimoAcesso: u.ultimo_acesso ? u.ultimo_acesso.toISOString() : null,
             ativo: true
         }));
     } catch (err) {
@@ -43,9 +45,13 @@ const getUsuarios = async () => {
 const adicionarUsuario = async (usuario) => {
     try {
         await pool.query(`
-      INSERT INTO users (id, nome, email, senha, tipo, avatar, verificado, primeiro_acesso, otp_codigo, otp_expiracao)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    `, [usuario.id, usuario.nome, usuario.email, usuario.senha, usuario.tipo, usuario.avatar, usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, usuario.otpExpira]);
+      INSERT INTO users (id, nome, email, senha, tipo, avatar, verificado, primeiro_acesso, otp_codigo, otp_expiracao, created_at, ultimo_acesso)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    `, [
+            usuario.id, usuario.nome, usuario.email, usuario.senha, usuario.tipo, 
+            usuario.avatar, usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, 
+            usuario.otpExpira, usuario.dataCriacao || new Date().toISOString(), usuario.ultimoAcesso
+        ]);
         return true;
     } catch (err) {
         console.error('Erro ao adicionar usuário:', err);
@@ -64,9 +70,14 @@ const atualizarUsuario = async (usuario) => {
         verificado = $5,
         primeiro_acesso = $6,
         otp_codigo = $7,
-        otp_expiracao = $8
-      WHERE id = $9
-    `, [usuario.nome, usuario.email, usuario.senha, usuario.avatar, usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, usuario.otpExpira, usuario.id]);
+        otp_expiracao = $8,
+        ultimo_acesso = $9
+      WHERE id = $10
+    `, [
+            usuario.nome, usuario.email, usuario.senha, usuario.avatar, 
+            usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, 
+            usuario.otpExpira, usuario.ultimoAcesso, usuario.id
+        ]);
         return true;
     } catch (err) {
         console.error('Erro ao atualizar usuário:', err);
@@ -115,14 +126,17 @@ const buscarDadosUsuario = async (userId) => {
                 monthData.dividas = valor;
             } else if (row.categoria === 'META_RENDA_REAL') {
                 monthData.rendaReal = valor;
+            } else if (row.categoria.startsWith('META_PERCENT_')) {
+                const catNome = row.categoria.replace('META_PERCENT_', '');
+                monthData.metaPercentuais = monthData.metaPercentuais || {};
+                monthData.metaPercentuais[catNome] = valor;
             } else {
                 // Regular category
                 monthData.categorias.push({
                     nome: row.categoria,
                     valorPlanejado: valor,
-                    // Percentual will be calculated below
                     percentual: 0,
-                    cor: categoryColors[row.categoria] || '#CCCCCC' // Use mapped color or default
+                    cor: categoryColors[row.categoria] || '#CCCCCC'
                 });
             }
         });
@@ -132,9 +146,19 @@ const buscarDadosUsuario = async (userId) => {
             if (orc.rendaReal > 0) {
                 orc.categorias = orc.categorias.map(cat => ({
                     ...cat,
-                    percentual: parseFloat(((cat.valorPlanejado / orc.rendaReal) * 100).toFixed(2))
+                    // Use explicit meta percentual if available, otherwise fallback to calculation
+                    percentual: (orc.metaPercentuais && orc.metaPercentuais[cat.nome] !== undefined) 
+                        ? orc.metaPercentuais[cat.nome] 
+                        : parseFloat(((cat.valorPlanejado / orc.rendaReal) * 100).toFixed(2))
+                }));
+            } else if (orc.metaPercentuais) {
+                orc.categorias = orc.categorias.map(cat => ({
+                    ...cat,
+                    percentual: orc.metaPercentuais[cat.nome] !== undefined ? orc.metaPercentuais[cat.nome] : 0
                 }));
             }
+            // Cleanup internal meta field
+            delete orc.metaPercentuais;
             return orc;
         });
 
@@ -290,10 +314,19 @@ const salvarDadosUsuario = async (userId, dados) => {
         }
 
         // =========================================================================
-        // 2. CATEGORIAS - BATCH UPSERT
+        // 2. CATEGORIAS - UPSERT
         // =========================================================================
         if (dados.categorias && Array.isArray(dados.categorias)) {
+            // Guarantee all categories have IDs before saving
+            dados.categorias = dados.categorias.map(c => {
+                if (!c.id) {
+                    return { ...c, id: `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` };
+                }
+                return c;
+            });
+
             const catIds = dados.categorias.map(c => c.id).filter(id => id);
+            
             if (catIds.length > 0) {
                 await client.query(`
           DELETE FROM categories 
@@ -303,28 +336,26 @@ const salvarDadosUsuario = async (userId, dados) => {
                 await client.query('DELETE FROM categories WHERE user_id = $1', [userId]);
             }
 
-            if (dados.categorias.length > 0) {
-                const cIds = dados.categorias.map(c => c.id);
-                const cUserIds = dados.categorias.map(() => userId);
-                const cNomes = dados.categorias.map(c => c.nome);
-                const cTipos = dados.categorias.map(c => c.tipo);
-                const cSubcats = dados.categorias.map(c => c.subcategorias); // Array of text
-                const cCores = dados.categorias.map(c => c.cor);
-                const cIcones = dados.categorias.map(c => c.icone);
-                const cIsCustom = dados.categorias.map(() => true);
-
+            for (const c of dados.categorias) {
                 await client.query(`
-          INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom)
-          SELECT * FROM UNNEST(
-            $1::text[], $2::text[], $3::text[], $4::text[], $5::text[][], $6::text[], $7::text[], $8::boolean[]
-          )
-          ON CONFLICT (id) DO UPDATE SET
-            nome = EXCLUDED.nome,
-            tipo = EXCLUDED.tipo,
-            subcategorias = EXCLUDED.subcategorias,
-            cor = EXCLUDED.cor,
-            icone = EXCLUDED.icone
-        `, [cIds, cUserIds, cNomes, cTipos, cSubcats, cCores, cIcones, cIsCustom]);
+                    INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    ON CONFLICT (id) DO UPDATE SET
+                        nome = EXCLUDED.nome,
+                        tipo = EXCLUDED.tipo,
+                        subcategorias = EXCLUDED.subcategorias,
+                        cor = EXCLUDED.cor,
+                        icone = EXCLUDED.icone
+                `, [
+                    c.id,
+                    userId,
+                    c.nome,
+                    c.tipo || null,
+                    c.subcategorias || [],
+                    c.cor || '#000000',
+                    c.icone || null,
+                    true
+                ]);
             }
         }
 
@@ -376,6 +407,15 @@ const salvarDadosUsuario = async (userId, dados) => {
                             valor: valorCalculado,
                             periodo: orcamento.mes
                         });
+                        
+                        if (cat.percentual !== undefined) {
+                            budgetRows.push({
+                                id: `budget-perc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                categoria: `META_PERCENT_${cat.nome}`,
+                                valor: parseFloat(cat.percentual),
+                                periodo: orcamento.mes
+                            });
+                        }
                     }
                 }
             }

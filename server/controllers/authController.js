@@ -120,9 +120,10 @@ const login = async (req, res) => {
     const { email, senha, username } = req.body;
 
     // Login especial para admin (sem email)
-    if (username === 'admin' && senha === 'admin') {
+    if (username) {
       const usuarios = await db.getUsuarios();
-      const usuarioAdmin = usuarios.find(u => u.tipo === 'admin' && u.email === 'admin@admin.com');
+      // O admin pode tentar logar usando o username 'admin' ou o email 'admin@admin.com'
+      const usuarioAdmin = usuarios.find(u => u.tipo === 'admin' && (u.email === username || u.nome === username || username === 'admin'));
 
       if (!usuarioAdmin) {
         return res.status(401).json({
@@ -131,12 +132,30 @@ const login = async (req, res) => {
         });
       }
 
+      // Valida a senha usando bcrypt
+      const senhaValida = await compararSenha(senha, usuarioAdmin.senha);
+
+      // Se a senha do banco for diferente da digitada, E também não for a velha senha padrão
+      if (!senhaValida && !(username === 'admin' && senha === 'admin')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário ou senha inválidos'
+        });
+      }
+
       // Atualiza último acesso
       usuarioAdmin.ultimoAcesso = new Date().toISOString();
       await db.atualizarUsuario(usuarioAdmin);
 
-      // Gera token
-      const token = gerarToken(usuarioAdmin);
+      // Gera token (apenas dados necessários para não expor a senha)
+      const payloadToken = {
+        id: usuarioAdmin.id,
+        nome: usuarioAdmin.nome,
+        email: usuarioAdmin.email,
+        tipo: usuarioAdmin.tipo,
+        primeiroAcesso: usuarioAdmin.primeiroAcesso
+      };
+      const token = gerarToken(payloadToken);
 
       // Registra atividade especial de admin
       registrarAtividadeAdmin(usuarioAdmin.id, req.ip, 'login_especial');
@@ -155,6 +174,7 @@ const login = async (req, res) => {
         }
       });
     }
+
 
     // Login normal por email
     if (!email || !senha) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Loader2, AlertTriangle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import { validarEmail } from '../utils/validations';
@@ -11,6 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(false);
   const [toast, setToast] = useState(null);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [formulario, setFormulario] = useState({
     email: '',
     senha: ''
@@ -117,15 +118,27 @@ const Login = () => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="password"
+                type={mostrarSenha ? "text" : "password"}
                 id="senha"
                 name="senha"
                 value={formulario.senha}
                 onChange={handleChange}
-                className={`w-full pl-10 pr-4 py-3 border ${erros.senha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                className={`w-full pl-10 pr-12 py-3 border ${erros.senha ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-300`}
                 placeholder="••••••••"
               />
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-500 focus:outline-none transition-colors"
+                tabIndex="-1"
+              >
+                {mostrarSenha ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
             {erros.senha && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">

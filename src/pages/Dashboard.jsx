@@ -9,6 +9,7 @@ import {
   GraduationCap, PiggyBank
 } from 'lucide-react';
 import api from '../services/api';
+import { removeDuplicates } from '../utils/arrayUtils';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend, PieChart, Pie, Cell
@@ -75,7 +76,8 @@ const Dashboard = () => {
 
       // Carregar categorias do usuário ou usar padrão
       if (userData.categorias && userData.categorias.length > 0) {
-        setCategorias(userData.categorias);
+        const categoriasUnicas = removeDuplicates(userData.categorias, 'nome');
+        setCategorias(categoriasUnicas);
       } else {
         setCategorias([
           { nome: 'Despesas Fixas', cor: '#EF4444' },

@@ -11,6 +11,7 @@ import {
   CheckCircle, XCircle, GraduationCap
 } from 'lucide-react';
 import api from '../services/api';
+import { removeDuplicates } from '../utils/arrayUtils';
 
 const CATEGORIAS_PADRAO = [
   { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
@@ -64,7 +65,8 @@ const Orcamento = () => {
         const categoriasDoUsuario = userData.categorias || [];
 
         if (categoriasDoOrcamento.length > 0) {
-          setCategorias(categoriasDoOrcamento.map(cat => {
+          const categoriasUnicas = removeDuplicates(categoriasDoOrcamento, 'nome');
+          setCategorias(categoriasUnicas.map(cat => {
             // Fallback robusto para cores
             let cor = cat.cor;
             if (!cor || cor === '#CCCCCC') {
@@ -83,7 +85,8 @@ const Orcamento = () => {
           }));
         } else if (categoriasDoUsuario.length > 0) {
           // Use user's custom categories
-          setCategorias(categoriasDoUsuario.map(cat => ({
+          const categoriasUnicasUsuario = removeDuplicates(categoriasDoUsuario, 'nome');
+          setCategorias(categoriasUnicasUsuario.map(cat => ({
             ...cat,
             percentual: 0,
             gastoAtual: 0
@@ -100,7 +103,8 @@ const Orcamento = () => {
 
         const categoriasDoUsuario = userData.categorias || [];
         if (categoriasDoUsuario.length > 0) {
-          setCategorias(categoriasDoUsuario.map(cat => ({
+          const categoriasUnicasUsuario = removeDuplicates(categoriasDoUsuario, 'nome');
+          setCategorias(categoriasUnicasUsuario.map(cat => ({
             ...cat,
             percentual: 0,
             gastoAtual: 0
@@ -236,7 +240,8 @@ const Orcamento = () => {
 
         const categoriasDoUsuario = userData.categorias || [];
         if (categoriasDoUsuario.length > 0) {
-          setCategorias(categoriasDoUsuario.map(cat => ({
+          const categoriasUnicasUsuario = removeDuplicates(categoriasDoUsuario, 'nome');
+          setCategorias(categoriasUnicasUsuario.map(cat => ({
             ...cat,
             percentual: 0,
             gastoAtual: 0
