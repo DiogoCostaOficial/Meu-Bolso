@@ -68,6 +68,16 @@ export const EDU_CONTENT = {
             "Se der Prejuízo, investigue onde gastou demais.",
             "O objetivo é fazer o Lucro crescer todo mês."
         ]
+    },
+    conversao_moedas: {
+        title: "Novidade Global: Conversão de Moedas! 🌍",
+        explanation: "Olá! Você piscou e o Meu Bolso acabou de ganhar o mundo! A partir de agora, você vai notar três novas bandeirinhas aqui no topo de todas as telas (Brasil, EUA e União Europeia).",
+        analogy: "Com apenas um clique, eu converto todos os valores dos seus relatórios, despesas e orçamentos automaticamente! Quer ver em Dólar? Clicou, mudou! Quer em Euro? Clicou de novo, mudou!",
+        tips: [
+            "A cotação é sempre atualizada em tempo real para você não perder nem um centavo de vista.",
+            "Utilize as bandeirinhas no topo para acompanhar seus gastos em outras moedas.",
+            "Com o Meu Bolso, cuidar do seu dinheiro agora é global!"
+        ]
     }
 };
 

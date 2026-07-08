@@ -5,6 +5,7 @@ import { useTheme } from "./theme-provider";
 import { EduProvider } from '../contexts/EduContext';
 import EduMascot from './EduMascot';
 import VideoPopup from './VideoPopup';
+import CurrencyUpdateAnnouncer from './CurrencyUpdateAnnouncer';
 import {
   LayoutDashboard,
   Wallet,
@@ -57,6 +58,7 @@ const LayoutNovo = ({ children }) => {
     <EduProvider>
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex transition-colors duration-300">
         <VideoPopup />
+        <CurrencyUpdateAnnouncer />
 
         {/* Sidebar Desktop */}
         <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 fixed h-full z-10 transition-colors duration-300">
