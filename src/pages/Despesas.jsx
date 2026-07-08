@@ -25,6 +25,8 @@ import { removeDuplicates } from '../utils/arrayUtils';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
+import { useCurrency } from '../contexts/CurrencyContext';
+import CurrencySelector from '../components/CurrencySelector';
 import EduHelpButton from '../components/EduHelpButton';
 
 // Categorias padrão com cores (Fallback)
@@ -74,6 +76,7 @@ const mesesDoAno = [
 
 const Despesas = () => {
   const { showLesson } = useEdu();
+  const { formatCurrency: formatarMoeda } = useCurrency();
   const [despesas, setDespesas] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -445,12 +448,6 @@ const Despesas = () => {
     debouncedSave(updatedDespesas);
   };
 
-  const formatarMoeda = valor => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(valor);
-  };
 
   const formatarData = data => {
     if (!data) return '';
@@ -721,6 +718,7 @@ const Despesas = () => {
           <p className="text-gray-500 dark:text-slate-400 mt-1">Gerencie seus gastos e mantenha sua saúde financeira em dia.</p>
         </div>
         <div className="flex justify-end mb-6 gap-3">
+          <CurrencySelector />
           <EduHelpButton topic="despesas" />
           <button
             onClick={() => {

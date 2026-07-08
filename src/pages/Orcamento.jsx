@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEdu } from '../contexts/EduContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 import EduHelpButton from '../components/EduHelpButton';
+import CurrencySelector from '../components/CurrencySelector';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
 } from 'recharts';
@@ -24,6 +26,7 @@ const CATEGORIAS_PADRAO = [
 const Orcamento = () => {
   const { user } = useAuth();
   const { showLesson } = useEdu();
+  const { formatCurrency: formatarMoeda } = useCurrency();
   const [rendaPrevista, setRendaPrevista] = useState('');
   const [dividas, setDividas] = useState('');
   const [rendaReal, setRendaReal] = useState('');
@@ -262,12 +265,6 @@ const Orcamento = () => {
     }
   };
 
-  const formatarMoeda = (valor) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(valor);
-  };
 
   const calcularValorCategoria = (percentual) => {
     const real = parseFloat(rendaReal) || 0;
@@ -298,7 +295,8 @@ const Orcamento = () => {
           <h1 className="text-3xl font-bold text-gray-900">Programação do Orçamento</h1>
           <p className="text-gray-600 mt-1">Configure seu orçamento mensal de acordo com suas metas</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
+          <CurrencySelector />
           <EduHelpButton topic="orcamento" />
           <input
             type="month"

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEdu } from '../contexts/EduContext';
 import { useTheme } from '../components/theme-provider';
+import { useCurrency } from '../contexts/CurrencyContext';
 import EduHelpButton from '../components/EduHelpButton';
+import CurrencySelector from '../components/CurrencySelector';
 import {
   Wallet, TrendingUp, TrendingDown, CreditCard,
   ArrowUpRight, ArrowDownRight, DollarSign, Calendar,
@@ -18,6 +20,7 @@ import {
 const Dashboard = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { formatCurrency } = useCurrency();
   const { showLesson, updateFinancialData } = useEdu();
   const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] = useState({
@@ -98,12 +101,6 @@ const Dashboard = () => {
     }
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value || 0);
-  };
 
   const formatPercent = (value) => {
     return `${(value || 0).toFixed(1)}%`;
@@ -204,6 +201,7 @@ const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <CurrencySelector />
           <EduHelpButton topic="dashboard" />
 
           <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-md border border-gray-200 dark:border-slate-800">

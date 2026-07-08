@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './components/theme-provider';
 import { Toaster } from './components/ui/sonner';
+import { CurrencyProvider } from './contexts/CurrencyContext';
 import AppNovo from './AppNovo';
 import './index.css';
 
@@ -16,8 +17,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <AuthProvider>
           <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <AppNovo />
-            <Toaster />
+            <CurrencyProvider>
+              <AppNovo />
+              <Toaster />
+            </CurrencyProvider>
           </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>

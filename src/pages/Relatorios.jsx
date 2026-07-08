@@ -10,16 +10,13 @@ import {
   BarChart3, AlertCircle
 } from 'lucide-react';
 import { useEdu } from '../contexts/EduContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../components/theme-provider';
 import EduHelpButton from '../components/EduHelpButton';
+import CurrencySelector from '../components/CurrencySelector';
 
 // Helper functions and constants defined outside the component
-const formatarMoeda = (valor) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(valor || 0);
-};
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -42,6 +39,7 @@ const renderCustomAxisTick = ({ x, y, payload }) => {
 };
 
 const CustomTooltip = ({ active, payload, label }) => {
+  const { formatCurrency: formatarMoeda } = useCurrency();
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-4 border border-gray-200 shadow-lg rounded-lg">
@@ -60,6 +58,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 const Relatorios = () => {
   const { showLesson } = useEdu();
   const { theme } = useTheme();
+  const { formatCurrency: formatarMoeda } = useCurrency();
   const [isFiltrosMinimized, setIsFiltrosMinimized] = useState(false);
   const [periodoSelecionado, setPeriodoSelecionado] = useState('mensal');
   const [mesSelecionado, setMesSelecionado] = useState(new Date().getMonth() + 1 < 10 ? `0${new Date().getMonth() + 1}` : `${new Date().getMonth() + 1}`);
@@ -462,6 +461,7 @@ const Relatorios = () => {
             Relatórios Financeiros
           </h2>
           <div className="flex items-center gap-3">
+            <CurrencySelector />
             <EduHelpButton topic="relatorios" />
             <button
               onClick={() => setIsFiltrosMinimized(!isFiltrosMinimized)}

@@ -4,10 +4,13 @@ import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 import EduHelpButton from '../components/EduHelpButton';
+import CurrencySelector from '../components/CurrencySelector';
 
 const Receitas = () => {
   const { showLesson } = useEdu();
+  const { formatCurrency: formatarMoeda } = useCurrency();
   const [receitas, setReceitas] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -256,12 +259,6 @@ const Receitas = () => {
       descricao: ''
     });
   };
-  const formatarMoeda = (valor) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(valor);
-  };
   const formatarData = (data) => {
     return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
   };
@@ -332,6 +329,7 @@ const Receitas = () => {
           <p className="text-gray-500 dark:text-slate-400 mt-1">Gerencie suas entradas e acompanhe sua evolução financeira.</p>
         </div>
         <div className="flex gap-3">
+          <CurrencySelector />
           <EduHelpButton topic="receitas" />
           <button
             onClick={() => {

@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, CreditCard, Calendar, GraduationCap } from 'lucide-react';
 import api from '../services/api';
 import { toast } from 'sonner';
+import { useAuth } from '../contexts/AuthContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { useEdu } from '../contexts/EduContext';
 import EduHelpButton from '../components/EduHelpButton';
+import CurrencySelector from '../components/CurrencySelector';
 
 const Cartoes = () => {
+    const { userData, updateUserData } = useAuth();
+    const { formatCurrency } = useCurrency();
     const { showLesson } = useEdu();
     const [cartoes, setCartoes] = useState([]);
     const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
@@ -128,12 +133,6 @@ const Cartoes = () => {
         return cartoes.reduce((acc, cartao) => acc + calcularTotalCartao(cartao), 0);
     };
 
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(value || 0);
-    };
 
     const gerarListaAnos = () => {
         const anoAtual = new Date().getFullYear();
@@ -159,6 +158,7 @@ const Cartoes = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <CurrencySelector />
                     <EduHelpButton topic="cartoes" />
                     <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                         <Calendar className="w-4 h-4 text-gray-500" />

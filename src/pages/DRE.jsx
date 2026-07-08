@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, GraduationCap } from 'lucide-react';
 import api from '../services/api';
 import { useEdu } from '../contexts/EduContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 import EduHelpButton from '../components/EduHelpButton';
+import CurrencySelector from '../components/CurrencySelector';
 
 const DRE = () => {
   const { showLesson } = useEdu();
+  const { formatCurrency: formatarMoeda } = useCurrency();
   // Estados
   const [receitas, setReceitas] = useState([]);
   const [despesas, setDespesas] = useState([]);
@@ -186,10 +189,6 @@ const DRE = () => {
     }));
   };
 
-  // Função para formatar moeda
-  const formatarMoeda = (valor) => {
-    return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
 
   // Função para obter texto do período
   const getPeriodoTexto = () => {
@@ -218,7 +217,10 @@ const DRE = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             Demonstração do Resultado do Exercício (DRE)
           </h1>
-          <EduHelpButton topic="dre" />
+          <div className="flex items-center gap-3">
+            <CurrencySelector />
+            <EduHelpButton topic="dre" />
+          </div>
         </div>
 
         {/* FILTROS DE PERÍODO */}
@@ -310,7 +312,7 @@ const DRE = () => {
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            R$ {formatarMoeda(totais.totalReceitas)}
+            {formatarMoeda(totais.totalReceitas)}
           </div>
         </div>
 
@@ -321,7 +323,7 @@ const DRE = () => {
             <TrendingDown className="w-5 h-5 text-red-500" />
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            R$ {formatarMoeda(totais.totalDespesas)}
+            {formatarMoeda(totais.totalDespesas)}
           </div>
         </div>
 
@@ -334,7 +336,7 @@ const DRE = () => {
             <DollarSign className={`w-5 h-5 ${totais.lucro >= 0 ? 'text-green-500' : 'text-red-500'}`} />
           </div>
           <div className={`text-2xl font-bold ${totais.lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            R$ {formatarMoeda(Math.abs(totais.lucro))}
+            {formatarMoeda(Math.abs(totais.lucro))}
           </div>
         </div>
 
@@ -380,7 +382,7 @@ const DRE = () => {
                       {item.categoria}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {formatarMoeda(item.valor)}
+                      {formatarMoeda(item.valor)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       {item.percentual}%
@@ -402,7 +404,7 @@ const DRE = () => {
                     TOTAL
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
-                    R$ {formatarMoeda(totais.totalReceitas)}
+                    {formatarMoeda(totais.totalReceitas)}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
                     100%
@@ -444,7 +446,7 @@ const DRE = () => {
                       {item.categoria}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {formatarMoeda(item.valor)}
+                      {formatarMoeda(item.valor)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       {item.percentual}%
@@ -466,7 +468,7 @@ const DRE = () => {
                     TOTAL
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
-                    R$ {formatarMoeda(totais.totalDespesas)}
+                    {formatarMoeda(totais.totalDespesas)}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
                     100%
@@ -514,14 +516,14 @@ const DRE = () => {
                       {item.trimestre}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {formatarMoeda(item.totalReceitas)}
+                      {formatarMoeda(item.totalReceitas)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {formatarMoeda(item.totalDespesas)}
+                      {formatarMoeda(item.totalDespesas)}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
-                      R$ {formatarMoeda(Math.abs(item.lucro))}
+                      {formatarMoeda(Math.abs(item.lucro))}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
@@ -571,14 +573,14 @@ const DRE = () => {
                       {item.ano}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {formatarMoeda(item.totalReceitas)}
+                      {formatarMoeda(item.totalReceitas)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      R$ {formatarMoeda(item.totalDespesas)}
+                      {formatarMoeda(item.totalDespesas)}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
-                      R$ {formatarMoeda(Math.abs(item.lucro))}
+                      {formatarMoeda(Math.abs(item.lucro))}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
