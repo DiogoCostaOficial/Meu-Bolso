@@ -91,6 +91,20 @@ export const EDU_CONTENT = {
     }
 };
 
+// Histórico de atualizações do sistema para o FIN avisar dinamicamente no próximo acesso
+export const SYSTEM_UPDATES = [
+  {
+    id: "2026_07_08_updates",
+    date: "2026-07-08",
+    topicKey: "atualizacoes_sistema"
+  },
+  {
+    id: "conversao_moedas_update",
+    date: "2026-06-15",
+    topicKey: "conversao_moedas"
+  }
+];
+
 export const MASCOT_EXPLANATIONS = {
     coin: "Estou como Moedinha porque estamos com pouco dinheiro ou gastando muito. Vamos economizar para eu crescer!",
     bill: "Estou como Dinheiro porque suas contas estão equilibradas. Continue assim!",
