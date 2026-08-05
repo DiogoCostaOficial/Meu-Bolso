@@ -22,52 +22,46 @@ jobs:
           ANON_KEY=$(echo "${{ secrets.SUPABASE_ANON_KEY }}" | xargs)
 
           echo "Iniciando ping para o Supabase..."
-          echo "Tamanho da URL limpa: ${#URL} caracteres"
-          echo "Tamanho da ANON_KEY limpa: ${#ANON_KEY} caracteres"
+          echo "Tamanho da URL: ${#URL} caracteres"
+          echo "Tamanho da chave: ${#ANON_KEY} caracteres"
 
-          # Tenta realizar a chamada HTTP GET para a raiz do REST salvando a resposta e o status code
-          echo "Testando endpoint /rest/v1/..."
-          
-          # Executa curl salvando o corpo da resposta em um arquivo temporário e capturando o HTTP Status Code
-          HTTP_RESPONSE=$(curl -s -w "%{http_code}" -o response_body.txt \
-            -H "apikey: $ANON_KEY" \
-            -H "Authorization: Bearer $ANON_KEY" \
-            "$URL/rest/v1/")
-
-          echo "Código de Status HTTP (/rest/v1/): $HTTP_RESPONSE"
-
-          if [ "$HTTP_RESPONSE" -eq 200 ] || [ "$HTTP_RESPONSE" -eq 204 ]; then
-            echo "Ping realizado com sucesso! O projeto do Supabase continua ativo."
+          # Determina se a chave é do tipo novo (sb_publishable_) ou legada (JWT)
+          if [[ "$ANON_KEY" == sb_* ]]; then
+            echo "Identificada nova Publishable Key (formato sb_*)."
+            # Para chaves novas, o header Authorization Bearer não deve conter a chave publicável direta (pois não é um JWT)
+            # Usamos apenas o header 'apikey'
+            STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
+              -H "apikey: $ANON_KEY" \
+              "$URL/rest/v1/")
           else
-            echo "Resposta de erro do Supabase:"
+            echo "Identificada chave legada (formato JWT)."
+            # Para chaves antigas JWT, enviamos ambos
+            STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
+              -H "apikey: $ANON_KEY" \
+              -H "Authorization: Bearer $ANON_KEY" \
+              "$URL/rest/v1/")
+          fi
+
+          echo "Código de Status HTTP (/rest/v1/): $STATUS_CODE"
+
+          # Se falhar, tenta outra variação (sem barra no final)
+          if [ "$STATUS_CODE" -ne 200 ] && [ "$STATUS_CODE" -ne 204 ]; then
+            echo "Erro no primeiro teste. Corpo da resposta:"
             cat response_body.txt
             echo ""
             
-            # Tenta sem a barra no final
-            echo "Tentando endpoint sem a barra (/rest/v1)..."
-            HTTP_RESPONSE_2=$(curl -s -w "%{http_code}" -o response_body_2.txt \
+            echo "Tentando segunda variação (sem barra /rest/v1 e sem Authorization)..."
+            STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
               -H "apikey: $ANON_KEY" \
-              -H "Authorization: Bearer $ANON_KEY" \
               "$URL/rest/v1")
-            echo "Código de Status HTTP (/rest/v1): $HTTP_RESPONSE_2"
-            
-            if [ "$HTTP_RESPONSE_2" -eq 200 ] || [ "$HTTP_RESPONSE_2" -eq 204 ]; then
-              echo "Ping realizado com sucesso (sem barra no final)!"
-            else
-              echo "Resposta de erro do Supabase (sem barra no final):"
-              cat response_body_2.txt
-              echo ""
-              
-              # Caso ambos falhem, vamos tentar um ping direto no banco usando outro endpoint do postgrest (ex: RPC ou tabela genérica)
-              echo "Testando chamada a tabela para ver se RLS/Configuração da raiz está bloqueando..."
-              HTTP_RESPONSE_3=$(curl -s -w "%{http_code}" -o response_body_3.txt \
-                -H "apikey: $ANON_KEY" \
-                -H "Authorization: Bearer $ANON_KEY" \
-                "$URL/rest/v1/users?limit=1")
-              echo "Código de Status HTTP (/rest/v1/users): $HTTP_RESPONSE_3"
-              cat response_body_3.txt
-              echo ""
-              
-              exit 1
-            fi
+            echo "Código de Status HTTP (/rest/v1): $STATUS_CODE"
+          fi
+
+          if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 204 ]; then
+            echo "Ping realizado com sucesso! O projeto do Supabase continua ativo."
+          else
+            echo "Erro final. Corpo da resposta do Supabase:"
+            cat response_body.txt
+            echo ""
+            exit 1
           fi
