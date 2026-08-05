@@ -1,0 +1,37 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Executa todos os dias às 12:00 UTC (09:00 BRT)
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Permite execução manual através da interface do GitHub Actions
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+            echo "Erro: As variáveis de ambiente SUPABASE_URL ou SUPABASE_ANON_KEY não estão configuradas nos Secrets do GitHub."
+            exit 1
+          fi
+
+          echo "Iniciando ping para o Supabase..."
+          
+          # Realiza uma chamada HTTP GET autenticada para o endpoint REST do Supabase
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/")
+
+          echo "Chamada enviada."
+          echo "Código de Status HTTP recebido: $STATUS_CODE"
+
+          # Códigos 200 (OK) ou 204 (No Content) indicam sucesso na chamada
+          if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 204 ]; then
+            echo "Ping realizado com sucesso! O projeto do Supabase continua ativo."
+          else
+            echo "Falha ao obter resposta de sucesso do Supabase. Status: $STATUS_CODE"
+            exit 1
+          fi
