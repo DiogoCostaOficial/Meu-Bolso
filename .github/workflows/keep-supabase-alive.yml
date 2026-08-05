@@ -25,42 +25,49 @@ jobs:
           echo "Tamanho da URL: ${#URL} caracteres"
           echo "Tamanho da chave: ${#ANON_KEY} caracteres"
 
-          # Determina se a chave é do tipo novo (sb_publishable_) ou legada (JWT)
+          # Vamos consultar a tabela 'categories' limitando a 1 registro.
+          # Consultar uma tabela é permitido para a Publishable Key (diferente da raiz /rest/v1/ que exige chave secreta).
+          echo "Realizando chamada de ping na tabela 'categories'..."
+          
+          # Se a chave começar com sb_ (nova), enviamos apenas apikey. Caso contrário (legada), enviamos apikey e Authorization.
           if [[ "$ANON_KEY" == sb_* ]]; then
-            echo "Identificada nova Publishable Key (formato sb_*)."
-            # Para chaves novas, o header Authorization Bearer não deve conter a chave publicável direta (pois não é um JWT)
-            # Usamos apenas o header 'apikey'
             STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
               -H "apikey: $ANON_KEY" \
-              "$URL/rest/v1/")
+              "$URL/rest/v1/categories?select=*&limit=1")
           else
-            echo "Identificada chave legada (formato JWT)."
-            # Para chaves antigas JWT, enviamos ambos
             STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
               -H "apikey: $ANON_KEY" \
               -H "Authorization: Bearer $ANON_KEY" \
-              "$URL/rest/v1/")
+              "$URL/rest/v1/categories?select=*&limit=1")
           fi
 
-          echo "Código de Status HTTP (/rest/v1/): $STATUS_CODE"
+          echo "Código de Status HTTP (/rest/v1/categories): $STATUS_CODE"
 
-          # Se falhar, tenta outra variação (sem barra no final)
-          if [ "$STATUS_CODE" -ne 200 ] && [ "$STATUS_CODE" -ne 204 ]; then
-            echo "Erro no primeiro teste. Corpo da resposta:"
+          # Se a tabela categories não existir ou falhar por outro motivo, tenta na tabela de users
+          if [ "$STATUS_CODE" -ne 200 ] && [ "$STATUS_CODE" -ne 204 ] && [ "$STATUS_CODE" -ne 206 ]; then
+            echo "Resposta da primeira tentativa (status $STATUS_CODE):"
             cat response_body.txt
             echo ""
             
-            echo "Tentando segunda variação (sem barra /rest/v1 e sem Authorization)..."
-            STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
-              -H "apikey: $ANON_KEY" \
-              "$URL/rest/v1")
-            echo "Código de Status HTTP (/rest/v1): $STATUS_CODE"
+            echo "Tentando ping alternativo na tabela 'users'..."
+            if [[ "$ANON_KEY" == sb_* ]]; then
+              STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
+                -H "apikey: $ANON_KEY" \
+                "$URL/rest/v1/users?select=*&limit=1")
+            else
+              STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
+                -H "apikey: $ANON_KEY" \
+                -H "Authorization: Bearer $ANON_KEY" \
+                "$URL/rest/v1/users?select=*&limit=1")
+            fi
+            echo "Código de Status HTTP (/rest/v1/users): $STATUS_CODE"
           fi
 
-          if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 204 ]; then
+          # Sucesso é 200 (OK), 204 (No Content) ou 206 (Partial Content)
+          if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 204 ] || [ "$STATUS_CODE" -eq 206 ]; then
             echo "Ping realizado com sucesso! O projeto do Supabase continua ativo."
           else
-            echo "Erro final. Corpo da resposta do Supabase:"
+            echo "Erro final. O Supabase retornou:"
             cat response_body.txt
             echo ""
             exit 1
