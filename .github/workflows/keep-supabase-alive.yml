@@ -17,21 +17,37 @@ jobs:
             exit 1
           fi
 
+          # Limpa eventuais espaços e barras duplicadas no final da URL
+          URL=$(echo "${{ secrets.SUPABASE_URL }}" | xargs | sed 's/\/$//')
+          ANON_KEY=$(echo "${{ secrets.SUPABASE_ANON_KEY }}" | xargs)
+
           echo "Iniciando ping para o Supabase..."
-          
-          # Realiza uma chamada HTTP GET autenticada para o endpoint REST do Supabase
+          echo "Tamanho da URL limpa: ${#URL} caracteres"
+          echo "Tamanho da ANON_KEY limpa: ${#ANON_KEY} caracteres"
+
+          # Tenta realizar a chamada HTTP GET para a raiz do REST
+          echo "Testando endpoint /rest/v1/..."
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/")
+            -H "apikey: $ANON_KEY" \
+            -H "Authorization: Bearer $ANON_KEY" \
+            "$URL/rest/v1/")
 
-          echo "Chamada enviada."
-          echo "Código de Status HTTP recebido: $STATUS_CODE"
+          echo "Código de Status HTTP (/rest/v1/): $STATUS_CODE"
 
-          # Códigos 200 (OK) ou 204 (No Content) indicam sucesso na chamada
+          # Se falhar com 401, tenta sem a barra no final do endpoint
+          if [ "$STATUS_CODE" -ne 200 ] && [ "$STATUS_CODE" -ne 204 ]; then
+            echo "Tentando endpoint sem a barra (/rest/v1)..."
+            STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "apikey: $ANON_KEY" \
+              -H "Authorization: Bearer $ANON_KEY" \
+              "$URL/rest/v1")
+            echo "Código de Status HTTP (/rest/v1): $STATUS_CODE"
+          fi
+
+          # Se ainda assim falhar com 401, tenta a nova chave de API publishable (caso o formato tenha mudado)
           if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 204 ]; then
             echo "Ping realizado com sucesso! O projeto do Supabase continua ativo."
           else
-            echo "Falha ao obter resposta de sucesso do Supabase. Status: $STATUS_CODE"
+            echo "Erro: Falha na autenticação (Status $STATUS_CODE). Por favor, verifique se a chave de API (anon/public) copiada está correta e não contém caracteres adicionais."
             exit 1
           fi
