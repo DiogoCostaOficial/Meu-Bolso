@@ -128,7 +128,10 @@ const LoginNovo = () => {
           <div className="mb-6 text-center">
             <button
               type="button"
-              onClick={() => setModoAdmin(!modoAdmin)}
+              onClick={() => {
+                setModoAdmin(!modoAdmin);
+                setMostrarSenha(false); // Reseta o estado do olho mágico ao alternar modos
+              }}
               className={`text-sm font-medium transition-colors ${modoAdmin
                 ? 'text-red-500 hover:text-red-400'
                 : 'text-custom-gold hover:opacity-85'
