@@ -23,14 +23,14 @@ async function atualizarSenhaAdmin() {
     
     console.log(`✅ Administrador encontrado: ${admin.nome} (${admin.email})`);
     
-    // Criar hash da senha "admin"
-    const novaSenhaHash = await bcrypt.hash('admin', 10);
+    // Criar hash da senha difícil
+    const novaSenhaHash = await bcrypt.hash('xPrwGfdhUKnsny0+', 10);
     
     // Atualizar senha e marcar como primeiro acesso
     admin.senha = novaSenhaHash;
     admin.primeiroAcesso = true; // Força mudança de senha no primeiro login
     
-    console.log('🔐 Senha atualizada para: admin');
+    console.log('🔐 Senha atualizada para: xPrwGfdhUKnsny0+');
     console.log('⚠️  Primeiro acesso ativado - senha deverá ser alterada');
     
     // Salvar alterações
@@ -39,7 +39,7 @@ async function atualizarSenhaAdmin() {
     console.log('✅ Senha do administrador atualizada com sucesso!');
     console.log('📋 Detalhes:');
     console.log(`   - Usuário: admin (login especial)`);
-    console.log(`   - Senha: admin`);
+    console.log(`   - Senha: xPrwGfdhUKnsny0+`);
     console.log(`   - Primeiro acesso: Sim (obrigatório mudar senha)`);
     console.log(`   - Hash: ${novaSenhaHash.substring(0, 20)}...`);
     
