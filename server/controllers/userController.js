@@ -64,12 +64,19 @@ const atualizarPerfil = async (req, res) => {
 const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = (process.env.SUPABASE_URL || '').trim();
 const supabaseKey = (process.env.SUPABASE_ANON_KEY || '').trim();
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Nenhum arquivo enviado' });
+    }
+
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        message: 'Serviço de upload (Supabase) não configurado no ambiente local.'
+      });
     }
 
     const file = req.file;

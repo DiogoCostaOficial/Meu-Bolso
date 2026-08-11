@@ -289,44 +289,38 @@ const Orcamento = () => {
 
   return (
     <div className="space-y-6">
-      {/* CABEÇALHO */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      {/* CABEÇALHO — mobile-first */}
+      <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Programação do Orçamento</h1>
-          <p className="text-gray-600 mt-1">Configure seu orçamento mensal de acordo com suas metas</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Programação do Orçamento</h1>
+          <p className="text-gray-600 dark:text-slate-400 mt-1 text-sm md:text-base">Configure seu orçamento mensal de acordo com suas metas</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <CurrencySelector />
           <EduHelpButton topic="orcamento" />
           <input
             type="month"
             value={mesSelecionado}
             onChange={(e) => setMesSelecionado(e.target.value)}
-            className="px-4 py-2 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg font-semibold"
+            className="px-3 py-2.5 border-2 border-blue-200 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-base font-semibold bg-white dark:bg-slate-800 dark:text-white"
           />
           <button
             onClick={resetarOrcamento}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition"
           >
             <RefreshCw className="w-4 h-4" />
-            Resetar
+            <span className="hidden sm:inline">Resetar</span>
           </button>
           <button
             onClick={salvarOrcamento}
             disabled={loading}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-white transition shadow-lg ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-white transition shadow-lg flex-1 sm:flex-none justify-center ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
               }`}
           >
             {loading ? (
-              <>
-                <RefreshCw className="w-5 h-5 animate-spin" />
-                Salvando...
-              </>
+              <><RefreshCw className="w-5 h-5 animate-spin" />Salvando...</>
             ) : (
-              <>
-                <Save className="w-5 h-5" />
-                Salvar Orçamento
-              </>
+              <><Save className="w-5 h-5" />Salvar Orçamento</>
             )}
           </button>
         </div>
@@ -348,17 +342,17 @@ const Orcamento = () => {
       {/* GRID: RENDA E GRÁFICO */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SEÇÃO DE RENDA */}
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <DollarSign className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-custom-primary/50 dark:bg-amber-900/20 rounded-lg">
+              <DollarSign className="w-6 h-6 text-custom-gold" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Configuração de Renda</h2>
+            <h2 className="text-xl font-bold text-custom-main">Configuração de Renda</h2>
           </div>
           <div className="space-y-4">
             {/* RENDA PREVISTA */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-custom-main opacity-80 mb-2">
                 Renda Prevista
               </label>
               <div className="relative">
@@ -369,14 +363,14 @@ const Orcamento = () => {
                   min="0"
                   value={rendaPrevista}
                   onChange={(e) => setRendaPrevista(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg font-semibold"
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-custom-color rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 text-custom-main text-lg font-semibold"
                   placeholder="0,00"
                 />
               </div>
             </div>
             {/* DÍVIDAS */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-custom-main opacity-80 mb-2">
                 Dívidas (a serem abatidas da renda)
               </label>
               <div className="relative">
@@ -387,25 +381,25 @@ const Orcamento = () => {
                   min="0"
                   value={dividas}
                   onChange={(e) => setDividas(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg font-semibold"
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-custom-color rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 text-custom-main text-lg font-semibold"
                   placeholder="0,00"
                 />
               </div>
             </div>
             {/* RENDA REAL */}
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 flex items-center justify-between">
-              <span className="text-lg font-semibold text-blue-800">Renda Real Disponível:</span>
-              <span className="text-2xl font-bold text-blue-900">{formatarMoeda(parseFloat(rendaReal))}</span>
+            <div className="bg-custom-primary/30 dark:bg-amber-900/10 p-4 rounded-custom border border-custom-color flex items-center justify-between">
+              <span className="text-lg font-semibold text-custom-main opacity-90">Renda Real Disponível:</span>
+              <span className="text-2xl font-bold text-custom-gold">{formatarMoeda(parseFloat(rendaReal))}</span>
             </div>
           </div>
         </div>
         {/* GRÁFICO DE DISTRIBUIÇÃO */}
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 flex flex-col items-center justify-center">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex flex-col items-center justify-center transition-custom">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <PieIcon className="w-6 h-6 text-purple-600" />
+            <div className="p-2 bg-custom-primary/50 dark:bg-amber-900/20 rounded-lg">
+              <PieIcon className="w-6 h-6 text-custom-gold" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Distribuição do Orçamento</h2>
+            <h2 className="text-xl font-bold text-custom-main">Distribuição do Orçamento</h2>
           </div>
           {dadosGrafico.length > 0 && percentualValido ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -415,58 +409,56 @@ const Orcamento = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={120}
-                  fill="#8884d8"
+                  outerRadius={100}
+                  fill="var(--accent-gold)"
                   dataKey="value"
                 >
                   {dadosGrafico.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.cor} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value, name, props) => [`${value.toFixed(2)}%`, name]} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }} formatter={(value, name, props) => [`${value.toFixed(2)}%`, name]} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <AlertCircle className="w-12 h-12 mb-2" />
-              <p>Configure sua renda e percentuais para ver o gráfico.</p>
+              <AlertCircle className="w-12 h-12 mb-2 text-custom-gold" />
+              <p className="text-custom-main opacity-65 text-center">Configure sua renda e percentuais para ver o gráfico.</p>
               {!percentualValido && totalPercentual > 0 && (
-                <p className="text-sm mt-2 text-red-500">Total de percentuais: {totalPercentual.toFixed(2)}% (deve ser 100%)</p>
+                <p className="text-sm mt-2 text-red-500 font-bold">Total de percentuais: {totalPercentual.toFixed(2)}% (deve ser 100%)</p>
               )}
             </div>
           )}
         </div>
       </div>
       {/* TABELA DE CATEGORIAS */}
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+      <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Target className="w-6 h-6 text-green-600" />
+          <div className="p-2 bg-custom-primary/50 dark:bg-amber-900/20 rounded-lg">
+            <Target className="w-6 h-6 text-custom-gold" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">Definição de Categorias</h2>
+          <h2 className="text-xl font-bold text-custom-main">Definição de Categorias</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
+        {/* TABELA — apenas desktop */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="min-w-full bg-white dark:bg-slate-900">
             <thead>
-              <tr className="bg-gray-100 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">Categoria</th>
-                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700">Percentual (%)</th>
-                <th className="px-4 py-3 text-right text-sm font-bold text-gray-700">Planejado (R$)</th>
-                <th className="px-4 py-3 text-right text-sm font-bold text-gray-700">Gasto Atual (R$)</th>
-                <th className="px-4 py-3 text-right text-sm font-bold text-gray-700">Disponível (R$)</th>
+              <tr className="bg-gray-100 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 dark:text-slate-300">Categoria</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 dark:text-slate-300">Percentual (%)</th>
+                <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-slate-300">Planejado</th>
+                <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-slate-300">Gasto Atual</th>
+                <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-slate-300">Disponível</th>
               </tr>
             </thead>
             <tbody>
               {categorias.map((categoria, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                <tr key={index} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: categoria.cor }}
-                      />
-                      <span className="font-semibold text-gray-900">{categoria.nome}</span>
+                      <div className="w-4 h-4 rounded" style={{ backgroundColor: categoria.cor }} />
+                      <span className="font-semibold text-gray-900 dark:text-white">{categoria.nome}</span>
                     </div>
                   </td>
                   <td className="px-4 py-4">
@@ -478,57 +470,117 @@ const Orcamento = () => {
                         max="100"
                         value={categoria.percentual}
                         onChange={(e) => atualizarPercentual(index, e.target.value)}
-                        className="w-24 px-3 py-2 border-2 border-gray-200 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-24 px-3 py-2 border-2 border-gray-200 dark:border-slate-600 rounded-lg text-center font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-slate-800 dark:text-white"
                       />
-                      <span className="text-gray-600 font-semibold">%</span>
+                      <span className="text-gray-600 dark:text-slate-400 font-semibold">%</span>
                     </div>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatarMoeda(calcularValorCategoria(categoria.percentual))}
-                    </span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">{formatarMoeda(calcularValorCategoria(categoria.percentual))}</span>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatarMoeda(categoria.gastoAtual)}
-                    </span>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">{formatarMoeda(categoria.gastoAtual)}</span>
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className={`text-lg font-bold ${calcularDisponivel(categoria.percentual, categoria.gastoAtual) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatarMoeda(calcularDisponivel(categoria.percentual, categoria.gastoAtual))}
                     </span>
                   </td>
                 </tr>
               ))}
               {/* LINHA DE TOTAL */}
-              <tr className="bg-blue-50 border-t-2 border-blue-200">
-                <td className="px-4 py-4">
-                  <span className="font-bold text-gray-900 text-lg">TOTAL</span>
-                </td>
+              <tr className="bg-blue-50 dark:bg-blue-900/20 border-t-2 border-blue-200 dark:border-blue-800">
+                <td className="px-4 py-4"><span className="font-bold text-gray-900 dark:text-white text-lg">TOTAL</span></td>
                 <td className="px-4 py-4 text-center">
-                  <span className={`text-2xl font-bold ${percentualValido ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                  <span className={`text-2xl font-bold ${percentualValido ? 'text-green-600' : 'text-red-600'}`}>
                     {totalPercentual.toFixed(2)}%
                   </span>
                 </td>
-                <td className="px-4 py-4 text-right">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {formatarMoeda(totalPlanejado)}
-                  </span>
-                </td>
-                <td className="px-4 py-4 text-right">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {formatarMoeda(totalGastoAtual)}
-                  </span>
-                </td>
-                <td className="px-4 py-4 text-right">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {formatarMoeda(totalDisponivel)}
-                  </span>
-                </td>
+                <td className="px-4 py-4 text-right"><span className="text-2xl font-bold text-blue-600">{formatarMoeda(totalPlanejado)}</span></td>
+                <td className="px-4 py-4 text-right"><span className="text-2xl font-bold text-blue-600">{formatarMoeda(totalGastoAtual)}</span></td>
+                <td className="px-4 py-4 text-right"><span className="text-2xl font-bold text-blue-600">{formatarMoeda(totalDisponivel)}</span></td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        {/* CARDS — apenas mobile */}
+        <div className="md:hidden space-y-3">
+          {categorias.map((categoria, index) => {
+            const disponivel = calcularDisponivel(categoria.percentual, categoria.gastoAtual);
+            return (
+              <div
+                key={index}
+                className="bg-gray-50 dark:bg-slate-800 rounded-xl border-l-4 p-4 space-y-3"
+                style={{ borderLeftColor: categoria.cor }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: categoria.cor }} />
+                    <span className="font-bold text-gray-900 dark:text-white">{categoria.nome}</span>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-1 rounded-full text-white" style={{ backgroundColor: categoria.cor }}>
+                    {categoria.percentual}%
+                  </span>
+                </div>
+
+                {/* Input de percentual — touch-friendly */}
+                <div className="flex items-center gap-3 bg-white dark:bg-slate-700 rounded-lg px-3 py-1">
+                  <label className="text-sm text-gray-500 dark:text-slate-400 flex-shrink-0">Percentual:</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={categoria.percentual}
+                    onChange={(e) => atualizarPercentual(index, e.target.value)}
+                    className="flex-1 text-center text-lg font-bold border-0 focus:ring-0 bg-transparent dark:text-white py-2"
+                    style={{ fontSize: '16px' }}
+                  />
+                  <span className="text-gray-500 dark:text-slate-400 font-semibold">%</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-2">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Planejado</p>
+                    <p className="text-sm font-bold text-blue-600 dark:text-blue-400">{formatarMoeda(calcularValorCategoria(categoria.percentual))}</p>
+                  </div>
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Gasto</p>
+                    <p className="text-sm font-bold text-red-600 dark:text-red-400">{formatarMoeda(categoria.gastoAtual)}</p>
+                  </div>
+                  <div className={`${disponivel >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} rounded-lg p-2`}>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Disponível</p>
+                    <p className={`text-sm font-bold ${disponivel >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {formatarMoeda(disponivel)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Totais no mobile */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Total %</p>
+                <p className={`text-xl font-bold ${percentualValido ? 'text-green-600' : 'text-red-600'}`}>
+                  {totalPercentual.toFixed(1)}%
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Planejado</p>
+                <p className="text-lg font-bold text-blue-600">{formatarMoeda(totalPlanejado)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Disponível</p>
+                <p className={`text-lg font-bold ${totalDisponivel >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatarMoeda(totalDisponivel)}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
         {/* ALERTA SE PERCENTUAL INVÁLIDO */}
         {!percentualValido && (

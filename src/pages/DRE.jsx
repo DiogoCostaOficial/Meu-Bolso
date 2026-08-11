@@ -214,7 +214,7 @@ const DRE = () => {
       {/* HEADER */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-custom-main tracking-tight">
             Demonstração do Resultado do Exercício (DRE)
           </h1>
           <div className="flex items-center gap-3">
@@ -224,37 +224,37 @@ const DRE = () => {
         </div>
 
         {/* FILTROS DE PERÍODO */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color transition-custom">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Tipo de Período */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                 Período
               </label>
               <select
                 value={periodoSelecionado}
                 onChange={(e) => setPeriodoSelecionado(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
               >
-                <option value="mensal">Mensal</option>
-                <option value="trimestral">Trimestral</option>
-                <option value="anual">Anual</option>
+                <option value="mensal" className="dark:bg-slate-900">Mensal</option>
+                <option value="trimestral" className="dark:bg-slate-900">Trimestral</option>
+                <option value="anual" className="dark:bg-slate-900">Anual</option>
               </select>
             </div>
 
             {/* Seletor de Mês */}
             {periodoSelecionado === 'mensal' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                   Mês
                 </label>
                 <select
                   value={mesSelecionado}
                   onChange={(e) => setMesSelecionado(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
                   {meses.map(mes => (
-                    <option key={mes.valor} value={mes.valor}>
+                    <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">
                       {mes.nome}
                     </option>
                   ))}
@@ -265,16 +265,16 @@ const DRE = () => {
             {/* Seletor de Trimestre */}
             {periodoSelecionado === 'trimestral' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                   Trimestre
                 </label>
                 <select
                   value={trimestreSelecionado}
                   onChange={(e) => setTrimestreSelecionado(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
                   {trimestres.map(trimestre => (
-                    <option key={trimestre.valor} value={trimestre.valor}>
+                    <option key={trimestre.valor} value={trimestre.valor} className="dark:bg-slate-900">
                       {trimestre.nomeCompleto}
                     </option>
                   ))}
@@ -284,16 +284,16 @@ const DRE = () => {
 
             {/* Seletor de Ano */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                 Ano
               </label>
               <select
                 value={anoSelecionado}
                 onChange={(e) => setAnoSelecionado(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
               >
                 {Array.from({ length: new Date().getFullYear() - 2020 + 2 }, (_, i) => 2020 + i).map(ano => (
-                  <option key={ano} value={ano.toString()}>
+                  <option key={ano} value={ano.toString()} className="dark:bg-slate-900">
                     {ano}
                   </option>
                 ))}
@@ -306,107 +306,107 @@ const DRE = () => {
       {/* CARDS DE RESUMO */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Card Receitas */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Receitas</span>
+            <span className="text-sm font-medium text-custom-main opacity-80">Receitas</span>
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-custom-main">
             {formatarMoeda(totais.totalReceitas)}
           </div>
         </div>
 
         {/* Card Despesas */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Despesas</span>
+            <span className="text-sm font-medium text-custom-main opacity-80">Despesas</span>
             <TrendingDown className="w-5 h-5 text-red-500" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-custom-main">
             {formatarMoeda(totais.totalDespesas)}
           </div>
         </div>
 
         {/* Card Lucro/Prejuízo */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-custom-main opacity-80">
               {totais.lucro >= 0 ? 'Lucro' : 'Prejuízo'}
             </span>
             <DollarSign className={`w-5 h-5 ${totais.lucro >= 0 ? 'text-green-500' : 'text-red-500'}`} />
           </div>
-          <div className={`text-2xl font-bold ${totais.lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-2xl font-bold ${totais.lucro >= 0 ? 'text-green-500' : 'text-red-500'}`}>
             {formatarMoeda(Math.abs(totais.lucro))}
           </div>
         </div>
 
         {/* Card Margem de Lucro */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Margem</span>
+            <span className="text-sm font-medium text-custom-main opacity-80">Margem</span>
             <Calendar className="w-5 h-5 text-blue-500" />
           </div>
-          <div className={`text-2xl font-bold ${totais.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-2xl font-bold ${totais.margemLucro >= 0 ? 'text-green-500' : 'text-red-500'}`}>
             {totais.margemLucro.toFixed(1)}%
           </div>
         </div>
       </div>
 
       {/* TABELA DE RECEITAS POR CATEGORIA */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="bg-custom-card rounded-custom shadow-custom border border-custom-color overflow-hidden transition-custom">
+        <div className="px-6 py-4 border-b border-custom-color">
+          <h2 className="text-lg font-semibold text-custom-main">
             Receitas por Categoria - {getPeriodoTexto()}
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   Categoria
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                   Valor
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                   %
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-transparent divide-y divide-custom-color">
               {receitasPorCategoria.length > 0 ? (
                 receitasPorCategoria.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tr key={index} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition-colors text-custom-main border-custom-color">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main">
                       {item.categoria}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {formatarMoeda(item.valor)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {item.percentual}%
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan="3" className="px-6 py-4 text-center text-sm text-custom-main opacity-80">
                     Nenhuma receita encontrada para o período selecionado
                   </td>
                 </tr>
               )}
             </tbody>
             {receitasPorCategoria.length > 0 && (
-              <tfoot className="bg-gray-50">
+              <tfoot className="bg-custom-primary/30 dark:bg-slate-800/40 border-t border-custom-color">
                 <tr>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                  <td className="px-6 py-4 text-sm font-bold text-custom-main">
                     TOTAL
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+                  <td className="px-6 py-4 text-sm font-bold text-custom-main text-right">
                     {formatarMoeda(totais.totalReceitas)}
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+                  <td className="px-6 py-4 text-sm font-bold text-custom-main text-right">
                     100%
                   </td>
                 </tr>
@@ -417,60 +417,60 @@ const DRE = () => {
       </div>
 
       {/* TABELA DE DESPESAS POR CATEGORIA */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="bg-custom-card rounded-custom shadow-custom border border-custom-color overflow-hidden transition-custom">
+        <div className="px-6 py-4 border-b border-custom-color">
+          <h2 className="text-lg font-semibold text-custom-main">
             Despesas por Categoria - {getPeriodoTexto()}
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   Categoria
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                   Valor
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                   %
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-transparent divide-y divide-custom-color">
               {despesasPorCategoria.length > 0 ? (
                 despesasPorCategoria.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tr key={index} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition-colors text-custom-main border-custom-color">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main">
                       {item.categoria}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {formatarMoeda(item.valor)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {item.percentual}%
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan="3" className="px-6 py-4 text-center text-sm text-custom-main opacity-80">
                     Nenhuma despesa encontrada para o período selecionado
                   </td>
                 </tr>
               )}
             </tbody>
             {despesasPorCategoria.length > 0 && (
-              <tfoot className="bg-gray-50">
+              <tfoot className="bg-custom-primary/30 dark:bg-slate-800/40 border-t border-custom-color">
                 <tr>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                  <td className="px-6 py-4 text-sm font-bold text-custom-main">
                     TOTAL
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+                  <td className="px-6 py-4 text-sm font-bold text-custom-main text-right">
                     {formatarMoeda(totais.totalDespesas)}
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+                  <td className="px-6 py-4 text-sm font-bold text-custom-main text-right">
                     100%
                   </td>
                 </tr>
@@ -482,50 +482,50 @@ const DRE = () => {
 
       {/* COMPARATIVO TRIMESTRAL */}
       {periodoSelecionado === 'trimestral' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
+        <div className="bg-custom-card rounded-custom shadow-custom border border-custom-color overflow-hidden transition-custom">
+          <div className="px-6 py-4 border-b border-custom-color">
+            <h2 className="text-lg font-semibold text-custom-main">
               Comparativo Trimestral - {anoSelecionado}
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                     Trimestre
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Receitas
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Despesas
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Lucro/Prejuízo
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Margem (%)
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-transparent divide-y divide-custom-color">
                 {comparativoTrimestral.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={index} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition-colors text-custom-main border-custom-color">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-custom-main">
                       {item.trimestre}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {formatarMoeda(item.totalReceitas)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {formatarMoeda(item.totalDespesas)}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
                       {formatarMoeda(Math.abs(item.lucro))}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
                       {item.margemLucro.toFixed(1)}%
                     </td>
@@ -539,50 +539,50 @@ const DRE = () => {
 
       {/* COMPARATIVO ANUAL */}
       {periodoSelecionado === 'anual' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
+        <div className="bg-custom-card rounded-custom shadow-custom border border-custom-color overflow-hidden transition-custom">
+          <div className="px-6 py-4 border-b border-custom-color">
+            <h2 className="text-lg font-semibold text-custom-main">
               Comparativo dos Últimos 5 Anos
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                     Ano
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Receitas
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Despesas
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Lucro/Prejuízo
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-custom-main uppercase tracking-wider">
                     Margem (%)
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-transparent divide-y divide-custom-color">
                 {comparativoAnual.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={index} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition-colors text-custom-main border-custom-color">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-custom-main">
                       {item.ano}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {formatarMoeda(item.totalReceitas)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main text-right">
                       {formatarMoeda(item.totalDespesas)}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-600' : 'text-red-600'
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.lucro >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
                       {formatarMoeda(Math.abs(item.lucro))}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${item.margemLucro >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
                       {item.margemLucro.toFixed(1)}%
                     </td>

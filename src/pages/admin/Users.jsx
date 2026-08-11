@@ -2,6 +2,7 @@ import AdminDashboard from '../../components/admin/AdminDashboard'
 import { AdminCard } from '../../components/admin/AdminCard'
 import { AdminButton } from '../../components/admin/AdminButton'
 import { PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function AdminUsersPage() {
   const users = [
@@ -153,29 +154,24 @@ export default function AdminUsersPage() {
           </div>
 
           {/* Pagination */}
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <AdminButton variant="secondary">Anterior</AdminButton>
-              <AdminButton variant="secondary">Próximo</AdminButton>
+          <div className="futur-pagination-container mt-4">
+            <button className="futur-pagination-btn" disabled={true}>
+              <ChevronLeft className="w-4 h-4 mr-1.5" />
+              Anterior
+            </button>
+            <div className="futur-pagination-bar">
+              <div className="futur-pagination-bar-fill" style={{ width: '100%' }} />
             </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Mostrando <span className="font-medium">1</span> até <span className="font-medium">5</span> de{' '}
-                  <span className="font-medium">{users.length}</span> resultados
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <AdminButton variant="secondary" className="rounded-l-md">
-                    Anterior
-                  </AdminButton>
-                  <AdminButton variant="secondary" className="rounded-r-md">
-                    Próximo
-                  </AdminButton>
-                </nav>
-              </div>
+            <div className="futur-pagination-info">
+              PAG 01 // TOTAL 01
             </div>
+            <div className="futur-pagination-bar">
+              <div className="futur-pagination-bar-fill" style={{ width: '100%' }} />
+            </div>
+            <button className="futur-pagination-btn" disabled={true}>
+              Próximo
+              <ChevronRight className="w-4 h-4 ml-1.5" />
+            </button>
           </div>
         </AdminCard>
       </div>

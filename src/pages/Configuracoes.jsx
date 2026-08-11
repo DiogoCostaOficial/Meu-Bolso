@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../components/theme-provider';
+import { useLayoutVariant } from '../contexts/LayoutVariantContext';
 import { userService, authService } from '../services/api';
 import { User, Lock, Save, Check, AlertCircle, Camera, Upload, Layers, Trash2, Plus, XCircle, Settings, Shield } from 'lucide-react';
 import { removeDuplicates } from '../utils/arrayUtils';
 
 const Configuracoes = () => {
     const { user, updateUser } = useAuth();
-    const { theme } = useTheme();
+    const { theme, setTheme } = useTheme();
+    const { layoutVariant, setLayoutVariant } = useLayoutVariant();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('perfil');
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -189,6 +191,29 @@ const Configuracoes = () => {
                                                 className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 uppercase tracking-wider ml-1">Tema / Layout</label>
+                                            <select
+                                                value={layoutVariant}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setLayoutVariant(val);
+                                                    if (val === 'modern-fluid') {
+                                                        setTheme('light');
+                                                    } else {
+                                                        setTheme('dark');
+                                                    }
+                                                }}
+                                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer"
+                                            >
+                                                <option value="modern-fluid">Tema do Sistema (Padrão Claro)</option>
+                                                <option value="geo-brutalist">Geo Brutalist (Linhas Retas)</option>
+                                                <option value="lux-gold">✨ Golden Luxury (Ouro/Preto)</option>
+                                                <option value="neon-glass">🌌 Neon Glassmorphism (Vidro)</option>
+                                                <option value="scifi-hud">🛰️ Sci-Fi HUD Command (Hologram)</option>
+                                                <option value="cosmic-aurora">🛸 Cosmic Aurora (Espacial)</option>
+                                            </select>
+                                        </div>
                                         <button
                                             type="submit"
                                             disabled={loading}
@@ -259,6 +284,14 @@ const Configuracoes = () => {
     );
 };
 
+const categoriasDefault = [
+    { nome: 'Despesas Fixas', cor: '#ef4444', subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
+    { nome: 'Lazer', cor: '#3b82f6', subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'] },
+    { nome: 'Educação', cor: '#10b981', subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'] },
+    { nome: 'Investimentos', cor: '#8b5cf6', subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'] },
+    { nome: 'Reserva', cor: '#f59e0b', subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] }
+];
+
 const GerenciarCategorias = ({ setLoading, setMessage }) => {
     const [categorias, setCategorias] = useState([]);
     const [novaCategoria, setNovaCategoria] = useState({ nome: '', cor: '#6366f1', subcategorias: [] });
@@ -274,12 +307,24 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
         try {
             setLoadingLocal(true);
             const response = await userService.obterDados();
-            if (response.success && response.data && response.data.categorias) {
-                const categoriasUnicas = removeDuplicates(response.data.categorias, 'nome');
-                setCategorias(categoriasUnicas);
+            let listaCategorias = [];
+            if (response.success && response.data && Array.isArray(response.data.categorias) && response.data.categorias.length > 0) {
+                listaCategorias = removeDuplicates(response.data.categorias, 'nome').map(c => {
+                    const defaultCat = categoriasDefault.find(dc => dc.nome === c.nome);
+                    return {
+                        ...c,
+                        subcategorias: (c.subcategorias && c.subcategorias.length > 0)
+                            ? c.subcategorias
+                            : (defaultCat ? defaultCat.subcategorias : [])
+                    };
+                });
+            } else {
+                listaCategorias = categoriasDefault;
             }
+            setCategorias(listaCategorias);
         } catch (error) {
             console.error('Erro ao carregar categorias:', error);
+            setCategorias(categoriasDefault);
         } finally {
             setLoadingLocal(false);
         }
@@ -316,12 +361,13 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
         const novasCategorias = [...categorias];
         const sub = novaSubcategoria.trim();
         
-        if (novasCategorias[idx].subcategorias.includes(sub)) {
+        const subList = novasCategorias[idx].subcategorias || [];
+        if (subList.includes(sub)) {
             setMessage({ type: 'error', text: 'Esta subcategoria já existe.' });
             return;
         }
 
-        novasCategorias[idx].subcategorias = [...novasCategorias[idx].subcategorias, sub];
+        novasCategorias[idx].subcategorias = [...subList, sub];
         salvarCategorias(novasCategorias);
         setNovaSubcategoria('');
         setCategoriaSelecionada('');
@@ -330,7 +376,8 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
     const removerSubcategoria = (catIdx, subIdx) => {
         if (!window.confirm('Excluir subcategoria?')) return;
         const novasCategorias = [...categorias];
-        novasCategorias[catIdx].subcategorias = novasCategorias[catIdx].subcategorias.filter((_, i) => i !== subIdx);
+        const subList = novasCategorias[catIdx].subcategorias || [];
+        novasCategorias[catIdx].subcategorias = subList.filter((_, i) => i !== subIdx);
         salvarCategorias(novasCategorias);
     };
 
@@ -362,7 +409,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                             <button onClick={() => removerCategoria(idx)} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                         </div>
                         <div className="flex flex-wrap gap-2 mb-4">
-                            {cat.subcategorias.map((sub, sIdx) => (
+                            {(cat.subcategorias || []).map((sub, sIdx) => (
                                 <span key={sIdx} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-1 rounded-lg text-sm text-gray-700 dark:text-slate-300 flex items-center gap-2">
                                     {sub}
                                     <button onClick={() => removerSubcategoria(idx, sIdx)} className="text-gray-400 hover:text-red-500"><XCircle size={14} /></button>

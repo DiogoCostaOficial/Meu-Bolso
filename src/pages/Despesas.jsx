@@ -379,7 +379,9 @@ const Despesas = () => {
       dataVencimento: despesa.dataVencimento, // Preencher data de vencimento
       dataCompra: despesa.dataCompra || '', // Preencher data da compra
       dataLancamento: despesa.dataLancamento || despesa.data, // Preencher data de lançamento
-      somarNoOrcamento: despesa.somarNoOrcamento !== undefined ? despesa.somarNoOrcamento : true
+      somarNoOrcamento: despesa.somarNoOrcamento !== undefined ? despesa.somarNoOrcamento : true,
+      parcelado: despesa.parcelado || false,
+      numeroParcelas: despesa.numeroParcelas || 1
     });
     setMostrarFormulario(false);
     setMostrarBulkEditForm(false);
@@ -387,9 +389,10 @@ const Despesas = () => {
   };
 
   const handleInlineChange = e => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setInlineEditForm(prev => {
-      const newState = { ...prev, [name]: value };
+      const val = type === 'checkbox' ? checked : value;
+      const newState = { ...prev, [name]: val };
       if (name === 'categoria') {
         const availableSubs = getAvailableSubcategories(value);
         newState.subcategoria =
@@ -405,24 +408,63 @@ const Despesas = () => {
       alert('Por favor, insira um valor válido maior que zero.');
       return;
     }
-    const updatedDespesas = despesas.map(d =>
-      d.id === id ? {
-        ...d,
-        ...inlineEditForm,
-        data: inlineEditForm.dataVencimento || inlineEditForm.dataLancamento || d.data, // Compute effective date
-        valor: valorNumerico
-      } : d
-    );
+
+    let updatedDespesas = [...despesas];
+    const index = updatedDespesas.findIndex(d => d.id === id);
+    if (index === -1) return;
+
+    const originalDespesa = updatedDespesas[index];
+
+    // Se o usuário marcou para parcelar durante a edição e anteriormente não era parcelado (ou mudou o número de parcelas)
+    if (inlineEditForm.parcelado && inlineEditForm.numeroParcelas > 1 && !originalDespesa.parcelado) {
+      const numParcelas = parseInt(inlineEditForm.numeroParcelas);
+      const valorPorParcela = parseFloat((valorNumerico / numParcelas).toFixed(2));
+      
+      // Remove a despesa original única e cria as parcelas
+      updatedDespesas = updatedDespesas.filter(d => d.id !== id);
+
+      for (let i = 0; i < numParcelas; i++) {
+        const dataParcela = adicionarMeses(inlineEditForm.dataLancamento || originalDespesa.data, i);
+        const dataVencParcela = inlineEditForm.dataVencimento ? adicionarMeses(inlineEditForm.dataVencimento, i) : '';
+        const novaDespesa = {
+          id: Date.now() + i,
+          descricao: `${inlineEditForm.descricao} (Parcela ${i + 1}/${numParcelas})`,
+          valor: valorPorParcela,
+          data: dataVencParcela || dataParcela,
+          dataLancamento: dataParcela,
+          categoria: inlineEditForm.categoria,
+          subcategoria: inlineEditForm.subcategoria,
+          observacoes: inlineEditForm.observacoes,
+          parcelado: true,
+          numeroParcelas: numParcelas,
+          statusPagamento: originalDespesa.statusPagamento || 'pendente',
+          dataVencimento: dataVencParcela,
+          dataCompra: inlineEditForm.dataCompra || '',
+          somarNoOrcamento: inlineEditForm.somarNoOrcamento
+        };
+        updatedDespesas.push(novaDespesa);
+      }
+    } else {
+      // Edição simples sem alteração de parcelamento estrutural
+      updatedDespesas = updatedDespesas.map(d =>
+        d.id === id ? {
+          ...d,
+          ...inlineEditForm,
+          data: inlineEditForm.dataVencimento || inlineEditForm.dataLancamento || d.data,
+          valor: valorNumerico
+        } : d
+      );
+    }
 
     // Usar debounce para edição inline
     debouncedSave(updatedDespesas);
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true }); // Resetar campos
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true, parcelado: false, numeroParcelas: 1 }); // Resetar campos
   };
 
   const handleInlineCancel = () => {
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true }); // Resetar campos
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true, parcelado: false, numeroParcelas: 1 }); // Resetar campos
   };
 
   const excluirDespesa = id => {
@@ -712,12 +754,13 @@ const Despesas = () => {
 
   return (
     <div className="space-y-6 bg-transparent min-h-screen transition-colors duration-300">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Header — mobile-first */}
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Despesas</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-1">Gerencie seus gastos e mantenha sua saúde financeira em dia.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Despesas</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">Gerencie seus gastos e mantenha sua saúde financeira em dia.</p>
         </div>
-        <div className="flex justify-end mb-6 gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <CurrencySelector />
           <EduHelpButton topic="despesas" />
           <button
@@ -728,7 +771,7 @@ const Despesas = () => {
               setMostrarBulkEditForm(false);
               setEditingItemId(null);
             }}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition flex items-center gap-2 text-lg font-medium"
+            className="flex-1 sm:flex-none px-5 py-3 bg-red-600 text-white rounded-lg shadow-lg hover:bg-red-700 transition flex items-center justify-center gap-2 font-medium"
           >
             <Plus className="w-5 h-5" />
             Nova Despesa
@@ -752,9 +795,9 @@ const Despesas = () => {
                 {isFormMinimized ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
               </button>
             </div>
-            {!isFormMinimized && (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {!isFormMinimized && (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-2">
                       Descrição
@@ -765,7 +808,8 @@ const Despesas = () => {
                       name="descricao"
                       value={formulario.descricao}
                       onChange={handleChange}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      style={{ fontSize: '16px' }}
                       placeholder="Ex: Aluguel, Conta de Luz, Supermercado"
                       required
                     />
@@ -784,7 +828,8 @@ const Despesas = () => {
                         onChange={handleChange}
                         step="0.01"
                         min="0.01"
-                        className="shadow appearance-none border rounded w-full py-2 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                        className="w-full py-3 px-3 pl-10 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                        style={{ fontSize: '16px' }}
                         placeholder="0.00"
                         required
                       />
@@ -800,7 +845,8 @@ const Despesas = () => {
                       name="dataLancamento"
                       value={formulario.dataLancamento || formulario.data}
                       onChange={handleChange}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      style={{ fontSize: '16px' }}
                       required
                     />
                   </div>
@@ -815,7 +861,8 @@ const Despesas = () => {
                       name="dataVencimento"
                       value={formulario.dataVencimento}
                       onChange={handleChange}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      style={{ fontSize: '16px' }}
                     />
                   </div>
                   {/* NOVO: Campo para Data da Compra */}
@@ -827,9 +874,10 @@ const Despesas = () => {
                       type="date"
                       id="dataCompra"
                       name="dataCompra"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      style={{ fontSize: '16px' }}
                       value={formulario.dataCompra || ''}
                       onChange={handleChange}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
                     />
                   </div>
                   <div>
@@ -841,7 +889,8 @@ const Despesas = () => {
                       name="categoria"
                       value={formulario.categoria}
                       onChange={handleChange}
-                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      style={{ fontSize: '16px' }}
                       required
                     >
                       {categorias.map(cat => (
@@ -860,7 +909,8 @@ const Despesas = () => {
                       name="subcategoria"
                       value={formulario.subcategoria}
                       onChange={handleChange}
-                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      style={{ fontSize: '16px' }}
                       required
                     >
                       {getAvailableSubcategories(formulario.categoria).map(sub => (
@@ -879,7 +929,8 @@ const Despesas = () => {
                       name="statusPagamento"
                       value={formulario.statusPagamento || 'pendente'}
                       onChange={handleChange}
-                      className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      style={{ fontSize: '16px' }}
                       required
                     >
                       <option value="pendente">Pendente</option>
@@ -897,7 +948,8 @@ const Despesas = () => {
                     value={formulario.observacoes}
                     onChange={handleChange}
                     rows="3"
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                    className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                    style={{ fontSize: '16px' }}
                     placeholder="Adicione detalhes ou notas importantes sobre a despesa..."
                   ></textarea>
                 </div>
@@ -925,7 +977,8 @@ const Despesas = () => {
                         value={formulario.numeroParcelas}
                         onChange={handleChange}
                         min="1"
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-red-500"
+                        className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                        style={{ fontSize: '16px' }}
                         placeholder="1"
                       />
                     </div>
@@ -981,10 +1034,10 @@ const Despesas = () => {
         )
       }
       {/* Seção de Filtros */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 transition-colors">
+      <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-            <Filter className="w-5 h-5 text-blue-600 dark:text-blue-500" />
+          <h2 className="text-xl font-bold text-custom-main flex items-center gap-2">
+            <Filter className="w-5 h-5 text-custom-gold" />
             Filtros
           </h2>
           <div className="flex items-center gap-2">
@@ -1006,93 +1059,93 @@ const Despesas = () => {
         </div>
         {!isFiltrosMinimized && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-custom-main">
               <div>
-                <label htmlFor="filtroCategoria" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  <Tag className="inline w-4 h-4 mr-1" />
+                <label htmlFor="filtroCategoria" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
+                  <Tag className="inline w-4 h-4 mr-1 text-custom-gold" />
                   Categoria
                 </label>
                 <select
                   id="filtroCategoria"
                   value={filtroCategoria}
                   onChange={e => setFiltroCategoria(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                  className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
-                  <option value="">Todas as categorias</option>
+                  <option value="" className="dark:bg-slate-900">Todas as categorias</option>
                   {categorias.map(cat => (
-                    <option key={cat.nome} value={cat.nome}>
+                    <option key={cat.nome} value={cat.nome} className="dark:bg-slate-900">
                       {cat.nome}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="filtroSubcategoria" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  <Layers className="inline w-4 h-4 mr-1" />
+                <label htmlFor="filtroSubcategoria" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
+                  <Layers className="inline w-4 h-4 mr-1 text-custom-gold" />
                   Subcategoria
                 </label>
                 <select
                   id="filtroSubcategoria"
                   value={filtroSubcategoria}
                   onChange={e => setFiltroSubcategoria(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 disabled:opacity-50"
+                  className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900 disabled:opacity-50"
                   disabled={filtroCategoria && getAvailableSubcategories(filtroCategoria).length === 0}
                 >
-                  <option value="">Todas as subcategorias</option>
+                  <option value="" className="dark:bg-slate-900">Todas as subcategorias</option>
                   {filtroCategoria // Se uma categoria está selecionada
                     ? getAvailableSubcategories(filtroCategoria).map(sub => ( // Mostra apenas as subcategorias da categoria
-                      <option key={sub} value={sub}>
+                      <option key={sub} value={sub} className="dark:bg-slate-900">
                         {sub}
                       </option>
                     ))
                     : allSubcategories.map(sub => ( // Caso contrário, mostra todas as subcategorias
-                      <option key={sub} value={sub}>
+                      <option key={sub} value={sub} className="dark:bg-slate-900">
                         {sub}
                       </option>
                     ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="filtroMes" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  <Calendar className="inline w-4 h-4 mr-1" />
+                <label htmlFor="filtroMes" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
+                  <Calendar className="inline w-4 h-4 mr-1 text-custom-gold" />
                   Mês
                 </label>
                 <select
                   id="filtroMes"
                   value={filtroMes}
                   onChange={e => setFiltroMes(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                  className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
-                  <option value="">Selecione o mês</option>
+                  <option value="" className="dark:bg-slate-900">Selecione o mês</option>
                   {mesesDoAno.map(mes => (
-                    <option key={mes.valor} value={mes.valor}>
+                    <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">
                       {mes.nome}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="filtroAno" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  <Calendar className="inline w-4 h-4 mr-1" />
+                <label htmlFor="filtroAno" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
+                  <Calendar className="inline w-4 h-4 mr-1 text-custom-gold" />
                   Ano
                 </label>
                 <select
                   id="filtroAno"
                   value={filtroAno}
                   onChange={e => setFiltroAno(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                  className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
                   {gerarListaAnos().map(ano => (
-                    <option key={ano} value={ano}>
+                    <option key={ano} value={ano} className="dark:bg-slate-900">
                       {ano}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-custom-main mt-4">
               <div>
-                <label htmlFor="filtroDataInicio" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                <label htmlFor="filtroDataInicio" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                   Data Início
                 </label>
                 <input
@@ -1101,7 +1154,7 @@ const Despesas = () => {
                   value={filtroDataInicio}
                   onChange={e => setFiltroDataInicio(e.target.value)}
                   disabled={!!filtroMes}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 disabled:opacity-50"
+                  className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900 disabled:opacity-50"
                 />
                 {filtroMes && (
                   <p className="text-xs text-orange-600 mt-1">
@@ -1110,7 +1163,7 @@ const Despesas = () => {
                 )}
               </div>
               <div>
-                <label htmlFor="filtroDataFim" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroDataFim" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                   Data Fim
                 </label>
                 <input
@@ -1119,7 +1172,7 @@ const Despesas = () => {
                   value={filtroDataFim}
                   onChange={e => setFiltroDataFim(e.target.value)}
                   disabled={!!filtroMes}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900 disabled:opacity-50"
                 />
                 {filtroMes && (
                   <p className="text-xs text-orange-600 mt-1">
@@ -1128,37 +1181,37 @@ const Despesas = () => {
                 )}
               </div>
               <div>
-                <label htmlFor="filtroDescricao" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroDescricao" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                   Descrição
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-custom-gold w-5 h-5" />
                   <input
                     type="text"
                     id="filtroDescricao"
                     value={filtroDescricao}
                     onChange={e => setFiltroDescricao(e.target.value)}
                     placeholder="Buscar..."
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                    className="w-full pl-10 pr-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                   />
                 </div>
               </div>
             </div>
             {/* NOVO: Filtro por Status de Pagamento */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label htmlFor="filtroStatus" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="filtroStatus" className="block text-sm font-medium text-custom-main opacity-90 mb-2">
                   Status de Pagamento
                 </label>
                 <select
                   id="filtroStatus"
                   value={filtroStatus}
                   onChange={e => setFiltroStatus(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-white"
+                  className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
-                  <option value="">Todos os Status</option>
-                  <option value="pago">Pago</option>
-                  <option value="pendente">Pendente</option>
+                  <option value="" className="dark:bg-slate-900">Todos os Status</option>
+                  <option value="pago" className="dark:bg-slate-900">Pago</option>
+                  <option value="pendente" className="dark:bg-slate-900">Pendente</option>
                 </select>
               </div>
             </div>
@@ -1177,29 +1230,29 @@ const Despesas = () => {
 
       {/* Cards de Resumo de Despesas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-red-50 rounded-xl shadow-lg p-6 border border-red-200">
+        <div className="bg-red-50 dark:bg-red-950/20 rounded-xl shadow-lg p-6 border border-red-200 dark:border-red-900/30">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Total de Despesas</h3>
-            <TrendingDown className="w-6 h-6 text-red-600" />
+            <h3 className="text-sm font-medium text-gray-600 dark:text-slate-400">Total de Despesas</h3>
+            <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
-          <p className="text-3xl font-bold text-red-600">{formatarMoeda(totalDespesasFiltradas)}</p>
-          <p className="text-sm text-gray-500 mt-1">{despesasFiltradas.length} despesa(s)</p>
+          <p className="text-3xl font-bold text-red-600 dark:text-red-400">{formatarMoeda(totalDespesasFiltradas)}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">{despesasFiltradas.length} despesa(s)</p>
         </div>
-        <div className="bg-blue-50 rounded-xl shadow-lg p-6 border border-blue-200">
+        <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl shadow-lg p-6 border border-blue-200 dark:border-blue-900/30">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Categorias</h3>
-            <Tag className="w-6 h-6 text-blue-600" />
+            <h3 className="text-sm font-medium text-gray-600 dark:text-slate-400">Categorias</h3>
+            <Tag className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </div>
-          <p className="text-3xl font-bold text-blue-600">{categoriasAtivasDespesas}</p>
-          <p className="text-sm text-gray-500 mt-1">categorias ativas</p>
+          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{categoriasAtivasDespesas}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">categorias ativas</p>
         </div>
-        <div className="bg-purple-50 rounded-xl shadow-lg p-6 border border-purple-200">
+        <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-900/30">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Subcategorias</h3>
-            <Layers className="w-6 h-6 text-purple-600" />
+            <h3 className="text-sm font-medium text-gray-600 dark:text-slate-400">Subcategorias</h3>
+            <Layers className="w-6 h-6 text-purple-600 dark:text-purple-400" />
           </div>
-          <p className="text-3xl font-bold text-purple-600">{subcategoriasAtivasDespesas}</p>
-          <p className="text-sm text-gray-500 mt-1">subcategorias ativas</p>
+          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{subcategoriasAtivasDespesas}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">subcategorias ativas</p>
         </div>
       </div>
 
@@ -1370,10 +1423,10 @@ const Despesas = () => {
         )
       }
       {/* Lista de Despesas */}
-      <div className="bg-white p-6 rounded-lg shadow-lg">
+      <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <CreditCard className="w-6 h-6 text-green-600" />
+          <h2 className="text-2xl font-bold text-custom-main flex items-center gap-2">
+            <CreditCard className="w-6 h-6 text-custom-gold" />
             Lista de Despesas
           </h2>
           <button
@@ -1396,10 +1449,10 @@ const Despesas = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-custom-color border-custom-color">
+                  <thead className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                         <input
                           type="checkbox"
                           checked={selectedDespesas.length === despesasFiltradas.length && despesasFiltradas.length > 0}
@@ -1485,9 +1538,9 @@ const Despesas = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-transparent divide-y divide-custom-color">
                     {sortedDespesas.map(despesa => (
-                      <tr key={despesa.id} className="hover:bg-gray-50">
+                      <tr key={despesa.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition-colors text-custom-main border-custom-color">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <input
                             type="checkbox"
@@ -1496,10 +1549,10 @@ const Despesas = () => {
                             className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main">
                           {formatarData(despesa.data)}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900" title={getDueDateTooltip(despesa)}> {/* Tooltip de vencimento */}
+                        <td className="px-6 py-4 text-sm text-custom-main" title={getDueDateTooltip(despesa)}> {/* Tooltip de vencimento */}
                           {editingItemId === despesa.id ? (
                             <div className="space-y-2">
                               <input
@@ -1549,16 +1602,45 @@ const Despesas = () => {
                                 />
                               </div>
                               {/* Campo de Somar ao Orçamento na Edição Inline */}
-                              <label className="flex items-center cursor-pointer text-xs">
-                                <input
-                                  type="checkbox"
-                                  name="somarNoOrcamento"
-                                  checked={inlineEditForm.somarNoOrcamento}
-                                  onChange={(e) => setInlineEditForm(prev => ({ ...prev, somarNoOrcamento: e.target.checked }))}
-                                  className="form-checkbox h-3 w-3 text-red-600 rounded focus:ring-red-500 mr-1"
-                                />
-                                <span className="text-gray-700 font-bold">Somar ao Orçamento</span>
-                              </label>
+                              <div className="flex flex-col gap-1.5 mt-1 border-t border-gray-100 pt-1">
+                                <label className="flex items-center cursor-pointer text-xs">
+                                  <input
+                                    type="checkbox"
+                                    name="somarNoOrcamento"
+                                    checked={inlineEditForm.somarNoOrcamento}
+                                    onChange={(e) => setInlineEditForm(prev => ({ ...prev, somarNoOrcamento: e.target.checked }))}
+                                    className="form-checkbox h-3 w-3 text-red-600 rounded focus:ring-red-500 mr-1"
+                                  />
+                                  <span className="text-gray-700 font-bold">Somar ao Orçamento</span>
+                                </label>
+                                
+                                {/* Permite parcelar na própria edição */}
+                                <label className="flex items-center cursor-pointer text-xs">
+                                  <input
+                                    type="checkbox"
+                                    name="parcelado"
+                                    checked={inlineEditForm.parcelado}
+                                    onChange={handleInlineChange}
+                                    className="form-checkbox h-3 w-3 text-blue-600 rounded focus:ring-blue-500 mr-1"
+                                  />
+                                  <span className="text-gray-700 font-bold">Parcelar despesa</span>
+                                </label>
+
+                                {inlineEditForm.parcelado && (
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <label htmlFor="inlineNumeroParcelas" className="text-[10px] text-gray-500 font-medium">Nº Parcelas:</label>
+                                    <input
+                                      type="number"
+                                      id="inlineNumeroParcelas"
+                                      name="numeroParcelas"
+                                      value={inlineEditForm.numeroParcelas}
+                                      onChange={handleInlineChange}
+                                      min="2"
+                                      className="w-16 px-1 py-0.5 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           ) : (
                             <>

@@ -146,29 +146,29 @@ const Cartoes = () => {
     return (
         <div className="container mx-auto p-6 space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom text-custom-main">
                 <div className="flex items-center gap-3">
-                    <div className="p-3 bg-blue-100 rounded-lg">
-                        <CreditCard className="w-6 h-6 text-blue-600" />
+                    <div className="p-3 bg-custom-primary/50 dark:bg-amber-900/20 rounded-lg">
+                        <CreditCard className="w-6 h-6 text-custom-gold" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Cartões</h1>
-                        <p className="text-gray-600">Acompanhe suas faturas mensais</p>
+                        <h1 className="text-2xl font-bold text-custom-main">Gerenciamento de Cartões</h1>
+                        <p className="text-custom-main opacity-80 text-sm">Acompanhe suas faturas mensais</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                     <CurrencySelector />
                     <EduHelpButton topic="cartoes" />
-                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                        <Calendar className="w-4 h-4 text-gray-500" />
+                    <div className="flex items-center gap-2 bg-custom-primary/30 dark:bg-slate-800/40 px-3 py-2 rounded-lg border border-custom-color">
+                        <Calendar className="w-4 h-4 text-custom-gold" />
                         <select
                             value={anoSelecionado}
                             onChange={(e) => setAnoSelecionado(e.target.value)}
-                            className="bg-transparent border-none focus:ring-0 text-gray-700 font-medium cursor-pointer"
+                            className="bg-transparent border-none focus:ring-0 text-custom-main font-medium cursor-pointer dark:bg-slate-900"
                         >
                             {gerarListaAnos().map(ano => (
-                                <option key={ano} value={ano}>{ano}</option>
+                                <option key={ano} value={ano} className="dark:bg-slate-900">{ano}</option>
                             ))}
                         </select>
                     </div>
@@ -193,34 +193,34 @@ const Cartoes = () => {
             </div>
 
             {/* Tabela Editável */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="bg-custom-card rounded-custom shadow-custom border border-custom-color overflow-hidden transition-custom">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[1200px]">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 min-w-[250px] sticky left-0 bg-gray-50 z-10 shadow-sm">
+                            <tr className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-custom-main min-w-[250px] sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color">
                                     CARTÕES
                                 </th>
                                 {meses.map(mes => (
-                                    <th key={mes} className="px-2 py-3 text-center text-sm font-bold text-gray-700 min-w-[100px]">
+                                    <th key={mes} className="px-2 py-3 text-center text-sm font-bold text-custom-main min-w-[100px]">
                                         {mes.toUpperCase()}
                                     </th>
                                 ))}
-                                <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 min-w-[120px] bg-gray-100">
+                                <th className="px-4 py-3 text-right text-sm font-bold text-custom-main min-w-[120px] bg-custom-primary/40 dark:bg-slate-800/60">
                                     TOTAL
                                 </th>
                                 <th className="px-2 py-3 w-10"></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-custom-color bg-transparent">
                             {cartoes.map((cartao) => (
-                                <tr key={cartao.id} className="hover:bg-gray-50 transition group">
-                                    <td className="px-4 py-2 sticky left-0 bg-white group-hover:bg-gray-50 z-10 shadow-sm">
+                                <tr key={cartao.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition group text-custom-main">
+                                    <td className="px-4 py-2 sticky left-0 bg-custom-card dark:bg-slate-900 group-hover:bg-custom-primary/20 dark:group-hover:bg-slate-800/40 z-10 shadow-sm border-r border-custom-color">
                                         <input
                                             type="text"
                                             value={cartao.nome}
                                             onChange={(e) => atualizarNomeCartao(cartao.id, e.target.value)}
-                                            className="w-full px-2 py-1 border border-transparent hover:border-gray-300 focus:border-blue-500 rounded font-medium text-gray-900 bg-transparent focus:bg-white focus:outline-none transition-colors"
+                                            className="w-full px-2 py-1 border border-transparent hover:border-custom-color focus:border-blue-500 rounded font-medium text-custom-main bg-transparent focus:bg-custom-card focus:outline-none transition-colors"
                                             placeholder="Nome do Cartão"
                                         />
                                     </td>
@@ -231,12 +231,12 @@ const Cartoes = () => {
                                                 step="0.01"
                                                 value={getValor(cartao, index)}
                                                 onChange={(e) => atualizarValor(cartao.id, index, e.target.value)}
-                                                className="w-full px-2 py-1 text-right border border-transparent hover:border-gray-300 focus:border-blue-500 rounded text-gray-600 focus:text-gray-900 bg-transparent focus:bg-white focus:outline-none transition-colors text-sm"
+                                                className="w-full px-2 py-1 text-right border border-transparent hover:border-custom-color focus:border-blue-500 rounded text-custom-main/80 focus:text-custom-main bg-transparent focus:bg-custom-card focus:outline-none transition-colors text-sm"
                                                 placeholder="0,00"
                                             />
                                         </td>
                                     ))}
-                                    <td className="px-4 py-2 text-right font-bold text-gray-900 bg-gray-50">
+                                    <td className="px-4 py-2 text-right font-bold text-custom-main bg-custom-primary/20 dark:bg-slate-800/35 border-l border-r border-custom-color">
                                         {formatCurrency(calcularTotalCartao(cartao))}
                                     </td>
                                     <td className="px-2 py-2 text-center">
@@ -252,16 +252,16 @@ const Cartoes = () => {
                             ))}
 
                             {/* Linha de Totais */}
-                            <tr className="bg-gray-100 font-bold border-t-2 border-gray-200">
-                                <td className="px-4 py-3 text-gray-800 sticky left-0 bg-gray-100 z-10 shadow-sm">
+                            <tr className="bg-custom-primary/40 dark:bg-slate-800/50 font-bold border-t-2 border-custom-color text-custom-main">
+                                <td className="px-4 py-3 text-custom-main sticky left-0 bg-custom-primary/40 dark:bg-slate-800/50 z-10 shadow-sm border-r border-custom-color">
                                     TOTAL
                                 </td>
                                 {meses.map((_, index) => (
-                                    <td key={index} className="px-2 py-3 text-right text-gray-800 text-sm">
+                                    <td key={index} className="px-2 py-3 text-right text-custom-main text-sm">
                                         {formatCurrency(calcularTotalMes(index))}
                                     </td>
                                 ))}
-                                <td className="px-4 py-3 text-right text-blue-700 text-lg">
+                                <td className="px-4 py-3 text-right text-custom-gold text-lg border-l border-custom-color">
                                     {formatCurrency(calcularTotalGeral())}
                                 </td>
                                 <td></td>
@@ -272,13 +272,13 @@ const Cartoes = () => {
             </div>
 
             {cartoes.length === 0 && !loading && (
-                <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-                    <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-medium text-gray-900">Nenhum cartão cadastrado</h3>
-                    <p className="text-gray-500 mb-4">Adicione seus cartões para começar a controlar as faturas.</p>
+                <div className="text-center py-12 bg-custom-card rounded-custom border border-dashed border-custom-color transition-custom text-custom-main">
+                    <CreditCard className="w-12 h-12 text-custom-gold opacity-60 mx-auto mb-3" />
+                    <h3 className="text-lg font-medium text-custom-main">Nenhum cartão cadastrado</h3>
+                    <p className="text-custom-main opacity-80 mb-4">Adicione seus cartões para começar a controlar as faturas.</p>
                     <button
                         onClick={adicionarCartao}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-custom-gold text-black rounded-lg hover:opacity-90 transition font-bold"
                     >
                         <Plus className="w-4 h-4" />
                         Adicionar Primeiro Cartão

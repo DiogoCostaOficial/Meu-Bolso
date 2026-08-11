@@ -285,73 +285,73 @@ const PainelAdmin = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-4xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
-        <Shield className="w-10 h-10 text-indigo-600" />
+    <div className="p-6 bg-transparent min-h-screen">
+      <h1 className="text-4xl font-extrabold text-custom-main mb-8 flex items-center gap-3">
+        <Shield className="w-10 h-10 text-custom-gold" />
         Painel de Administração
       </h1>
 
       {/* Seção de Estatísticas */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex items-center justify-between">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
           <div>
-            <p className="text-sm font-medium text-gray-500">Total de Usuários</p>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-custom-main opacity-80">Total de Usuários</p>
+            <p className="text-3xl font-bold text-custom-main">
               {estatisticas?.totalUsuarios ?? 'N/A'}
             </p>
           </div>
-          <Users className="w-10 h-10 text-indigo-400 opacity-70" />
+          <Users className="w-10 h-10 text-custom-gold opacity-75" />
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex items-center justify-between">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
           <div>
-            <p className="text-sm font-medium text-gray-500">Usuários com Acesso</p>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-sm font-medium text-custom-main opacity-80">Usuários com Acesso</p>
+            <p className="text-3xl font-bold text-green-500">
               {estatisticas?.usuariosComAcesso ?? 'N/A'}
             </p>
           </div>
-          <CheckCircle className="w-10 h-10 text-green-400 opacity-70" />
+          <CheckCircle className="w-10 h-10 text-green-500 opacity-75" />
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex items-center justify-between">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
           <div>
-            <p className="text-sm font-medium text-gray-500">Usuários Sem Acesso</p>
-            <p className="text-3xl font-bold text-red-600">
+            <p className="text-sm font-medium text-custom-main opacity-80">Usuários Sem Acesso</p>
+            <p className="text-3xl font-bold text-red-500">
               {estatisticas?.usuariosSemAcesso ?? 'N/A'}
             </p>
           </div>
-          <XCircle className="w-10 h-10 text-red-400 opacity-70" />
+          <XCircle className="w-10 h-10 text-red-500 opacity-75" />
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex items-center justify-between">
+        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
           <div>
-            <p className="text-sm font-medium text-gray-500">Novos Hoje</p>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-sm font-medium text-custom-main opacity-80">Novos Hoje</p>
+            <p className="text-3xl font-bold text-blue-500">
               {estatisticas?.novosUsuariosHoje ?? '0'}
             </p>
           </div>
-          <UserPlus className="w-10 h-10 text-blue-400 opacity-70" />
+          <UserPlus className="w-10 h-10 text-blue-500 opacity-75" />
         </div>
       </section>
 
       {/* Seção de Gerenciamento de Usuários */}
-      <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <Users className="w-6 h-6 text-indigo-600" />
+      <section className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom text-custom-main">
+        <h2 className="text-2xl font-bold text-custom-main mb-6 flex items-center gap-2">
+          <Users className="w-6 h-6 text-custom-gold" />
           Gerenciamento de Usuários
         </h2>
 
         <div className="flex justify-between items-center mb-4">
           <div className="relative flex items-center w-full max-w-xs">
-            <Search className="absolute left-3 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 text-custom-gold w-5 h-5" />
             <input
               type="text"
               placeholder="Filtrar por e-mail..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-indigo-500 focus:border-indigo-500"
+              className="pl-10 pr-4 py-2 bg-transparent border border-custom-color text-custom-main focus:ring-amber-500/50 rounded-custom focus:outline-none w-full"
               value={filtroEmail}
               onChange={handleFiltroChange}
             />
           </div>
           <button
             onClick={abrirModalCriar}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-custom-gold text-black font-bold rounded-custom hover:opacity-90 transition-colors shadow-sm"
           >
             <UserPlus className="w-5 h-5" />
             Adicionar Novo Usuário
@@ -359,52 +359,52 @@ const PainelAdmin = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-custom-color border-custom-color">
+            <thead className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   Nome
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   E-mail
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   Tipo
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   Último Acesso
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-transparent divide-y divide-custom-color">
               {usuariosAtuais.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={user.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition-colors text-custom-main border-custom-color">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-custom-main">
                     {user.id}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
                     {user.nome}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
                     {user.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.tipo === 'admin'
-                        ? 'bg-indigo-100 text-indigo-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-amber-500/20 text-custom-gold border border-amber-500/30'
+                        : 'bg-custom-primary/30 text-custom-main'
                         }`}
                     >
                       {user.tipo}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
                     {user.ultimoAcesso
                       ? new Date(user.ultimoAcesso).toLocaleString('pt-BR')
                       : 'Nunca'}
@@ -439,26 +439,42 @@ const PainelAdmin = () => {
           </table>
         </div>
 
-        {/* Paginação */}
-        <div className="flex justify-between items-center mt-6">
+        {/* Paginação Futurista */}
+        <div className="futur-pagination-container mt-6">
           <button
             onClick={() => mudarPagina(paginaAtual - 1)}
             disabled={paginaAtual === 1}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="futur-pagination-btn"
           >
-            <ChevronLeft className="w-5 h-5 mr-2" />
+            <ChevronLeft className="w-4 h-4 mr-1.5" />
             Anterior
           </button>
-          <span className="text-sm text-gray-700">
-            Página {paginaAtual} de {totalPaginas || 1}
-          </span>
+          
+          <div className="futur-pagination-bar">
+            <div 
+              className="futur-pagination-bar-fill" 
+              style={{ width: `${totalPaginas > 0 ? (paginaAtual / totalPaginas) * 100 : 0}%` }}
+            />
+          </div>
+
+          <div className="futur-pagination-info">
+            PAG {String(paginaAtual).padStart(2, '0')} // TOTAL {String(totalPaginas || 1).padStart(2, '0')}
+          </div>
+
+          <div className="futur-pagination-bar">
+            <div 
+              className="futur-pagination-bar-fill" 
+              style={{ width: `${totalPaginas > 0 ? (paginaAtual / totalPaginas) * 100 : 0}%` }}
+            />
+          </div>
+
           <button
             onClick={() => mudarPagina(paginaAtual + 1)}
             disabled={paginaAtual === totalPaginas || totalPaginas === 0}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="futur-pagination-btn"
           >
-            Próxima
-            <ChevronRight className="w-5 h-5 ml-2" />
+            Próximo
+            <ChevronRight className="w-4 h-4 ml-1.5" />
           </button>
         </div>
       </section>

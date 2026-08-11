@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './components/theme-provider';
 import { Toaster } from './components/ui/sonner';
 import { CurrencyProvider } from './contexts/CurrencyContext';
+import { LayoutVariantProvider } from './contexts/LayoutVariantContext';
 import AppNovo from './AppNovo';
 import './index.css';
 
@@ -18,8 +19,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <AuthProvider>
           <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
             <CurrencyProvider>
-              <AppNovo />
-              <Toaster />
+              <LayoutVariantProvider>
+                <AppNovo />
+                <Toaster />
+              </LayoutVariantProvider>
             </CurrencyProvider>
           </ThemeProvider>
         </AuthProvider>

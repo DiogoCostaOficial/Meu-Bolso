@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,11 +11,44 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevents iOS Safari from zooming on input focus */
+  font-size: 16px;
+  /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent text size adjustment after orientation change in iOS */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Prevent horizontal overflow globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Touch-friendly minimum target sizes */
+button, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* Mobile scroll container utility */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+}
+
+/* Safe area padding for notch devices (APK) */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Animações para o SaveIndicator */
@@ -45,3 +80,271 @@ body {
   animation: spin 1s linear infinite;
 }
 
+/* --- DYNAMIC HOMOLOGATION LAYOUTS --- */
+:root, html {
+  /* Default variables (Lux Gold) */
+  --bg-primary: #FAF9F6;
+  --bg-card: #FFFFFF;
+  --text-main: #1C1917;
+  --border-color: rgba(212, 175, 55, 0.2);
+  --accent-gold: #C5A028;
+  --border-radius: 6px;
+  --shadow-style: 0 4px 20px -2px rgba(212, 175, 55, 0.08);
+  --transition-speed: 0.3s;
+}
+
+/* 1. LUX GOLD */
+.layout-lux-gold {
+  --bg-primary: #FAF9F6;
+  --bg-card: #FFFFFF;
+  --text-main: #1C1917;
+  --border-color: rgba(212, 175, 55, 0.3);
+  --accent-gold: #C5A028;
+  --border-radius: 8px;
+  --shadow-style: 0 4px 20px -2px rgba(212, 175, 55, 0.1);
+}
+.layout-lux-gold.dark, .dark .layout-lux-gold, .layout-lux-gold .dark {
+  --bg-primary: #0D0D0C;
+  --bg-card: #151512;
+  --text-main: #F5F5F0;
+  --border-color: rgba(212, 175, 55, 0.25);
+  --accent-gold: #D4AF37;
+  --border-radius: 8px;
+  --shadow-style: 0 4px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.05);
+}
+
+/* 2. GEO BRUTALIST */
+.layout-geo-brutalist {
+  --bg-primary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --text-main: #000000;
+  --border-color: #000000;
+  --accent-gold: #C5A028;
+  --border-radius: 0px;
+  --shadow-style: 4px 4px 0px #000000;
+}
+.layout-geo-brutalist.dark, .dark .layout-geo-brutalist, .layout-geo-brutalist .dark {
+  --bg-primary: #000000;
+  --bg-card: #000000;
+  --text-main: #FFFFFF;
+  --border-color: #D4AF37;
+  --accent-gold: #D4AF37;
+  --border-radius: 0px;
+  --shadow-style: 4px 4px 0px #D4AF37;
+}
+
+/* 3. MODERN FLUID */
+.layout-modern-fluid {
+  --bg-primary: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text-main: #0F172A;
+  --border-color: #E2E8F0;
+  --accent-gold: #F59E0B;
+  --border-radius: 18px;
+  --shadow-style: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+.layout-modern-fluid.dark, .dark .layout-modern-fluid, .layout-modern-fluid .dark {
+  --bg-primary: #0F172A;
+  --bg-card: #1E293B;
+  --text-main: #F1F5F9;
+  --border-color: #334155;
+  --accent-gold: #F59E0B;
+  --border-radius: 18px;
+  --shadow-style: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* Utility Mapping Classes */
+.bg-custom-primary {
+  background-color: var(--bg-primary) !important;
+}
+.bg-custom-card {
+  background-color: var(--bg-card) !important;
+}
+.text-custom-main {
+  color: var(--text-main) !important;
+}
+.border-custom-color {
+  border-color: var(--border-color) !important;
+}
+.text-custom-gold {
+  color: var(--accent-gold) !important;
+}
+.bg-custom-gold {
+  background-color: var(--accent-gold) !important;
+}
+.border-custom-gold {
+  border-color: var(--accent-gold) !important;
+}
+.rounded-custom {
+  border-radius: var(--border-radius) !important;
+}
+.shadow-custom {
+  box-shadow: var(--shadow-style) !important;
+}
+.transition-custom {
+  transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+select, option, input[type="text"], input[type="number"], input[type="date"], textarea {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}/* ==========================================================================
+   FUTURISTIC LAYOUT VARIANTS
+   ========================================================================== */
+
+/* 1. Neon Glassmorphism Layout (Ref 1 - High Tech Glass) */
+.layout-neon-glass {
+  --bg-primary: #070d14 !important;
+  --bg-card: linear-gradient(135deg, rgba(14, 25, 44, 0.6) 0%, rgba(8, 15, 28, 0.75) 100%) !important;
+  --border-color: rgba(56, 189, 248, 0.25) !important;
+  --accent-gold: #00f0ff !important; /* Destaque Ciano */
+  --text-main: #f1f5f9 !important;
+  --shadow-style: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.15) !important;
+}
+.layout-neon-glass .bg-custom-card,
+.layout-neon-glass aside,
+.layout-neon-glass section,
+.layout-neon-glass .rounded-2xl,
+.layout-neon-glass .rounded-custom {
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(56, 189, 248, 0.18) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.3s ease;
+}
+.layout-neon-glass .bg-custom-card:hover {
+  border-color: rgba(0, 240, 255, 0.45) !important;
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(0, 240, 255, 0.05) !important;
+}
+
+/* 2. Sci-Fi HUD Command Layout (Ref 2 - Dual Neon Tactical) */
+.layout-scifi-hud {
+  --bg-primary: #020406 !important;
+  --bg-card: #05080f !important;
+  --border-color: rgba(0, 136, 255, 0.25) !important;
+  --accent-gold: #ff6600 !important; /* Laranja Tático */
+  --text-main: #e2e8f0 !important;
+  --border-radius: 0px !important;
+  --shadow-style: none !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+.layout-scifi-hud .bg-custom-card,
+.layout-scifi-hud aside,
+.layout-scifi-hud section,
+.layout-scifi-hud .rounded-2xl,
+.layout-scifi-hud .rounded-custom,
+.layout-scifi-hud select,
+.layout-scifi-hud input,
+.layout-scifi-hud button {
+  border-radius: 0px !important;
+  border: 1px solid rgba(0, 136, 255, 0.22) !important;
+  box-shadow: inset 0 0 10px rgba(0, 136, 255, 0.03) !important;
+  position: relative;
+  transition: all 0.25s ease;
+}
+.layout-scifi-hud .bg-custom-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid #ff6600;
+  border-left: 2px solid #ff6600;
+}
+.layout-scifi-hud .bg-custom-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-bottom: 2px solid #ff6600;
+  border-right: 2px solid #ff6600;
+}
+.layout-scifi-hud .bg-custom-card:hover {
+  border-color: rgba(0, 136, 255, 0.5) !important;
+  box-shadow: inset 0 0 15px rgba(0, 136, 255, 0.08), 0 0 10px rgba(255, 102, 0, 0.15) !important;
+}
+
+/* 3. Cosmic Aurora Layout (Ref 3 - Elegance Topography) */
+.layout-cosmic-aurora {
+  --bg-primary: #0b0b0f !important;
+  --bg-card: #121218 !important;
+  --border-color: rgba(255, 255, 255, 0.05) !important;
+  --accent-gold: #ff7b54 !important; /* Salmão/Sol Aurora */
+  --text-main: #f8fafc !important;
+  --border-radius: 16px !important;
+  --shadow-style: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
+}
+.layout-cosmic-aurora .bg-custom-card {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background: radial-gradient(circle at top right, rgba(255, 123, 84, 0.05), transparent 70%), radial-gradient(circle at bottom left, rgba(255, 82, 119, 0.04), transparent 60%), #121218 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.layout-cosmic-aurora .bg-custom-card:hover {
+  background: radial-gradient(circle at top right, rgba(255, 123, 84, 0.08), transparent 75%), radial-gradient(circle at bottom left, rgba(255, 82, 119, 0.08), transparent 65%), #121218 !important;
+  border-color: rgba(255, 123, 84, 0.25) !important;
+  box-shadow: 0 15px 35px rgba(255, 123, 84, 0.08) !important;
+  transform: translateY(-2px);
+}
+
+/* Modern & Futuristic Digital Pagination */
+.futur-pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  font-family: monospace;
+}
+.futur-pagination-bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0 1.5rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+}
+.futur-pagination-bar-fill {
+  height: 100%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 10px var(--accent-gold);
+  transition: width 0.3s ease;
+}
+.futur-pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.01);
+  color: var(--text-main);
+  border-radius: var(--border-radius);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.futur-pagination-btn:hover:not(:disabled) {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(var(--accent-gold), 0.2);
+  transform: translateY(-1px);
+}
+.futur-pagination-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+.futur-pagination-info {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  opacity: 0.85;
+  letter-spacing: 0.08em;
+}

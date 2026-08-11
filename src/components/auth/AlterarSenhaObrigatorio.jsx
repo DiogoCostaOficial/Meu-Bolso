@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const AlterarSenhaObrigatorio = () => {
   const navigate = useNavigate();
-  const { alterarSenha, usuario } = useAuth();
+  const { changePassword: alterarSenha, user: usuario } = useAuth();
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState(false);
@@ -84,13 +84,13 @@ const AlterarSenhaObrigatorio = () => {
         formulario.novaSenha
       );
 
-      if (resultado.sucesso) {
+      if (resultado.success || resultado.sucesso) {
         setSucesso(true);
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
       } else {
-        setErro(resultado.mensagem || 'Erro ao alterar senha');
+        setErro(resultado.message || resultado.mensagem || 'Erro ao alterar senha');
       }
     } catch (error) {
       setErro('Erro ao conectar com o servidor');

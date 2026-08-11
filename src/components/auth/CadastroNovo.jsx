@@ -3,10 +3,13 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, Mail, Lock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { useLayoutVariant } from '../../contexts/LayoutVariantContext';
+import { toast } from 'sonner';
 
 const CadastroNovo = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { layoutVariant } = useLayoutVariant();
 
   const [formData, setFormData] = useState({
     nome: '',
@@ -43,8 +46,6 @@ const CadastroNovo = () => {
 
     if (!formData.nome.trim()) {
       newErrors.nome = 'Nome é obrigatório';
-    } else if (formData.nome.trim().length < 3) {
-      newErrors.nome = 'Nome deve ter pelo menos 3 caracteres';
     }
 
     if (!formData.email) {
@@ -56,12 +57,10 @@ const CadastroNovo = () => {
     if (!formData.senha) {
       newErrors.senha = 'Senha é obrigatória';
     } else if (formData.senha.length < 6) {
-      newErrors.senha = 'Senha deve ter pelo menos 6 caracteres';
+      newErrors.senha = 'A senha deve ter pelo menos 6 caracteres';
     }
 
-    if (!formData.confirmarSenha) {
-      newErrors.confirmarSenha = 'Confirmação de senha é obrigatória';
-    } else if (formData.senha !== formData.confirmarSenha) {
+    if (formData.senha !== formData.confirmarSenha) {
       newErrors.confirmarSenha = 'As senhas não coincidem';
     }
 
@@ -83,6 +82,7 @@ const CadastroNovo = () => {
       const result = await register(formData.nome, formData.email, formData.senha);
 
       if (result.success) {
+        toast.success('Cadastro realizado com sucesso! Verifique seu e-mail.');
         navigate('/validar-otp', { state: { email: formData.email } });
       } else {
         setApiError(result.message || 'Erro ao criar conta');
@@ -95,31 +95,31 @@ const CadastroNovo = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 px-4 py-12 transition-colors duration-300">
+    <div className={`min-h-screen flex items-center justify-center bg-custom-primary px-4 py-12 transition-colors duration-300 layout-${layoutVariant}`}>
       <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-800 transition-colors">
+        <div className="bg-custom-card rounded-2xl shadow-custom p-8 border border-custom-color transition-colors">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-              <User className="w-8 h-8 text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-custom-gold/15 rounded-full mb-4">
+              <User className="w-8 h-8 text-custom-gold" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-custom-main mb-2">
               Crie sua conta
             </h1>
-            <p className="text-gray-600 dark:text-slate-400">
+            <p className="text-custom-main opacity-80">
               Comece a organizar suas finanças hoje
             </p>
           </div>
 
           {apiError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
-              <p className="text-sm text-red-800">{apiError}</p>
+            <div className="mb-6 p-4 bg-red-950/20 border border-red-500 rounded-lg flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+              <p className="text-sm text-red-400">{apiError}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+              <label htmlFor="nome" className="block text-sm font-medium text-custom-main opacity-80 mb-2">
                 Nome completo
               </label>
               <div className="relative">
@@ -132,19 +132,19 @@ const CadastroNovo = () => {
                   name="nome"
                   value={formData.nome}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.nome ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
-                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-custom-card border ${errors.nome ? 'border-red-300' : 'border-custom-color'
+                    } rounded-lg text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="João Silva"
                   disabled={loading}
                 />
               </div>
               {errors.nome && (
-                <p className="mt-1 text-sm text-red-600">{errors.nome}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.nome}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-custom-main opacity-80 mb-2">
                 E-mail
               </label>
               <div className="relative">
@@ -157,19 +157,19 @@ const CadastroNovo = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
-                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-custom-card border ${errors.email ? 'border-red-300' : 'border-custom-color'
+                    } rounded-lg text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="seu@email.com"
                   disabled={loading}
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+              <label htmlFor="senha" className="block text-sm font-medium text-custom-main opacity-80 mb-2">
                 Senha
               </label>
               <div className="relative">
@@ -182,19 +182,19 @@ const CadastroNovo = () => {
                   name="senha"
                   value={formData.senha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.senha ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
-                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-custom-card border ${errors.senha ? 'border-red-300' : 'border-custom-color'
+                    } rounded-lg text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
               </div>
               {errors.senha && (
-                <p className="mt-1 text-sm text-red-600">{errors.senha}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.senha}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirmarSenha" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+              <label htmlFor="confirmarSenha" className="block text-sm font-medium text-custom-main opacity-80 mb-2">
                 Confirmar senha
               </label>
               <div className="relative">
@@ -207,21 +207,21 @@ const CadastroNovo = () => {
                   name="confirmarSenha"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border ${errors.confirmarSenha ? 'border-red-300' : 'border-gray-300 dark:border-slate-700'
-                    } rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                  className={`block w-full pl-10 pr-3 py-3 bg-custom-card border ${errors.confirmarSenha ? 'border-red-300' : 'border-custom-color'
+                    } rounded-lg text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
               </div>
               {errors.confirmarSenha && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmarSenha}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.confirmarSenha}</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full bg-custom-gold text-black py-3 px-4 rounded-lg font-bold hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-custom-gold focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer shadow-custom"
             >
               {loading ? (
                 <>
@@ -235,11 +235,11 @@ const CadastroNovo = () => {
           </form>
 
           <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className="text-sm text-custom-main opacity-80">
               Já tem uma conta?{' '}
               <Link
                 to="/login"
-                className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition"
+                className="font-bold text-custom-gold hover:opacity-85 transition"
               >
                 Faça login
               </Link>
@@ -247,16 +247,16 @@ const CadastroNovo = () => {
 
             <Link
               to="/"
-              className="block text-sm text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition"
+              className="block text-sm text-custom-main opacity-60 hover:opacity-100 transition"
             >
               ← Voltar para página inicial
             </Link>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-sm text-gray-600 dark:text-slate-500">
+        <p className="mt-8 text-center text-sm text-custom-main opacity-60">
           Ao criar uma conta, você concorda com nossos{' '}
-          <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+          <a href="#" className="text-custom-gold hover:opacity-85">
             Termos de Uso
           </a>
         </p>

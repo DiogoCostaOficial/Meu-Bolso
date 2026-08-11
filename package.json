@@ -14,9 +14,13 @@
     "setup": "npm run install:all && cd server && cp .env.example .env",
     "lint": "vite lint || echo 'Lint script not configured'",
     "type-check": "tsc --noEmit",
-    "release": "semantic-release"
+    "release": "semantic-release",
+    "cap:sync": "npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:add": "npx cap add android"
   },
   "dependencies": {
+    "@capacitor/core": "^8.4.2",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@react-oauth/google": "^0.12.2",
@@ -37,6 +41,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
     "@tailwindcss/vite": "^4.1.14",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",

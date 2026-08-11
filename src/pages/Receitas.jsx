@@ -323,12 +323,13 @@ const Receitas = () => {
   const subcategoriasAtivas = [...new Set(receitasFiltradas.filter(r => r.subcategoria).map(r => r.subcategoria))].length;
   return (
     <div className="space-y-6 bg-transparent min-h-screen transition-colors duration-300">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Header — mobile-first */}
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Receitas</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-1">Gerencie suas entradas e acompanhe sua evolução financeira.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Receitas</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">Gerencie suas entradas e acompanhe sua evolução financeira.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <CurrencySelector />
           <EduHelpButton topic="receitas" />
           <button
@@ -336,7 +337,7 @@ const Receitas = () => {
               setMostrarFormulario(!mostrarFormulario);
               setEditingItemId(null);
             }}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition flex items-center gap-2"
+            className="flex-1 sm:flex-none px-5 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
           >
             <Plus className="w-5 h-5" />
             {mostrarFormulario ? 'Cancelar' : 'Nova Receita'}
@@ -344,15 +345,16 @@ const Receitas = () => {
         </div>
       </div>
 
-      {/* NOVO POSICIONAMENTO: Formulário de Nova Receita aparece AQUI */}
+      {/* Formulário de Nova Receita */}
       {mostrarFormulario && (
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 transition-all animate-in fade-in slide-in-from-top-4 duration-300">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
-            <DollarSign className="w-6 h-6 text-green-600 dark:text-green-500" />
+        <div className="bg-custom-card p-5 md:p-8 rounded-custom shadow-custom border border-custom-color transition-custom animate-in fade-in slide-in-from-top-4 duration-300">
+          <h2 className="text-xl md:text-2xl font-bold text-custom-main mb-5 flex items-center gap-2">
+            <DollarSign className="w-6 h-6 text-custom-gold" />
             {editando ? 'Editar Receita' : 'Nova Receita'}
           </h2>
-          <form onSubmit={adicionarReceita} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <form onSubmit={adicionarReceita} className="space-y-5">
+            {/* Grid: 1 col mobile, 2 col sm, máx 2 col por vez */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <FileText className="inline w-4 h-4 mr-1" />
@@ -361,6 +363,7 @@ const Receitas = () => {
                 <input
                   type="text"
                   className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  style={{ fontSize: '16px' }}
                   placeholder="Ex: Salário, Venda, Freelance..."
                   value={novaReceita.descricao}
                   onChange={(e) => setNovaReceita({ ...novaReceita, descricao: e.target.value })}
@@ -379,6 +382,7 @@ const Receitas = () => {
                     max="60"
                     placeholder="Ex: 6 (para 6 meses)"
                     className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                    style={{ fontSize: '16px' }}
                     value={quantidadeTitulos}
                     onChange={(e) => setQuantidadeTitulos(e.target.value)}
                     required
@@ -399,6 +403,7 @@ const Receitas = () => {
                   min="0.01"
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  style={{ fontSize: '16px' }}
                   value={novaReceita.valor}
                   onChange={(e) => setNovaReceita({ ...novaReceita, valor: e.target.value })}
                   required
@@ -412,6 +417,7 @@ const Receitas = () => {
                 <input
                   type="date"
                   className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  style={{ fontSize: '16px' }}
                   value={novaReceita.data}
                   onChange={(e) => setNovaReceita({ ...novaReceita, data: e.target.value })}
                   required
@@ -507,10 +513,10 @@ const Receitas = () => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 transition-colors">
+      <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-            <Filter className="w-5 h-5 text-blue-600 dark:text-blue-500" />
+          <h2 className="text-xl font-bold text-custom-main flex items-center gap-2">
+            <Filter className="w-5 h-5 text-custom-gold" />
             Filtros
           </h2>
           <div className="flex items-center gap-2">
@@ -535,83 +541,83 @@ const Receitas = () => {
           </div>
         </div>
         {!filtrosMinimizados && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-custom-main">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Categoria</label>
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">Categoria</label>
               <select
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 value={filtros.categoria}
                 onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value, subcategoria: '' })}
               >
-                <option value="">Todas as categorias</option>
+                <option value="" className="dark:bg-slate-900">Todas as categorias</option>
                 {categorias.map((cat, index) => (
-                  <option key={index} value={cat}>{cat}</option>
+                  <option key={index} value={cat} className="dark:bg-slate-900">{cat}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Subcategoria</label>
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">Subcategoria</label>
               <select
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50"
+                className="w-full px-4 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900 disabled:opacity-50"
                 value={filtros.subcategoria}
                 onChange={(e) => setFiltros({ ...filtros, subcategoria: e.target.value })}
                 disabled={!filtros.categoria}
               >
-                <option value="">Todas as subcategorias</option>
+                <option value="" className="dark:bg-slate-900">Todas as subcategorias</option>
                 {filtros.categoria && subcategorias[filtros.categoria]?.map((sub, index) => (
-                  <option key={index} value={sub}>{sub}</option>
+                  <option key={index} value={sub} className="dark:bg-slate-900">{sub}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Mês</label>
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">Mês</label>
               <select
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 value={filtros.mes}
                 onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}
               >
-                <option value="">Selecione o mês</option>
+                <option value="" className="dark:bg-slate-900">Selecione o mês</option>
                 {meses.map(mes => (
-                  <option key={mes.valor} value={mes.valor}>{mes.nome}</option>
+                  <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">{mes.nome}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Ano</label>
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">Ano</label>
               <select
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 value={filtros.ano}
                 onChange={(e) => setFiltros({ ...filtros, ano: e.target.value })}
               >
                 {gerarListaAnos().map(ano => (
-                  <option key={ano} value={ano}>{ano}</option>
+                  <option key={ano} value={ano} className="dark:bg-slate-900">{ano}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Data Início</label>
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">Data Início</label>
               <input
                 type="date"
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 value={filtros.dataInicio}
                 onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Data Fim</label>
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">Data Fim</label>
               <input
                 type="date"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 value={filtros.dataFim}
                 onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })}
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+              <label className="block text-sm font-medium text-custom-main opacity-90 mb-2">Descrição</label>
               <input
                 type="text"
                 placeholder="Buscar..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 value={filtros.descricao}
                 onChange={(e) => setFiltros({ ...filtros, descricao: e.target.value })}
               />
@@ -620,264 +626,175 @@ const Receitas = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-green-50 rounded-xl shadow-lg p-6 border border-green-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Total de Receitas</h3>
-            <TrendingUp className="w-6 h-6 text-green-600" />
+      {/* Cards de Resumo — 3 colunas compactas em mobile */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-green-50 dark:bg-green-900/20 rounded-xl shadow p-3 md:p-6 border border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-xs md:text-sm font-medium text-gray-600 dark:text-slate-400">Total</h3>
+            <TrendingUp className="w-4 h-4 md:w-6 md:h-6 text-green-600" />
           </div>
-          <p className="text-3xl font-bold text-green-600">{formatarMoeda(totalReceitas)}</p>
-          <p className="text-sm text-gray-500 mt-1">{receitasFiltradas.length} receita(s)</p>
+          <p className="text-lg md:text-3xl font-bold text-green-600 truncate">{formatarMoeda(totalReceitas)}</p>
+          <p className="text-xs text-gray-500 mt-1">{receitasFiltradas.length} receita(s)</p>
         </div>
-        <div className="bg-blue-50 rounded-xl shadow-lg p-6 border border-blue-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Categorias</h3>
-            <Tag className="w-6 h-6 text-blue-600" />
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl shadow p-3 md:p-6 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-xs md:text-sm font-medium text-gray-600 dark:text-slate-400">Categorias</h3>
+            <Tag className="w-4 h-4 md:w-6 md:h-6 text-blue-600" />
           </div>
-          <p className="text-3xl font-bold text-blue-600">{categoriasAtivas}</p>
-          <p className="text-sm text-gray-500 mt-1">categorias ativas</p>
+          <p className="text-lg md:text-3xl font-bold text-blue-600">{categoriasAtivas}</p>
+          <p className="text-xs text-gray-500 mt-1">ativas</p>
         </div>
-        <div className="bg-purple-50 rounded-xl shadow-lg p-6 border border-purple-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Subcategorias</h3>
-            <Tag className="w-6 h-6 text-purple-600" />
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl shadow p-3 md:p-6 border border-indigo-200 dark:border-indigo-800">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-xs md:text-sm font-medium text-gray-600 dark:text-slate-400">Subcategorias</h3>
+            <Tag className="w-4 h-4 md:w-6 md:h-6 text-indigo-600" />
           </div>
-          <p className="text-3xl font-bold text-purple-600">{subcategoriasAtivas}</p>
-          <p className="text-sm text-gray-500 mt-1">subcategorias ativas</p>
+          <p className="text-lg md:text-3xl font-bold text-indigo-600">{subcategoriasAtivas}</p>
+          <p className="text-xs text-gray-500 mt-1">ativas</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      {/* Lista — Tabela desktop + Cards mobile */}
+      <div className="bg-custom-card rounded-custom shadow-custom overflow-hidden border border-custom-color transition-custom">
+        {/* TABELA — apenas desktop */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead className="bg-gray-50 dark:bg-slate-800">
               <tr>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
-                  onClick={() => handleSort('data')}
-                >
-                  <div className="flex items-center gap-1">
-                    Data
-                    {sortConfig.key === 'data' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                    )}
-                    {sortConfig.key !== 'data' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
-                  </div>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group" onClick={() => handleSort('data')}>
+                  <div className="flex items-center gap-1">Data {sortConfig.key === 'data' ? (sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />) : <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30" />}</div>
                 </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
-                  onClick={() => handleSort('descricao')}
-                >
-                  <div className="flex items-center gap-1">
-                    Descrição
-                    {sortConfig.key === 'descricao' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                    )}
-                    {sortConfig.key !== 'descricao' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
-                  </div>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 group" onClick={() => handleSort('descricao')}>
+                  <div className="flex items-center gap-1">Descrição {sortConfig.key === 'descricao' ? (sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />) : <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30" />}</div>
                 </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
-                  onClick={() => handleSort('categoria')}
-                >
-                  <div className="flex items-center gap-1">
-                    Categoria
-                    {sortConfig.key === 'categoria' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                    )}
-                    {sortConfig.key !== 'categoria' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
-                  </div>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 group" onClick={() => handleSort('categoria')}>
+                  <div className="flex items-center gap-1">Categoria {sortConfig.key === 'categoria' ? (sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />) : <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30" />}</div>
                 </th>
-                <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
-                  onClick={() => handleSort('subcategoria')}
-                >
-                  <div className="flex items-center gap-1">
-                    Subcategoria
-                    {sortConfig.key === 'subcategoria' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                    )}
-                    {sortConfig.key !== 'subcategoria' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
-                  </div>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Subcategoria</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 group" onClick={() => handleSort('valor')}>
+                  <div className="flex items-center justify-end gap-1">Valor {sortConfig.key === 'valor' ? (sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />) : <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30" />}</div>
                 </th>
-                <th
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group"
-                  onClick={() => handleSort('valor')}
-                >
-                  <div className="flex items-center justify-end gap-1">
-                    Valor
-                    {sortConfig.key === 'valor' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                    )}
-                    {sortConfig.key !== 'valor' && <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-30 transition-opacity" />}
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Ações</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
               {receitasFiltradas.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-gray-400">
-                      <DollarSign className="w-16 h-16 mb-4 opacity-50" />
-                      <p className="text-lg font-medium">Nenhuma receita encontrada</p>
-                      <p className="text-sm mt-2">
-                        {receitas.length === 0
-                          ? 'Clique em "Nova Receita" para começar'
-                          : 'Tente ajustar os filtros'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
+                <tr><td colSpan="6" className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center justify-center text-gray-400">
+                    <DollarSign className="w-16 h-16 mb-4 opacity-50" />
+                    <p className="text-lg font-medium">Nenhuma receita encontrada</p>
+                    <p className="text-sm mt-2">{receitas.length === 0 ? 'Clique em "Nova Receita" para começar' : 'Tente ajustar os filtros'}</p>
+                  </div>
+                </td></tr>
               ) : (
-                sortedReceitas
-                  .map((receita) => (
-                    <tr key={receita.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatarData(receita.data)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {editingItemId === receita.id ? (
-                          <>
-                            <input
-                              type="text"
-                              name="descricao"
-                              value={inlineEditForm.descricao}
-                              onChange={handleInlineChange}
-                              className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            />
-                            {/* Campo de Somar ao Orçamento na Edição Inline */}
-                            <label className="flex items-center cursor-pointer text-xs mt-2">
-                              <input
-                                type="checkbox"
-                                name="somarNoOrcamento"
-                                checked={inlineEditForm.somarNoOrcamento}
-                                onChange={(e) => setInlineEditForm(prev => ({ ...prev, somarNoOrcamento: e.target.checked }))}
-                                className="form-checkbox h-3 w-3 text-green-600 rounded focus:ring-green-500 mr-1"
-                              />
-                              <span className="text-gray-700 font-bold">Somar ao Orçamento</span>
-                            </label>
-                          </>
-                        ) : (
-                          <div>
-                            <div className="flex items-center gap-2 font-medium text-gray-900">
-                              {receita.descricao}
-                              {receita.recorrente && (
-                                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-semibold">
-                                  Recorrente
-                                </span>
-                              )}
-                              {receita.somarNoOrcamento === false && (
-                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase border border-gray-200">
-                                  Apenas DRE
-                                </span>
-                              )}
-                            </div>
-                            {receita.observacoes && (
-                              <p className="text-xs text-gray-500 mt-1">{receita.observacoes}</p>
-                            )}
+                sortedReceitas.map((receita) => (
+                  <tr key={receita.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{formatarData(receita.data)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                      {editingItemId === receita.id ? (
+                        <><input type="text" name="descricao" value={inlineEditForm.descricao} onChange={handleInlineChange} className="w-full px-2 py-1 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-green-500 focus:outline-none dark:bg-slate-800 dark:text-white" style={{ fontSize: '16px' }} />
+                          <label className="flex items-center cursor-pointer text-xs mt-2">
+                            <input type="checkbox" name="somarNoOrcamento" checked={inlineEditForm.somarNoOrcamento} onChange={(e) => setInlineEditForm(prev => ({ ...prev, somarNoOrcamento: e.target.checked }))} className="form-checkbox h-3 w-3 text-green-600 rounded mr-1" />
+                            <span className="text-gray-700 dark:text-slate-300 font-bold">Somar ao Orçamento</span>
+                          </label></>
+                      ) : (
+                        <div>
+                          <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">{receita.descricao}
+                            {receita.recorrente && <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-full font-semibold">Recorrente</span>}
+                            {receita.somarNoOrcamento === false && <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 text-[10px] font-bold rounded uppercase border border-gray-200 dark:border-slate-600">Apenas DRE</span>}
                           </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {editingItemId === receita.id ? (
-                          <select
-                            name="categoria"
-                            value={inlineEditForm.categoria}
-                            onChange={handleInlineChange}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none"
-                          >
-                            {categorias.map((cat, index) => (
-                              <option key={index} value={cat}>
-                                {cat}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className="text-gray-700">{receita.categoria}</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {editingItemId === receita.id ? (
-                          <select
-                            name="subcategoria"
-                            value={inlineEditForm.subcategoria}
-                            onChange={handleInlineChange}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none"
-                          >
-                            <option value="">Selecione</option>
-                            {subcategorias[inlineEditForm.categoria]?.map((sub, index) => (
-                              <option key={index} value={sub}>
-                                {sub}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className="text-gray-700">{receita.subcategoria || '-'}</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-green-600">
-                        {editingItemId === receita.id ? (
-                          <div className="relative">
-                            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">R$</span>
-                            <input
-                              type="number"
-                              name="valor"
-                              value={inlineEditForm.valor}
-                              onChange={handleInlineChange}
-                              step="0.01"
-                              min="0.01"
-                              className="w-full pl-8 pr-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none text-right"
-                              placeholder="0.00"
-                            />
-                          </div>
-                        ) : (
-                          formatarMoeda(receita.valor)
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                        {editingItemId === receita.id ? (
-                          <div className="flex items-center justify-center gap-3">
-                            <button
-                              onClick={() => handleInlineSave(receita.id)}
-                              className="text-green-600 hover:text-green-900 transition"
-                              title="Salvar"
-                            >
-                              <Check className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={handleInlineCancel}
-                              className="text-gray-600 hover:text-gray-900 transition"
-                              title="Cancelar"
-                            >
-                              <XCircle className="w-5 h-5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center gap-3">
-                            <button
-                              onClick={() => iniciarEdicaoInline(receita)}
-                              className="text-blue-600 hover:text-blue-900 transition"
-                              title="Editar"
-                            >
-                              <Edit className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => excluirReceita(receita.id)}
-                              className="text-red-600 hover:text-red-900 transition"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                          {receita.observacoes && <p className="text-xs text-gray-500 mt-1">{receita.observacoes}</p>}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-slate-300">
+                      {editingItemId === receita.id ? (
+                        <select name="categoria" value={inlineEditForm.categoria} onChange={handleInlineChange} className="w-full px-2 py-1 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:text-white">
+                          {categorias.map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
+                        </select>
+                      ) : receita.categoria}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-slate-300">
+                      {editingItemId === receita.id ? (
+                        <select name="subcategoria" value={inlineEditForm.subcategoria} onChange={handleInlineChange} className="w-full px-2 py-1 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:text-white">
+                          <option value="">Selecione</option>
+                          {subcategorias[inlineEditForm.categoria]?.map((sub, i) => <option key={i} value={sub}>{sub}</option>)}
+                        </select>
+                      ) : (receita.subcategoria || '-')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-green-600 dark:text-green-400">
+                      {editingItemId === receita.id ? (
+                        <input type="number" name="valor" value={inlineEditForm.valor} onChange={handleInlineChange} step="0.01" min="0.01" className="w-full px-2 py-1 border border-gray-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-green-500 text-right dark:bg-slate-800 dark:text-white" style={{ fontSize: '16px' }} />
+                      ) : formatarMoeda(receita.valor)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                      {editingItemId === receita.id ? (
+                        <div className="flex items-center justify-center gap-3">
+                          <button onClick={() => handleInlineSave(receita.id)} className="text-green-600 hover:text-green-900 transition" title="Salvar"><Check className="w-5 h-5" /></button>
+                          <button onClick={handleInlineCancel} className="text-gray-600 hover:text-gray-900 transition" title="Cancelar"><XCircle className="w-5 h-5" /></button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-3">
+                          <button onClick={() => iniciarEdicaoInline(receita)} className="text-blue-600 hover:text-blue-900 transition" title="Editar"><Edit className="w-5 h-5" /></button>
+                          <button onClick={() => excluirReceita(receita.id)} className="text-red-600 hover:text-red-900 transition" title="Excluir"><Trash2 className="w-5 h-5" /></button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* CARDS — apenas mobile */}
+        <div className="md:hidden divide-y divide-gray-100 dark:divide-slate-700">
+          {receitasFiltradas.length === 0 ? (
+            <div className="py-12 text-center">
+              <DollarSign className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500">Nenhuma receita encontrada</p>
+              <p className="text-sm text-gray-400 mt-1">{receitas.length === 0 ? 'Toque em "Nova Receita" para começar' : 'Tente ajustar os filtros'}</p>
+            </div>
+          ) : (
+            sortedReceitas.map((receita) => (
+              <div key={receita.id} className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition">
+                {editingItemId === receita.id ? (
+                  <div className="space-y-3">
+                    <input type="text" name="descricao" value={inlineEditForm.descricao} onChange={handleInlineChange} className="w-full px-3 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:text-white" placeholder="Descrição" style={{ fontSize: '16px' }} />
+                    <input type="number" name="valor" value={inlineEditForm.valor} onChange={handleInlineChange} step="0.01" min="0.01" className="w-full px-3 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:text-white" placeholder="Valor" style={{ fontSize: '16px' }} />
+                    <select name="categoria" value={inlineEditForm.categoria} onChange={handleInlineChange} className="w-full px-3 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:text-white" style={{ fontSize: '16px' }}>
+                      {categorias.map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
+                    </select>
+                    <div className="flex gap-3">
+                      <button onClick={() => handleInlineSave(receita.id)} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2"><Check className="w-4 h-4" /> Salvar</button>
+                      <button onClick={handleInlineCancel} className="flex-1 py-3 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-lg font-semibold flex items-center justify-center gap-2"><XCircle className="w-4 h-4" /> Cancelar</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-gray-900 dark:text-white">{receita.descricao}</span>
+                        {receita.recorrente && <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded-full">Recorrente</span>}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-xs text-gray-500 dark:text-slate-400">{formatarData(receita.data)}</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400">{receita.categoria}</span>
+                        {receita.subcategoria && <span className="text-xs text-gray-400">{receita.subcategoria}</span>}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <span className="text-lg font-bold text-green-600 dark:text-green-400">{formatarMoeda(receita.valor)}</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => iniciarEdicaoInline(receita)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition" title="Editar"><Edit className="w-4 h-4" /></button>
+                        <button onClick={() => excluirReceita(receita.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition" title="Excluir"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
 

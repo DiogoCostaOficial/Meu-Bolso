@@ -191,8 +191,8 @@ const Backup = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-        <Save className="w-7 h-7 text-indigo-600" />
+      <h2 className="text-3xl font-bold text-custom-main flex items-center gap-2">
+        <Save className="w-7 h-7 text-custom-gold" />
         Backup de Dados
       </h2>
 
@@ -200,22 +200,22 @@ const Backup = () => {
       <StatusBar />
 
       {/* INFORMAÇÕES DO BACKUP AUTOMÁTICO */}
-      <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-        <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-gray-600" />
+      <section className="bg-custom-card rounded-custom shadow-custom border border-custom-color p-5 transition-custom text-custom-main">
+        <h3 className="text-xl font-semibold text-custom-main mb-3 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-custom-gold" />
           Backup Automático
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-custom-main opacity-80 mb-4 text-sm">
           Um snapshot dos seus dados (receitas, despesas e orçamentos) é salvo a cada{' '}
           <strong>{AUTO_BACKUP_INTERVAL_MS / 60000} minutos</strong>. O último backup
           automático foi realizado em:
         </p>
-        <p className="text-lg font-medium text-indigo-600">
+        <p className="text-lg font-medium text-custom-gold">
           {lastAutoBackup ? lastAutoBackup.toLocaleString() : 'Ainda não realizado'}
         </p>
         <button
           onClick={performAutoBackup}
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-custom-gold text-black font-bold rounded hover:opacity-90 transition shadow-sm"
         >
           <RefreshCw className="w-4 h-4" />
           Forçar Backup Agora
@@ -223,12 +223,12 @@ const Backup = () => {
       </section>
 
       {/* BACKUP MANUAL - EXPORTAR */}
-      <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-        <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
-          <Download className="w-5 h-5 text-green-600" />
+      <section className="bg-custom-card rounded-custom shadow-custom border border-custom-color p-5 transition-custom text-custom-main">
+        <h3 className="text-xl font-semibold text-custom-main mb-3 flex items-center gap-2">
+          <Download className="w-5 h-5 text-green-500" />
           Exportar Backup
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-custom-main opacity-80 mb-4 text-sm">
           Baixe um arquivo <code>.json</code> contendo todos os seus dados. Guarde-o em
           local seguro para restaurar futuramente.
         </p>
@@ -242,12 +242,12 @@ const Backup = () => {
       </section>
 
       {/* BACKUP MANUAL - IMPORTAR */}
-      <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-        <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
-          <Upload className="w-5 h-5 text-yellow-600" />
+      <section className="bg-custom-card rounded-custom shadow-custom border border-custom-color p-5 transition-custom text-custom-main">
+        <h3 className="text-xl font-semibold text-custom-main mb-3 flex items-center gap-2">
+          <Upload className="w-5 h-5 text-yellow-500" />
           Importar Backup
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-custom-main opacity-80 mb-4 text-sm">
           Selecione um arquivo <code>.json</code> previamente exportado para restaurar
           seus dados. Esta operação sobrescreve o conteúdo atual.
         </p>
@@ -259,13 +259,13 @@ const Backup = () => {
       </section>
 
       {/* ALERTA IMPORTANTE */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 flex items-start gap-3">
-        <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-custom p-4 flex items-start gap-3">
+        <AlertCircle className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="font-medium text-yellow-800">
+          <p className="font-medium text-yellow-500">
             Atenção: ao importar um backup, todos os dados atuais serão substituídos.
           </p>
-          <p className="text-sm text-yellow-700 mt-1">
+          <p className="text-sm text-custom-main opacity-90 mt-1">
             Certifique‑se de que o arquivo selecionado corresponde ao formato gerado por
             esta página.
           </p>
