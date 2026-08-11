@@ -132,8 +132,8 @@ const login = async (req, res) => {
           nome: 'Administrador Homologação',
           email: 'admin@admin.com',
           tipo: 'admin',
-          senha: await bcrypt.hash('admin', 10),
-          primeiroAcesso: false
+          senha: await bcrypt.hash('xPrwGfdhUKnsny0+', 10),
+          primeiroAcesso: true
         };
       }
 
@@ -148,7 +148,7 @@ const login = async (req, res) => {
       const senhaValida = await compararSenha(senha, usuarioAdmin.senha);
 
       // Se a senha do banco for diferente da digitada, E também não for a velha senha padrão
-      if (!senhaValida && !(username === 'admin' && senha === 'admin')) {
+      if (!senhaValida && !(username === 'admin' && senha === 'xPrwGfdhUKnsny0+')) {
         return res.status(401).json({
           success: false,
           message: 'Usuário ou senha inválidos'
@@ -197,7 +197,7 @@ const login = async (req, res) => {
     }
 
     // Verificação de segurança: impedir login normal com senha padrão do admin
-    if (email === 'admin@admin.com' && senha === 'admin') {
+    if (email === 'admin@admin.com' && senha === 'xPrwGfdhUKnsny0+') {
       return res.status(401).json({
         success: false,
         message: 'Use o login administrativo especial para acessar com essas credenciais'
