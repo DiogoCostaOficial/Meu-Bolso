@@ -1,8 +1,7 @@
-// src/components/auth/CadastroNovo.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Mail, Lock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, Loader2, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useLayoutVariant } from '../../contexts/LayoutVariantContext';
 import { toast } from 'sonner';
 
@@ -21,6 +20,8 @@ const CadastroNovo = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -177,16 +178,24 @@ const CadastroNovo = () => {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="password"
+                  type={mostrarSenha ? "text" : "password"}
                   id="senha"
                   name="senha"
                   value={formData.senha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 bg-custom-card border ${errors.senha ? 'border-red-300' : 'border-custom-color'
+                  className={`block w-full pl-10 pr-10 py-3 bg-custom-card border ${errors.senha ? 'border-red-300' : 'border-custom-color'
                     } rounded-lg text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha(prev => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-custom-gold cursor-pointer"
+                  tabIndex="-1"
+                >
+                  {mostrarSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
               {errors.senha && (
                 <p className="mt-1 text-sm text-red-500">{errors.senha}</p>
@@ -202,16 +211,24 @@ const CadastroNovo = () => {
                   <CheckCircle className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="password"
+                  type={mostrarConfirmarSenha ? "text" : "password"}
                   id="confirmarSenha"
                   name="confirmarSenha"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
-                  className={`block w-full pl-10 pr-3 py-3 bg-custom-card border ${errors.confirmarSenha ? 'border-red-300' : 'border-custom-color'
+                  className={`block w-full pl-10 pr-10 py-3 bg-custom-card border ${errors.confirmarSenha ? 'border-red-300' : 'border-custom-color'
                     } rounded-lg text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="••••••••"
                   disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setMostrarConfirmarSenha(prev => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-custom-gold cursor-pointer"
+                  tabIndex="-1"
+                >
+                  {mostrarConfirmarSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
               {errors.confirmarSenha && (
                 <p className="mt-1 text-sm text-red-500">{errors.confirmarSenha}</p>
