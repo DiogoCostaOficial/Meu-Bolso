@@ -42,6 +42,44 @@ const getUsuarios = async () => {
     }
 };
 
+// Helper function to sync database.json user list local backup
+const syncLocalUsersJson = async () => {
+    try {
+        const fs = require('fs');
+        const path = require('path');
+        const dataDir = path.join(__dirname, '..', 'data');
+        const databasePath = path.join(dataDir, 'database.json');
+
+        const res = await pool.query('SELECT * FROM users');
+        const usuarios = res.rows.map(u => ({
+            id: u.id,
+            nome: u.nome,
+            email: u.email,
+            senha: u.senha,
+            tipo: u.tipo,
+            avatar: u.avatar,
+            verificado: u.verificado,
+            primeiroAcesso: u.primeiro_acesso,
+            otpCodigo: u.otp_codigo,
+            otpExpira: u.otp_expiracao ? u.otp_expiracao.toISOString() : null,
+            dataCriacao: u.created_at ? u.created_at.toISOString() : null,
+            ultimoAcesso: u.ultimo_acesso ? u.ultimo_acesso.toISOString() : null,
+            ativo: true
+        }));
+
+        const databaseObj = { usuarios };
+        
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+        
+        fs.writeFileSync(databasePath, JSON.stringify(databaseObj, null, 2), 'utf8');
+        console.log('💾 Contas de usuários sincronizadas com sucesso no database.json local!');
+    } catch (err) {
+        console.error('⚠️ Falha ao sincronizar database.json local:', err);
+    }
+};
+
 const adicionarUsuario = async (usuario) => {
     try {
         await pool.query(`
@@ -52,6 +90,10 @@ const adicionarUsuario = async (usuario) => {
             usuario.avatar, usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, 
             usuario.otpExpira, usuario.dataCriacao || new Date().toISOString(), usuario.ultimoAcesso
         ]);
+        
+        // Sincroniza localmente
+        await syncLocalUsersJson();
+        
         return true;
     } catch (err) {
         console.error('Erro ao adicionar usuário:', err);
@@ -78,6 +120,10 @@ const atualizarUsuario = async (usuario) => {
             usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, 
             usuario.otpExpira, usuario.ultimoAcesso, usuario.id
         ]);
+        
+        // Sincroniza localmente
+        await syncLocalUsersJson();
+        
         return true;
     } catch (err) {
         console.error('Erro ao atualizar usuário:', err);
@@ -470,6 +516,27 @@ const salvarDadosUsuario = async (userId, dados) => {
         }
 
         await client.query('COMMIT');
+
+        // =========================================================================
+        // 5. BACKUP LOCAL AUTOMÁTICO EM JSON
+        // =========================================================================
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const dataDir = path.join(__dirname, '..', 'data');
+            
+            // Garantir que a pasta data existe
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+            }
+
+            const backupFilePath = path.join(dataDir, `USER_DATA_${userId}.json`);
+            fs.writeFileSync(backupFilePath, JSON.stringify(dados, null, 2), 'utf8');
+            console.log(`💾 Cópia de segurança JSON salva automaticamente para o usuário: ${userId}`);
+        } catch (backupError) {
+            console.error('⚠️ Falha ao salvar cópia de segurança JSON:', backupError);
+        }
+
         return true;
     } catch (err) {
         await client.query('ROLLBACK');
