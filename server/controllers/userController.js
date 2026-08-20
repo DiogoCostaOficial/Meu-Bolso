@@ -120,7 +120,8 @@ const obterDados = async (req, res) => {
     const dados = await db.buscarDadosUsuario(userId);
     res.json({ success: true, message: '', data: dados, sucesso: true, mensagem: '', dados });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Erro ao obter dados', sucesso: false, mensagem: 'Erro ao obter dados' });
+    console.error('Erro em obterDados:', error);
+    res.status(500).json({ success: false, message: `Erro ao obter dados: ${error.message}`, sucesso: false, mensagem: `Erro ao obter dados: ${error.message}` });
   }
 };
 
@@ -139,11 +140,12 @@ const salvarDados = async (req, res) => {
     }
     const ok = await db.salvarDadosUsuario(userId, dados);
     if (!ok) {
-      return res.status(500).json({ success: false, message: 'Erro ao salvar dados', sucesso: false, mensagem: 'Erro ao salvar dados' });
+      return res.status(500).json({ success: false, message: 'Erro ao salvar dados (db.salvarDadosUsuario retornou false)', sucesso: false, mensagem: 'Erro ao salvar dados (db.salvarDadosUsuario retornou false)' });
     }
     res.json({ success: true, message: 'Dados salvos com sucesso', data: dados, sucesso: true, mensagem: 'Dados salvos com sucesso', dados });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Erro ao salvar dados', sucesso: false, mensagem: 'Erro ao salvar dados' });
+    console.error('Erro em salvarDados:', error);
+    res.status(500).json({ success: false, message: `Erro ao salvar dados: ${error.message}`, sucesso: false, mensagem: `Erro ao salvar dados: ${error.message}` });
   }
 };
 

@@ -9,30 +9,30 @@
       }
     },
     {
-      "src": "api/index.js",
+      "src": "api/index.cjs",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/index.cjs"
     },
     {
       "src": "/user/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/index.cjs"
     },
     {
       "src": "/auth/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/index.cjs"
     },
     {
       "src": "/admin/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/index.cjs"
     },
     {
       "src": "/debug/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/index.cjs"
     },
     {
       "handle": "filesystem"
