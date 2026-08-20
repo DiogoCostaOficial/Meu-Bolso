@@ -339,7 +339,10 @@ const Despesas = () => {
       novasDespesas.push(novaDespesa);
     }
 
-    // Usar debounce para salvamento otimizado
+    // Atualizar estado local imediatamente para feedback visual instantâneo
+    setDespesas([...despesas, ...novasDespesas]);
+
+    // Usar debounce para salvamento no servidor
     debouncedSave([...despesas, ...novasDespesas]);
     resetarFormulario();
   };
@@ -456,6 +459,9 @@ const Despesas = () => {
       );
     }
 
+    // Atualizar estado local imediatamente para feedback visual instantâneo
+    setDespesas(updatedDespesas);
+
     // Usar debounce para edição inline
     debouncedSave(updatedDespesas);
     setEditingItemId(null);
@@ -471,6 +477,9 @@ const Despesas = () => {
     if (window.confirm('Deseja realmente excluir esta despesa?')) {
       const novasDespesas = despesas.filter(d => d.id !== id);
 
+      // Atualizar estado local imediatamente para feedback visual instantâneo
+      setDespesas(novasDespesas);
+
       // Usar salvamento imediato para exclusões (ação crítica)
       saveImmediately(novasDespesas);
       setSelectedDespesas(prev => prev.filter(dId => dId !== id));
@@ -485,6 +494,9 @@ const Despesas = () => {
         ? { ...d, statusPagamento: d.statusPagamento === 'pago' ? 'pendente' : 'pago' }
         : d
     );
+
+    // Atualizar estado local imediatamente para feedback visual instantâneo
+    setDespesas(updatedDespesas);
 
     // Usar debounce para alteração de status
     debouncedSave(updatedDespesas);
@@ -716,6 +728,9 @@ const Despesas = () => {
       return despesa;
     });
 
+    // Atualizar estado local imediatamente para feedback visual instantâneo
+    setDespesas(updatedDespesas);
+
     // Usar debounce para edição em massa
     debouncedSave(updatedDespesas);
     setSelectedDespesas([]);
@@ -746,6 +761,9 @@ const Despesas = () => {
       }
       return d;
     });
+
+    // Atualizar estado local imediatamente para feedback visual instantâneo
+    setDespesas(updatedDespesas);
 
     debouncedSave(updatedDespesas);
     setSelectedDespesas([]);

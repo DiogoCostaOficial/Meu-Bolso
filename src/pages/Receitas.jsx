@@ -171,7 +171,10 @@ const Receitas = () => {
       receitasAtualizadas = [...receitas, ...novasReceitas];
     }
 
-    // Usar debounce para salvamento otimizado
+    // Atualizar estado local imediatamente para feedback visual instantâneo
+    setReceitas(receitasAtualizadas);
+    
+    // Usar debounce para salvamento otimizado no servidor
     debouncedSave(receitasAtualizadas);
     resetarFormulario();
   };
@@ -215,6 +218,9 @@ const Receitas = () => {
       } : r
     );
 
+    // Atualizar estado local imediatamente para feedback visual instantâneo
+    setReceitas(updatedReceitas);
+
     // Usar debounce para edição inline
     debouncedSave(updatedReceitas);
     setEditingItemId(null);
@@ -228,6 +234,9 @@ const Receitas = () => {
   const excluirReceita = (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta receita?')) {
       const receitasAtualizadas = receitas.filter(r => r.id !== id);
+
+      // Atualizar estado local imediatamente para feedback visual instantâneo
+      setReceitas(receitasAtualizadas);
 
       // Usar salvamento imediato para exclusões (ação crítica)
       saveImmediately(receitasAtualizadas);

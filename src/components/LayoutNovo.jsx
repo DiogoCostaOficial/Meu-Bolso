@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from "./theme-provider";
-import { useLayoutVariant } from '../contexts/LayoutVariantContext';
 import { EduProvider } from '../contexts/EduContext';
 import EduMascot from './EduMascot';
 import VideoPopup from './VideoPopup';
@@ -26,6 +25,7 @@ import {
   Sliders,
   ChevronLeft,
   ChevronRight,
+  Check,
 } from 'lucide-react';
 
 const LayoutNovo = ({ children }) => {
@@ -35,7 +35,6 @@ const LayoutNovo = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { layoutVariant, setLayoutVariant } = useLayoutVariant();
 
   const handleLogout = () => {
     logout();
@@ -65,13 +64,7 @@ const LayoutNovo = ({ children }) => {
     const Icon = item.icon;
     const isActive = location.pathname === item.path;
 
-    // Define active link styling based on layout variant
-    let activeStyles = 'bg-custom-gold text-black shadow-custom border border-custom-gold font-semibold';
-    if (layoutVariant === 'geo-brutalist') {
-      activeStyles = 'bg-custom-gold text-black border-2 border-black font-bold shadow-custom';
-    } else if (layoutVariant === 'modern-fluid') {
-      activeStyles = 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-custom';
-    }
+    const activeStyles = 'bg-custom-gold text-black shadow-custom border border-custom-gold font-semibold';
 
     return (
       <Link
@@ -93,7 +86,7 @@ const LayoutNovo = ({ children }) => {
 
   return (
     <EduProvider>
-      <div className={`min-h-screen bg-custom-primary text-custom-main flex transition-custom layout-${layoutVariant}`}>
+      <div className="min-h-screen bg-custom-primary text-custom-main flex transition-custom">
         <VideoPopup />
         <CurrencyUpdateAnnouncer />
 
@@ -331,93 +324,7 @@ const LayoutNovo = ({ children }) => {
           </div>
         </main>
 
-        {/* Sleek Floating Homologation Selector (Control Panel for the user) */}
-        <div className="fixed bottom-6 right-6 z-50 bg-custom-card border border-custom-color rounded-custom shadow-custom p-4 max-w-sm transition-custom animate-fade-in">
-          <div className="flex items-center gap-2 mb-3 border-b border-custom-color pb-2">
-            <Sliders className="w-4 h-4 text-custom-gold animate-pulse" />
-            <h4 className="font-bold text-xs tracking-wider uppercase text-custom-gold">Homologação de Layout</h4>
-          </div>
-          <p className="text-[11px] text-gray-500 dark:text-slate-400 mb-3">
-            Selecione uma das 6 propostas visuais do sistema em tempo real:
-          </p>
-          <div className="grid grid-cols-1 gap-1.5 max-h-60 overflow-y-auto pr-1">
-            <button
-              onClick={() => setLayoutVariant('lux-gold')}
-              className={`text-left px-3 py-1.5 text-xs rounded-custom font-medium transition-custom flex items-center justify-between cursor-pointer ${
-                layoutVariant === 'lux-gold'
-                  ? 'bg-custom-gold text-black font-bold shadow-sm'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <span>✨ 1. Golden Luxury (Ouro/Preto)</span>
-              {layoutVariant === 'lux-gold' && <span className="text-[9px] bg-black text-white px-1 rounded-sm">Ativo</span>}
-            </button>
-            <button
-              onClick={() => {
-                setLayoutVariant('neon-glass');
-                setTheme('dark');
-              }}
-              className={`text-left px-3 py-1.5 text-xs rounded-custom font-medium transition-custom flex items-center justify-between cursor-pointer ${
-                layoutVariant === 'neon-glass'
-                  ? 'bg-custom-gold text-black font-bold shadow-sm'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <span>🌌 2. Neon Glassmorphism (Vidro)</span>
-              {layoutVariant === 'neon-glass' && <span className="text-[9px] bg-black text-white px-1 rounded-sm">Ativo</span>}
-            </button>
-            <button
-              onClick={() => {
-                setLayoutVariant('scifi-hud');
-                setTheme('dark');
-              }}
-              className={`text-left px-3 py-1.5 text-xs rounded-custom font-medium transition-custom flex items-center justify-between cursor-pointer ${
-                layoutVariant === 'scifi-hud'
-                  ? 'bg-custom-gold text-black font-bold shadow-sm'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <span>🛰️ 3. Sci-Fi HUD Command (Hologram)</span>
-              {layoutVariant === 'scifi-hud' && <span className="text-[9px] bg-black text-white px-1 rounded-sm">Ativo</span>}
-            </button>
-            <button
-              onClick={() => {
-                setLayoutVariant('cosmic-aurora');
-                setTheme('dark');
-              }}
-              className={`text-left px-3 py-1.5 text-xs rounded-custom font-medium transition-custom flex items-center justify-between cursor-pointer ${
-                layoutVariant === 'cosmic-aurora'
-                  ? 'bg-custom-gold text-black font-bold shadow-sm'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <span>🛸 4. Cosmic Aurora (Espacial)</span>
-              {layoutVariant === 'cosmic-aurora' && <span className="text-[9px] bg-black text-white px-1 rounded-sm">Ativo</span>}
-            </button>
-            <button
-              onClick={() => setLayoutVariant('geo-brutalist')}
-              className={`text-left px-3 py-1.5 text-xs rounded-custom font-medium transition-custom flex items-center justify-between cursor-pointer ${
-                layoutVariant === 'geo-brutalist'
-                  ? 'bg-custom-gold text-black font-bold shadow-sm'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <span>📐 5. Geo Brutalist (Linhas Retas)</span>
-              {layoutVariant === 'geo-brutalist' && <span className="text-[9px] bg-black text-white px-1 rounded-sm">Ativo</span>}
-            </button>
-            <button
-              onClick={() => setLayoutVariant('modern-fluid')}
-              className={`text-left px-3 py-1.5 text-xs rounded-custom font-medium transition-custom flex items-center justify-between cursor-pointer ${
-                layoutVariant === 'modern-fluid'
-                  ? 'bg-custom-gold text-black font-bold shadow-sm'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <span>🌊 6. Modern Fluid (Suave)</span>
-              {layoutVariant === 'modern-fluid' && <span className="text-[9px] bg-black text-white px-1 rounded-sm">Ativo</span>}
-            </button>
-          </div>
-        </div>
+
 
         {/* MASCOTE GLOBAL */}
         <EduMascot />
