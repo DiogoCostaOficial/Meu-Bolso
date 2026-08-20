@@ -6,21 +6,26 @@ const LayoutVariantContext = createContext({
 });
 
 export const LayoutVariantProvider = ({ children }) => {
-  const [layoutVariant, setLayoutVariant] = useState(
-    () => localStorage.getItem('layout-variant') || 'lux-gold'
-  );
+  const [layoutVariant, setLayoutVariant] = useState('lux-gold');
 
   useEffect(() => {
     const root = window.document.documentElement;
-    // Remover classes antigas de layout
-    root.classList.remove('layout-lux-gold', 'layout-geo-brutalist', 'layout-modern-fluid');
-    // Adicionar a classe ativa
-    root.classList.add(`layout-${layoutVariant}`);
-    localStorage.setItem('layout-variant', layoutVariant);
-  }, [layoutVariant]);
+    // Remover todas as classes de layout customizadas antigas
+    root.classList.remove(
+      'layout-lux-gold',
+      'layout-geo-brutalist',
+      'layout-modern-fluid',
+      'layout-neon-glass',
+      'layout-scifi-hud',
+      'layout-cosmic-aurora'
+    );
+    // Adicionar a classe padrão (Lux Gold) que possui suporte correto a light e dark
+    root.classList.add('layout-lux-gold');
+    localStorage.setItem('layout-variant', 'lux-gold');
+  }, []);
 
   return (
-    <LayoutVariantContext.Provider value={{ layoutVariant, setLayoutVariant }}>
+    <LayoutVariantContext.Provider value={{ layoutVariant: 'lux-gold', setLayoutVariant }}>
       {children}
     </LayoutVariantContext.Provider>
   );
