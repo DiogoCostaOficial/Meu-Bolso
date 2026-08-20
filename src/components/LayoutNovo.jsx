@@ -144,64 +144,20 @@ const LayoutNovo = ({ children }) => {
 
           <div className="p-4 border-t border-custom-color space-y-2">
             <button
-              onClick={() => {
-                if (theme === "light" && layoutVariant !== "lux-gold" && layoutVariant !== "neon-glass" && layoutVariant !== "scifi-hud" && layoutVariant !== "cosmic-aurora") {
-                  setTheme("dark");
-                  setLayoutVariant("modern-fluid");
-                } else if (theme === "dark" && layoutVariant === "modern-fluid") {
-                  setLayoutVariant("lux-gold");
-                } else if (layoutVariant === "lux-gold") {
-                  setLayoutVariant("neon-glass");
-                } else if (layoutVariant === "neon-glass") {
-                  setLayoutVariant("scifi-hud");
-                } else if (layoutVariant === "scifi-hud") {
-                  setLayoutVariant("cosmic-aurora");
-                } else {
-                  setLayoutVariant("modern-fluid");
-                  setTheme("light");
-                }
-              }}
-              title={
-                isSidebarCollapsed
-                  ? `Tema: ${
-                      layoutVariant === "lux-gold"
-                        ? "Golden Luxury"
-                        : layoutVariant === "neon-glass"
-                        ? "Neon Glass"
-                        : layoutVariant === "scifi-hud"
-                        ? "Sci-Fi HUD"
-                        : layoutVariant === "cosmic-aurora"
-                        ? "Cosmic Aurora"
-                        : theme === "dark"
-                        ? "Escuro"
-                        : "Claro"
-                    }`
-                  : undefined
-              }
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              title={isSidebarCollapsed ? `Tema: ${theme === "dark" ? "Escuro" : "Claro"}` : undefined}
               className={`flex items-center w-full text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white rounded-custom transition-custom ${
                 isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'
               }`}
             >
-              {layoutVariant === "lux-gold" || layoutVariant === "neon-glass" || layoutVariant === "scifi-hud" || layoutVariant === "cosmic-aurora" ? (
-                <Sun className="w-5 h-5 text-custom-gold" />
-              ) : theme === "dark" ? (
-                <Moon className="w-5 h-5" />
-              ) : (
+              {theme === "dark" ? (
                 <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
               )}
               {!isSidebarCollapsed && (
                 <span className="font-medium text-[13px] truncate">
-                  {layoutVariant === "lux-gold"
-                    ? "Golden Luxury"
-                    : layoutVariant === "neon-glass"
-                    ? "Neon Glass"
-                    : layoutVariant === "scifi-hud"
-                    ? "Sci-Fi HUD"
-                    : layoutVariant === "cosmic-aurora"
-                    ? "Cosmic Aurora"
-                    : theme === "dark"
-                    ? "Tema Escuro"
-                    : "Tema Claro"}
+                  {theme === "dark" ? "Tema Claro" : "Tema Escuro"}
                 </span>
               )}
             </button>
