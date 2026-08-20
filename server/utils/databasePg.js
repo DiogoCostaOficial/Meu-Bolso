@@ -281,7 +281,7 @@ const salvarDadosUsuario = async (userId, dados) => {
 
         // 1.1 TRATAMENTO DE RECEITAS
         if (dados.receitas && Array.isArray(dados.receitas)) {
-            const receitaIds = dados.receitas.map(r => r.id).filter(id => id);
+            const receitaIds = dados.receitas.map(r => String(r.id)).filter(id => id && id !== 'undefined' && id !== 'null');
             if (receitaIds.length > 0) {
                 await client.query(`
           DELETE FROM transactions 
@@ -295,7 +295,7 @@ const salvarDadosUsuario = async (userId, dados) => {
 
         // 1.2 TRATAMENTO DE DESPESAS
         if (dados.despesas && Array.isArray(dados.despesas)) {
-            const despesaIds = dados.despesas.map(d => d.id).filter(id => id);
+            const despesaIds = dados.despesas.map(d => String(d.id)).filter(id => id && id !== 'undefined' && id !== 'null');
             if (despesaIds.length > 0) {
                 await client.query(`
           DELETE FROM transactions 
@@ -309,22 +309,41 @@ const salvarDadosUsuario = async (userId, dados) => {
 
         // 1.3 BATCH INSERT/UPDATE TRANSACTIONS
         if (incomingTransactions.length > 0) {
-            const tIds = incomingTransactions.map(t => t.id);
-            const tUserIds = incomingTransactions.map(() => userId);
-            const tDescs = incomingTransactions.map(t => t.descricao);
-            const tVals = incomingTransactions.map(t => t.valor);
-            const tDatas = incomingTransactions.map(t => t.dataLancamento || t.data);
-            const tDatasCompra = incomingTransactions.map(t => t.dataCompra || null);
-            const tDatasVencimento = incomingTransactions.map(t => t.dataVencimento || null);
-            const tCats = incomingTransactions.map(t => t.categoria);
-            const tSubcats = incomingTransactions.map(t => t.subcategoria);
-            const tTipos = incomingTransactions.map(t => t.tipo);
-            const tStatus = incomingTransactions.map(t => t.status);
-            const tStatusPg = incomingTransactions.map(t => t.statusPagamento);
-            const tParcelado = incomingTransactions.map(t => t.parcelado);
-            const tParcelas = incomingTransactions.map(t => t.parcelas || t.parcelas_total);
-            const tParcelaAtual = incomingTransactions.map(t => t.parcelaAtual || t.parcela_atual);
-            const tObs = incomingTransactions.map(t => t.observacao);
+            const tIds = incomingTransactions.map(t => String(t.id));
+            const tUserIds = incomingTransactions.map(() => String(userId));
+            const tDescs = incomingTransactions.map(t => String(t.descricao || ''));
+            const tVals = incomingTransactions.map(t => parseFloat(t.valor) || 0);
+            const tDatas = incomingTransactions.map(t => {
+                const d = t.dataLancamento || t.data;
+                if (!d) return new Date().toISOString().split('T')[0];
+                return String(d).split('T')[0];
+            });
+            const tDatasCompra = incomingTransactions.map(t => {
+                if (!t.dataCompra || t.dataCompra === '') return null;
+                return String(t.dataCompra).split('T')[0];
+            });
+            const tDatasVencimento = incomingTransactions.map(t => {
+                if (!t.dataVencimento || t.dataVencimento === '') return null;
+                return String(t.dataVencimento).split('T')[0];
+            });
+            const tCats = incomingTransactions.map(t => String(t.categoria || 'Geral'));
+            const tSubcats = incomingTransactions.map(t => t.subcategoria ? String(t.subcategoria) : null);
+            const tTipos = incomingTransactions.map(t => String(t.tipo));
+            const tStatus = incomingTransactions.map(t => t.status ? String(t.status) : null);
+            const tStatusPg = incomingTransactions.map(t => t.statusPagamento ? String(t.statusPagamento) : null);
+            const tParcelado = incomingTransactions.map(t => Boolean(t.parcelado));
+            const tParcelas = incomingTransactions.map(t => {
+                const val = t.parcelas || t.parcelas_total;
+                return val ? parseInt(val, 10) : null;
+            });
+            const tParcelaAtual = incomingTransactions.map(t => {
+                const val = t.parcelaAtual || t.parcela_atual;
+                return val ? parseInt(val, 10) : null;
+            });
+            const tObs = incomingTransactions.map(t => {
+                const val = t.observacao || t.observacoes;
+                return val ? String(val) : null;
+            });
 
             await client.query(`
         INSERT INTO transactions (

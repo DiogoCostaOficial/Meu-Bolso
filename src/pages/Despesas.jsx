@@ -301,7 +301,7 @@ const Despesas = () => {
         const dataParcela = adicionarMeses(formulario.dataLancamento || formulario.data, i);
         const dataVencParcela = formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '';
         const novaDespesa = {
-          id: Date.now() + i, // ID único para cada parcela
+          id: String(Date.now() + i), // ID único para cada parcela
           descricao: `${formulario.descricao} (Parcela ${i + 1}/${formulario.numeroParcelas})`,
           valor: valorPorParcela,
           data: dataVencParcela || dataParcela, // Effective grouping/reporting date
@@ -321,7 +321,7 @@ const Despesas = () => {
     } else {
       const dataDesp = formulario.dataLancamento || formulario.data;
       const novaDespesa = {
-        id: Date.now(),
+        id: String(Date.now()),
         descricao: formulario.descricao,
         valor: parseFloat(formulario.valor),
         data: formulario.dataVencimento || dataDesp, // Effective grouping/reporting date

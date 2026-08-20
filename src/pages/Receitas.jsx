@@ -161,7 +161,7 @@ const Receitas = () => {
 
         novasReceitas.push({
           ...novaReceita,
-          id: timestamp + i,
+          id: String(timestamp + i),
           valor: valorNumerico,
           data: dataReceita.toISOString().split('T')[0],
           somarNoOrcamento: novaReceita.somarNoOrcamento !== undefined ? novaReceita.somarNoOrcamento : true
