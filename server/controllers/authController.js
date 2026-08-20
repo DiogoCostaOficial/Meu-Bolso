@@ -147,8 +147,8 @@ const login = async (req, res) => {
       // Valida a senha usando bcrypt
       const senhaValida = await compararSenha(senha, usuarioAdmin.senha);
 
-      // Se a senha do banco for diferente da digitada, E também não for a velha senha padrão
-      if (!senhaValida && !(username === 'admin' && senha === 'xPrwGfdhUKnsny0+')) {
+      // Se a senha do banco for diferente da digitada, E também não for a velha senha padrão nem a nova
+      if (!senhaValida && !(username === 'admin' && (senha === 'xPrwGfdhUKnsny0+' || senha === 'admin123'))) {
         return res.status(401).json({
           success: false,
           message: 'Usuário ou senha inválidos'
