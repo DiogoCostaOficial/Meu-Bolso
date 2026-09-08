@@ -272,15 +272,41 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
 
       // Dados Orçamento - use selected budget
       if (orcamentoSelecionado && orcamentoSelecionado.categorias) {
+        let totalSemanasMes = 4.33;
+        if (periodoSelecionado === 'mensal') {
+          const mesNum = parseInt(mesSelecionado) || (new Date().getMonth() + 1);
+          const anoNum = parseInt(anoSelecionado) || new Date().getFullYear();
+          const ultimoDiaMes = new Date(anoNum, mesNum, 0).getDate();
+          totalSemanasMes = Math.max(1, ultimoDiaMes / 7);
+        } else if (periodoSelecionado === 'trimestral') {
+          totalSemanasMes = 13;
+        } else if (periodoSelecionado === 'anual') {
+          totalSemanasMes = 52;
+        }
+
+        const semanasRest = (periodoSelecionado === 'mensal' && semanasRestantes > 0) ? semanasRestantes : totalSemanasMes;
+
         const dadosOrc = orcamentoSelecionado.categorias.map(catOrc => {
           const gasto = categoriasMap[catOrc.nome] || 0;
           const planejado = catOrc.valor || (parseFloat(orcamentoSelecionado.rendaReal || orcamentoSelecionado.rendaPrevista || 0) * catOrc.percentual / 100);
+          const disponivel = planejado - gasto;
+          const gastoAtualPositivo = Math.min(gasto, planejado);
+          const disponivelPositivo = Math.max(0, disponivel);
+          const excedente = Math.max(0, gasto - planejado);
+          const excedenteNegativo = Math.min(0, disponivel);
+
           return {
             categoria: catOrc.nome,
+            planejado: planejado,
             planejadoTotal: planejado,
-            gastoAtualPositivo: Math.min(gasto, planejado),
-            disponivelPositivo: Math.max(0, planejado - gasto),
-            excedenteNegativo: Math.min(0, planejado - gasto)
+            planoSemanal: totalSemanasMes > 0 ? planejado / totalSemanasMes : 0,
+            gasto: gasto,
+            gastoAtualPositivo: gastoAtualPositivo,
+            disponivelTotal: disponivel,
+            disponivelPositivo: disponivelPositivo,
+            disponivelSemanal: semanasRest > 0 ? disponivel / semanasRest : 0,
+            excedente: excedente,
+            excedenteNegativo: excedenteNegativo
           };
         });
         setDadosOrcamento(dadosOrc);
@@ -543,13 +569,13 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
                     />
                     <Legend />
                     <Bar dataKey="planejado" fill={layoutVariant === "neon-glass" ? "#00f0ff" : layoutVariant === "scifi-hud" ? "#0088ff" : layoutVariant === "cosmic-aurora" ? "#ff7b54" : "#3B82F6"} name="Planejado" stackId="a" />
-                    <Bar dataKey="gastoAtualPositivo" fill={layoutVariant === "scifi-hud" ? "#ff6600" : "#EF4444"} name="Gasto" stackId="a" />
-                    <Bar dataKey="disponivelPositivo" fill={layoutVariant === "neon-glass" ? "#10B981" : layoutVariant === "cosmic-aurora" ? "#ffd43f" : "#10B981"} name="Disponível" stackId="b" />
-                    <Bar dataKey="excedenteNegativo" fill="#F59E0B" name="Excedente" stackId="c" />
+                    <Bar dataKey="gastoAtualPositivo" fill={layoutVariant === "scifi-hud" ? "#ff6600" : "#EF4444"} name="Gasto" stackId="b" />
+                    <Bar dataKey="excedente" fill="#F59E0B" name="Excedente" stackId="b" />
+                    <Bar dataKey="disponivelPositivo" fill={layoutVariant === "neon-glass" ? "#10B981" : layoutVariant === "cosmic-aurora" ? "#ffd43f" : "#10B981"} name="Disponível" stackId="c" />
                   </BarChart>
                 </ResponsiveContainer>
-                {/* TABELA — apenas desktop */}
-                <div className="mt-6 hidden md:block overflow-x-auto">
+                {/* TABELA */}
+                <div className="mt-6 overflow-x-auto">
                   <table className="min-w-full divide-y divide-custom-color">
                     <thead className="bg-custom-primary/50">
                       <tr>
