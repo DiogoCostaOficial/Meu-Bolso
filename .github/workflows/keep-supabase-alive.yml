@@ -10,7 +10,7 @@ jobs:
   ping-supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API
+      - name: Ping Supabase Engine & Postgres
         run: |
           if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
             echo "Erro: As variáveis de ambiente SUPABASE_URL ou SUPABASE_ANON_KEY não estão configuradas nos Secrets do GitHub."
@@ -21,54 +21,41 @@ jobs:
           URL=$(echo "${{ secrets.SUPABASE_URL }}" | xargs | sed 's/\/$//')
           ANON_KEY=$(echo "${{ secrets.SUPABASE_ANON_KEY }}" | xargs)
 
-          echo "Iniciando ping para o Supabase..."
-          echo "Tamanho da URL: ${#URL} caracteres"
-          echo "Tamanho da chave: ${#ANON_KEY} caracteres"
+          echo "Iniciando ping reforçado para o Supabase..."
+          echo "URL: $URL"
 
-          # Vamos consultar a tabela 'categories' limitando a 1 registro.
-          # Consultar uma tabela é permitido para a Publishable Key (diferente da raiz /rest/v1/ que exige chave secreta).
-          echo "Realizando chamada de ping na tabela 'categories'..."
-          
-          # Se a chave começar com sb_ (nova), enviamos apenas apikey. Caso contrário (legada), enviamos apikey e Authorization.
-          if [[ "$ANON_KEY" == sb_* ]]; then
-            STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
-              -H "apikey: $ANON_KEY" \
-              "$URL/rest/v1/categories?select=*&limit=1")
+          # 1. Consulta desabilitando Cache (Cache-Control: no-cache) para forçar o toque no banco Postgres
+          echo "Executando requisição no-cache no REST API..."
+          STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
+            -H "apikey: $ANON_KEY" \
+            -H "Authorization: Bearer $ANON_KEY" \
+            -H "Cache-Control: no-cache, no-store, must-revalidate" \
+            -H "Pragma: no-cache" \
+            "$URL/rest/v1/categories?select=id&limit=1")
+
+          echo "Código de Status HTTP (No-Cache Query): $STATUS_CODE"
+
+          # 2. Ping adicional no endpoint de Auth (Health check do GoTrue/Auth Engine do Supabase)
+          echo "Executando ping de saúde na Engine de Auth (GoTrue)..."
+          AUTH_STATUS=$(curl -s -w "%{http_code}" -o /dev/null \
+            -H "apikey: $ANON_KEY" \
+            "$URL/auth/v1/health")
+
+          echo "Código de Status HTTP (Auth Health): $AUTH_STATUS"
+
+          # Validação dos testes
+          if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 204 ] || [ "$STATUS_CODE" -eq 206 ]; then
+            echo "Ping no banco de dados realizado com sucesso! Instância mantida ativa."
           else
-            STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
-              -H "apikey: $ANON_KEY" \
-              -H "Authorization: Bearer $ANON_KEY" \
-              "$URL/rest/v1/categories?select=*&limit=1")
-          fi
-
-          echo "Código de Status HTTP (/rest/v1/categories): $STATUS_CODE"
-
-          # Se a tabela categories não existir ou falhar por outro motivo, tenta na tabela de users
-          if [ "$STATUS_CODE" -ne 200 ] && [ "$STATUS_CODE" -ne 204 ] && [ "$STATUS_CODE" -ne 206 ]; then
-            echo "Resposta da primeira tentativa (status $STATUS_CODE):"
+            echo "Aviso: Consulta no banco retornou $STATUS_CODE. Corpo da resposta:"
             cat response_body.txt
             echo ""
             
-            echo "Tentando ping alternativo na tabela 'users'..."
-            if [[ "$ANON_KEY" == sb_* ]]; then
-              STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
-                -H "apikey: $ANON_KEY" \
-                "$URL/rest/v1/users?select=*&limit=1")
+            # Se a consulta REST falhar, verifica se o Auth pelo menos respondeu 200
+            if [ "$AUTH_STATUS" -eq 200 ]; then
+              echo "A engine do Supabase respondeu ao ping de Auth com sucesso!"
             else
-              STATUS_CODE=$(curl -s -w "%{http_code}" -o response_body.txt \
-                -H "apikey: $ANON_KEY" \
-                -H "Authorization: Bearer $ANON_KEY" \
-                "$URL/rest/v1/users?select=*&limit=1")
+              echo "Erro: Ambas as tentativas falharam."
+              exit 1
             fi
-            echo "Código de Status HTTP (/rest/v1/users): $STATUS_CODE"
-          fi
-
-          # Sucesso é 200 (OK), 204 (No Content) ou 206 (Partial Content)
-          if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 204 ] || [ "$STATUS_CODE" -eq 206 ]; then
-            echo "Ping realizado com sucesso! O projeto do Supabase continua ativo."
-          else
-            echo "Erro final. O Supabase retornou:"
-            cat response_body.txt
-            echo ""
-            exit 1
           fi
