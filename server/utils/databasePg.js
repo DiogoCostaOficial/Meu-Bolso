@@ -8,29 +8,43 @@ const pool = new Pool({
     }
 });
 
-const inicializarDB = async () => {
-    try {
-        const client = await pool.connect();
-        console.log('✅ Conectado ao Supabase Postgres');
-        try {
-            await client.query(`
-                ALTER TABLE categories 
-                ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
-                ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
+let dbInitPromise = null;
 
-                ALTER TABLE transactions 
-                ADD COLUMN IF NOT EXISTS cartao TEXT,
-                ADD COLUMN IF NOT EXISTS cartao_id TEXT,
-                ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20);
-            `);
-        } catch (colErr) {
-            console.warn('Nota: Não foi possível verificar/adicionar colunas em categories:', colErr.message);
-        }
-        client.release();
-    } catch (err) {
-        console.error('Erro ao conectar ao DB:', err);
+const inicializarDB = async () => {
+    if (!dbInitPromise) {
+        dbInitPromise = (async () => {
+            let client;
+            try {
+                client = await pool.connect();
+                console.log('🐘 Conectado ao Supabase Postgres - Verificando migrações de schema...');
+                try {
+                    await client.query(`
+                        ALTER TABLE categories 
+                        ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
+                        ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
+
+                        ALTER TABLE transactions 
+                        ADD COLUMN IF NOT EXISTS cartao TEXT,
+                        ADD COLUMN IF NOT EXISTS cartao_id TEXT,
+                        ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20);
+                    `);
+                    console.log('✅ Migração de colunas concluída com sucesso no PostgreSQL!');
+                } catch (colErr) {
+                    console.warn('Nota: Aviso ao aplicar colunas no Postgres:', colErr.message);
+                }
+            } catch (err) {
+                console.error('Erro ao conectar ao DB na inicialização:', err);
+                dbInitPromise = null;
+            } finally {
+                if (client) client.release();
+            }
+        })();
     }
+    return dbInitPromise;
 };
+
+// Executa automaticamente na carga do módulo
+inicializarDB().catch(() => {});
 
 const getUsuarios = async () => {
     try {
@@ -146,6 +160,7 @@ const atualizarUsuario = async (usuario) => {
 };
 
 const buscarDadosUsuario = async (userId) => {
+    await inicializarDB();
     const client = await pool.connect();
     try {
         const receitasRes = await client.query("SELECT * FROM transactions WHERE user_id = $1 AND tipo = 'receita'", [userId]);
@@ -300,6 +315,7 @@ const buscarDadosUsuario = async (userId) => {
 };
 
 const salvarDadosUsuario = async (userId, dados) => {
+    await inicializarDB();
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -614,9 +630,11 @@ const salvarDadosUsuario = async (userId, dados) => {
 
         return true;
     } catch (err) {
-        await client.query('ROLLBACK');
-        console.error('Erro ao salvar dados do usuário:', err);
-        return false;
+        try {
+            await client.query('ROLLBACK');
+        } catch (_) {}
+        console.error('Erro ao salvar dados do usuário no Postgres:', err);
+        throw err;
     } finally {
         client.release();
     }
@@ -639,6 +657,7 @@ const deletarUsuario = async (userId) => {
 };
 
 const adicionarTransacao = async (userId, transacao) => {
+    await inicializarDB();
     try {
         await pool.query(`
             INSERT INTO transactions (
@@ -675,6 +694,7 @@ const adicionarTransacao = async (userId, transacao) => {
 };
 
 const atualizarTransacao = async (userId, transacaoId, transacao) => {
+    await inicializarDB();
     try {
         await pool.query(`
             UPDATE transactions SET

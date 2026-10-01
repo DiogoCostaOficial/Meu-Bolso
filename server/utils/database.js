@@ -12,4 +12,11 @@ if (shouldUseJson) {
   dbImpl = require('./databasePg');
 }
 
+// Inicializa o banco de dados (cria/atualiza tabelas e colunas se necessário)
+if (dbImpl.inicializarDB) {
+  dbImpl.inicializarDB().catch(err => {
+    console.error('Erro na inicialização do banco de dados:', err);
+  });
+}
+
 module.exports = dbImpl;

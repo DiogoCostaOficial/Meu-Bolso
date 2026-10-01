@@ -140,7 +140,7 @@ const salvarDados = async (req, res) => {
     }
     const ok = await db.salvarDadosUsuario(userId, dados);
     if (!ok) {
-      return res.status(500).json({ success: false, message: 'Erro ao salvar dados (db.salvarDadosUsuario retornou false)', sucesso: false, mensagem: 'Erro ao salvar dados (db.salvarDadosUsuario retornou false)' });
+      return res.status(500).json({ success: false, message: 'Erro ao salvar dados no banco de dados', sucesso: false, mensagem: 'Erro ao salvar dados no banco de dados' });
     }
     res.json({ success: true, message: 'Dados salvos com sucesso', data: dados, sucesso: true, mensagem: 'Dados salvos com sucesso', dados });
   } catch (error) {

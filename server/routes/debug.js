@@ -52,4 +52,19 @@ router.get('/test-email', async (req, res) => {
     }
 });
 
+router.get('/migrate', async (req, res) => {
+    try {
+        const db = require('../utils/database');
+        if (db.inicializarDB) {
+            await db.inicializarDB();
+            res.json({ success: true, message: 'Migração de colunas executada com sucesso no banco de dados!' });
+        } else {
+            res.json({ success: true, message: 'Inicialização não necessária para este driver de armazenamento.' });
+        }
+    } catch (err) {
+        console.error('Erro na rota /debug/migrate:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 module.exports = router;
