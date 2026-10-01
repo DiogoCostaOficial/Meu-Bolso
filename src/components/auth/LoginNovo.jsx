@@ -83,7 +83,7 @@ const LoginNovo = () => {
 
       if (result.success) {
         toast.success("Login realizado com sucesso!");
-        if (result.primeiroAcesso || result.loginEspecial) {
+        if (result.primeiroAcesso) {
           navigate('/alterar-senha-obrigatorio');
         } else {
           navigate('/dashboard');

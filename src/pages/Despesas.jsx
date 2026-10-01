@@ -78,6 +78,7 @@ const Despesas = () => {
   const { showLesson } = useEdu();
   const { formatCurrency: formatarMoeda } = useCurrency();
   const [despesas, setDespesas] = useState([]);
+  const [cartoes, setCartoes] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
   const [categorias, setCategorias] = useState(categoriasDefault); // Inicializa com as categorias padrão
@@ -113,7 +114,9 @@ const Despesas = () => {
     dataVencimento: '', // Campo de data de vencimento para edição inline
     dataCompra: '', // Campo de data da compra para edição inline
     dataLancamento: '', // Campo de data de lançamento para edição inline
-    somarNoOrcamento: true // Campo para definir se soma no orçamento
+    somarNoOrcamento: true, // Campo para definir se soma no orçamento
+    cartao: '',
+    cartaoId: ''
   });
 
   // Função para obter as subcategorias disponíveis para uma dada categoria (Baseada no estado atual)
@@ -142,7 +145,9 @@ const Despesas = () => {
     statusPagamento: 'pendente', // Status inicial para novas despesas
     dataVencimento: '', // Campo para data de vencimento
     dataCompra: '', // Campo para data da compra
-    somarNoOrcamento: true // Padrão: somar ao orçamento
+    somarNoOrcamento: true, // Padrão: somar ao orçamento
+    cartao: '',
+    cartaoId: ''
   });
 
   // Gera lista de anos (últimos 5 anos + próximos 2 anos)
@@ -191,7 +196,11 @@ const Despesas = () => {
       const userData = response.data.dados || {};
       const despesasData = userData.despesas || [];
 
-      // Garante que todas as despesas carregadas tenham statusPagamento, observacoes, dataVencimento, dataCompra e dataLancamento
+      if (Array.isArray(userData.cartoes)) {
+        setCartoes(userData.cartoes);
+      }
+
+      // Garante que todas as despesas carregadas tenham statusPagamento, observacoes, dataVencimento, dataCompra, dataLancamento e cartao
       const despesasComDefaults = despesasData.map(d => ({
         ...d,
         statusPagamento: d.statusPagamento || d.status_pagamento || 'pendente',
@@ -199,7 +208,10 @@ const Despesas = () => {
         dataVencimento: d.dataVencimento || '',
         dataCompra: d.dataCompra || '',
         dataLancamento: d.dataLancamento || d.data,
-        somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true
+        somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true,
+        cartao: d.cartao || '',
+        cartaoId: d.cartaoId || d.cartao_id || '',
+        mesFatura: d.mesFatura || d.mes_fatura || ''
       }));
       setDespesas(despesasComDefaults);
     } catch (error) {
@@ -294,12 +306,29 @@ const Despesas = () => {
       alert('Preencha a descrição, valor, categoria e subcategoria!');
       return;
     }
+    const cartaoSelecionado = cartoes.find(c => c.nome === formulario.cartao || c.id === formulario.cartaoId);
+    const cartaoNome = cartaoSelecionado ? cartaoSelecionado.nome : (formulario.cartao || '');
+    const cartaoId = cartaoSelecionado ? cartaoSelecionado.id : '';
+
     let novasDespesas = [];
     if (formulario.parcelado) {
       const valorPorParcela = parseFloat(formulario.valor) / formulario.numeroParcelas;
       for (let i = 0; i < formulario.numeroParcelas; i++) {
         const dataParcela = adicionarMeses(formulario.dataLancamento || formulario.data, i);
-        const dataVencParcela = formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '';
+        let dataVencParcela = formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '';
+        let mesFaturaParcela = '';
+
+        if (cartaoNome) {
+          if (dataVencParcela) {
+            mesFaturaParcela = dataVencParcela.slice(0, 7);
+          } else {
+            // Mês seguinte automático para compras no cartão (Regras A1 e A2)
+            const dataRef = formulario.dataCompra || formulario.dataLancamento || formulario.data;
+            dataVencParcela = adicionarMeses(dataRef, 1 + i);
+            mesFaturaParcela = dataVencParcela.slice(0, 7);
+          }
+        }
+
         const novaDespesa = {
           id: String(Date.now() + i), // ID único para cada parcela
           descricao: `${formulario.descricao} (Parcela ${i + 1}/${formulario.numeroParcelas})`,
@@ -314,17 +343,34 @@ const Despesas = () => {
           statusPagamento: formulario.statusPagamento || 'pendente', // Status definido pelo usuário
           dataVencimento: dataVencParcela, // Data de vencimento para parcelas
           dataCompra: formulario.dataCompra || '', // Data de compra para parcelas
-          somarNoOrcamento: formulario.somarNoOrcamento
+          somarNoOrcamento: formulario.somarNoOrcamento,
+          cartao: cartaoNome,
+          cartaoId: cartaoId,
+          mesFatura: mesFaturaParcela
         };
         novasDespesas.push(novaDespesa);
       }
     } else {
       const dataDesp = formulario.dataLancamento || formulario.data;
+      let dataVencFinal = formulario.dataVencimento || '';
+      let mesFaturaFinal = '';
+
+      if (cartaoNome) {
+        if (dataVencFinal) {
+          mesFaturaFinal = dataVencFinal.slice(0, 7);
+        } else {
+          // Mês seguinte automático para compras no cartão (Regra A1)
+          const dataRef = formulario.dataCompra || dataDesp;
+          dataVencFinal = adicionarMeses(dataRef, 1);
+          mesFaturaFinal = dataVencFinal.slice(0, 7);
+        }
+      }
+
       const novaDespesa = {
         id: String(Date.now()),
         descricao: formulario.descricao,
         valor: parseFloat(formulario.valor),
-        data: formulario.dataVencimento || dataDesp, // Effective grouping/reporting date
+        data: dataVencFinal || dataDesp, // Effective grouping/reporting date
         dataLancamento: dataDesp, // Original launch date
         categoria: formulario.categoria,
         subcategoria: formulario.subcategoria,
@@ -332,9 +378,12 @@ const Despesas = () => {
         parcelado: formulario.parcelado,
         numeroParcelas: formulario.numeroParcelas,
         statusPagamento: formulario.statusPagamento || 'pendente', // Status definido pelo usuário
-        dataVencimento: formulario.dataVencimento || '', // Data de vencimento para despesa única
+        dataVencimento: dataVencFinal, // Data de vencimento para despesa única
         dataCompra: formulario.dataCompra || '', // Data da compra para despesa única
-        somarNoOrcamento: formulario.somarNoOrcamento
+        somarNoOrcamento: formulario.somarNoOrcamento,
+        cartao: cartaoNome,
+        cartaoId: cartaoId,
+        mesFatura: mesFaturaFinal
       };
       novasDespesas.push(novaDespesa);
     }
@@ -364,7 +413,9 @@ const Despesas = () => {
       dataVencimento: '', // Resetar data de vencimento
       dataCompra: '', // Resetar data da compra
       dataLancamento: new Date().toISOString().split('T')[0], // Resetar data de lançamento
-      somarNoOrcamento: true // Resetar para padrão
+      somarNoOrcamento: true, // Resetar para padrão
+      cartao: '',
+      cartaoId: ''
     });
     setEditando(null);
     setMostrarFormulario(false);
@@ -384,7 +435,9 @@ const Despesas = () => {
       dataLancamento: despesa.dataLancamento || despesa.data, // Preencher data de lançamento
       somarNoOrcamento: despesa.somarNoOrcamento !== undefined ? despesa.somarNoOrcamento : true,
       parcelado: despesa.parcelado || false,
-      numeroParcelas: despesa.numeroParcelas || 1
+      numeroParcelas: despesa.numeroParcelas || 1,
+      cartao: despesa.cartao || '',
+      cartaoId: despesa.cartaoId || ''
     });
     setMostrarFormulario(false);
     setMostrarBulkEditForm(false);
@@ -449,14 +502,33 @@ const Despesas = () => {
       }
     } else {
       // Edição simples sem alteração de parcelamento estrutural
-      updatedDespesas = updatedDespesas.map(d =>
-        d.id === id ? {
-          ...d,
-          ...inlineEditForm,
-          data: inlineEditForm.dataVencimento || inlineEditForm.dataLancamento || d.data,
-          valor: valorNumerico
-        } : d
-      );
+      updatedDespesas = updatedDespesas.map(d => {
+        if (d.id === id) {
+          const cartaoNome = inlineEditForm.cartao !== undefined ? inlineEditForm.cartao : (d.cartao || '');
+          const cartaoObj = cartoes.find(c => c.nome === cartaoNome);
+          let mesFatura = d.mesFatura || '';
+          if (cartaoNome) {
+            if (inlineEditForm.dataVencimento) {
+              mesFatura = inlineEditForm.dataVencimento.slice(0, 7);
+            } else {
+              const dataRef = inlineEditForm.dataCompra || inlineEditForm.dataLancamento || d.data;
+              mesFatura = adicionarMeses(dataRef, 1).slice(0, 7);
+            }
+          } else {
+            mesFatura = '';
+          }
+          return {
+            ...d,
+            ...inlineEditForm,
+            cartao: cartaoNome,
+            cartaoId: cartaoObj?.id || '',
+            mesFatura,
+            data: inlineEditForm.dataVencimento || inlineEditForm.dataLancamento || d.data,
+            valor: valorNumerico
+          };
+        }
+        return d;
+      });
     }
 
     // Atualizar estado local imediatamente para feedback visual instantâneo
@@ -465,7 +537,7 @@ const Despesas = () => {
     // Usar debounce para edição inline
     debouncedSave(updatedDespesas);
     setEditingItemId(null);
-    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true, parcelado: false, numeroParcelas: 1 }); // Resetar campos
+    setInlineEditForm({ descricao: '', valor: '', categoria: '', subcategoria: '', observacoes: '', dataVencimento: '', dataCompra: '', dataLancamento: '', somarNoOrcamento: true, parcelado: false, numeroParcelas: 1, cartao: '', cartaoId: '' }); // Resetar campos
   };
 
   const handleInlineCancel = () => {
@@ -953,6 +1025,27 @@ const Despesas = () => {
                     >
                       <option value="pendente">Pendente</option>
                       <option value="pago">Pago</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="cartao" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-custom-gold" />
+                      Cartão (opcional)
+                    </label>
+                    <select
+                      id="cartao"
+                      name="cartao"
+                      value={formulario.cartao || ''}
+                      onChange={handleChange}
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800 cursor-pointer"
+                      style={{ fontSize: '16px' }}
+                    >
+                      <option value="">Nenhum (Não vinculado)</option>
+                      {cartoes.map(c => (
+                        <option key={c.id || c.nome} value={c.nome}>
+                          {c.nome}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -1658,6 +1751,32 @@ const Despesas = () => {
                                     />
                                   </div>
                                 )}
+
+                                {/* Cartão de Crédito na Edição Inline */}
+                                <div className="mt-1 pt-1 border-t border-gray-100">
+                                  <label className="text-[10px] text-gray-500 font-medium block">Cartão:</label>
+                                  <select
+                                    name="cartao"
+                                    value={inlineEditForm.cartao || ''}
+                                    onChange={(e) => {
+                                      const nome = e.target.value;
+                                      const c = cartoes.find(card => card.nome === nome);
+                                      setInlineEditForm(prev => ({
+                                        ...prev,
+                                        cartao: nome,
+                                        cartaoId: c ? c.id : ''
+                                      }));
+                                    }}
+                                    className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                  >
+                                    <option value="">Sem cartão vinculado</option>
+                                    {cartoes.map(c => (
+                                      <option key={c.id || c.nome} value={c.nome}>
+                                        {c.nome} {c.banco ? `(${c.banco})` : ''}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
                               </div>
                             </div>
                           ) : (
@@ -1665,6 +1784,19 @@ const Despesas = () => {
                               <p className="font-medium">{despesa.descricao}</p>
                               {despesa.observacoes && (
                                 <p className="text-xs text-gray-500 italic mt-1">Obs: {despesa.observacoes}</p>
+                              )}
+                              {despesa.cartao && (
+                                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-semibold rounded-full border border-blue-200">
+                                    <CreditCard size={11} className="text-blue-500" />
+                                    {despesa.cartao}
+                                  </span>
+                                  {despesa.mesFatura && (
+                                    <span className="text-[10px] text-blue-600 bg-blue-50/60 px-1.5 py-0.5 rounded border border-blue-100">
+                                      Fatura: {despesa.mesFatura}
+                                    </span>
+                                  )}
+                                </div>
                               )}
                               {despesa.dataVencimento && (
                                 <p className="text-xs text-red-500 mt-1">Vencimento: {formatarData(despesa.dataVencimento)}</p>

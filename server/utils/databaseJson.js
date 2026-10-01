@@ -192,7 +192,10 @@ const adicionarTransacao = async (userId, transacao) => {
             parcelado: transacao.parcelado || false,
             parcelas: transacao.parcelas || transacao.parcelas_total || null,
             parcelaAtual: transacao.parcelaAtual || transacao.parcela_atual || null,
-            observacao: transacao.observacao || transacao.observacoes || null
+            observacao: transacao.observacao || transacao.observacoes || null,
+            cartao: transacao.cartao || null,
+            cartaoId: transacao.cartaoId || transacao.cartao_id || null,
+            mesFatura: transacao.mesFatura || transacao.mes_fatura || null
         };
 
         if (transacao.tipo === 'receita') {
@@ -233,7 +236,10 @@ const atualizarTransacao = async (userId, transacaoId, transacao) => {
             parcelado: transacao.parcelado !== undefined ? transacao.parcelado : existing.parcelado,
             parcelas: transacao.parcelas !== undefined ? transacao.parcelas : (transacao.parcelas_total !== undefined ? transacao.parcelas_total : existing.parcelas),
             parcelaAtual: transacao.parcelaAtual !== undefined ? transacao.parcelaAtual : (transacao.parcela_atual !== undefined ? transacao.parcela_atual : existing.parcelaAtual),
-            observacao: transacao.observacao !== undefined ? transacao.observacao : (transacao.observacoes !== undefined ? transacao.observacoes : existing.observacao)
+            observacao: transacao.observacao !== undefined ? transacao.observacao : (transacao.observacoes !== undefined ? transacao.observacoes : existing.observacao),
+            cartao: transacao.cartao !== undefined ? transacao.cartao : existing.cartao,
+            cartaoId: transacao.cartaoId !== undefined ? transacao.cartaoId : (transacao.cartao_id !== undefined ? transacao.cartao_id : existing.cartaoId),
+            mesFatura: transacao.mesFatura !== undefined ? transacao.mesFatura : (transacao.mes_fatura !== undefined ? transacao.mes_fatura : existing.mesFatura)
         });
 
         if (dados.receitas) {

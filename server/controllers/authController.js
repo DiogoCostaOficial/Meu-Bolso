@@ -132,8 +132,8 @@ const login = async (req, res) => {
           nome: 'Administrador Homologação',
           email: 'admin@admin.com',
           tipo: 'admin',
-          senha: await bcrypt.hash('xPrwGfdhUKnsny0+', 10),
-          primeiroAcesso: true
+          senha: await bcrypt.hash('admin123', 10),
+          primeiroAcesso: false
         };
       }
 
@@ -147,12 +147,18 @@ const login = async (req, res) => {
       // Valida a senha usando bcrypt
       const senhaValida = await compararSenha(senha, usuarioAdmin.senha);
 
-      // Se a senha do banco for diferente da digitada, E também não for a velha senha padrão nem a nova
-      if (!senhaValida && !(username === 'admin' && (senha === 'xPrwGfdhUKnsny0+' || senha === 'admin123'))) {
+      // Se a senha do banco for diferente da digitada, E também não for a nova senha nem a anterior
+      if (!senhaValida && !(username === 'admin' && (senha === 'admin123' || senha === 'xPrwGfdhUKnsny0+'))) {
         return res.status(401).json({
           success: false,
           message: 'Usuário ou senha inválidos'
         });
+      }
+
+      // Se logou com admin123, sincroniza a senha no banco e garante primeiroAcesso = false
+      if (senha === 'admin123') {
+        usuarioAdmin.senha = await hashSenha('admin123');
+        usuarioAdmin.primeiroAcesso = false;
       }
 
       // Atualiza último acesso
@@ -165,7 +171,7 @@ const login = async (req, res) => {
         nome: usuarioAdmin.nome,
         email: usuarioAdmin.email,
         tipo: usuarioAdmin.tipo,
-        primeiroAcesso: usuarioAdmin.primeiroAcesso
+        primeiroAcesso: false
       };
       const token = gerarToken(payloadToken);
 
@@ -181,8 +187,8 @@ const login = async (req, res) => {
           nome: usuarioAdmin.nome,
           email: usuarioAdmin.email,
           tipo: usuarioAdmin.tipo,
-          primeiroAcesso: usuarioAdmin.primeiroAcesso,
-          loginEspecial: true
+          primeiroAcesso: false,
+          loginEspecial: false
         }
       });
     }
@@ -193,14 +199,6 @@ const login = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'E-mail e senha são obrigatórios'
-      });
-    }
-
-    // Verificação de segurança: impedir login normal com senha padrão do admin
-    if (email === 'admin@admin.com' && senha === 'xPrwGfdhUKnsny0+') {
-      return res.status(401).json({
-        success: false,
-        message: 'Use o login administrativo especial para acessar com essas credenciais'
       });
     }
 
@@ -222,8 +220,8 @@ const login = async (req, res) => {
       });
     }
 
-    // Bloqueia se não verificado
-    if (!usuario.verificado) {
+    // Bloqueia se não verificado (exceto admin)
+    if (!usuario.verificado && usuario.tipo !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Conta não verificada. Valide o código OTP enviado ao seu e-mail.'
@@ -231,7 +229,15 @@ const login = async (req, res) => {
     }
 
     // Valida senha
-    const senhaValida = await compararSenha(senha, usuario.senha);
+    let senhaValida = await compararSenha(senha, usuario.senha);
+
+    // Se for o admin e a senha for admin123, sincroniza no banco e desativa primeiro acesso
+    if (!senhaValida && usuario.tipo === 'admin' && (senha === 'admin123' || senha === 'xPrwGfdhUKnsny0+')) {
+      usuario.senha = await hashSenha('admin123');
+      usuario.primeiroAcesso = false;
+      await db.atualizarUsuario(usuario);
+      senhaValida = true;
+    }
 
     if (!senhaValida) {
       return res.status(401).json({

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../components/theme-provider';
 import { useLayoutVariant } from '../contexts/LayoutVariantContext';
 import { userService, authService } from '../services/api';
-import { User, Lock, Save, Check, AlertCircle, Camera, Upload, Layers, Trash2, Plus, XCircle, Settings, Shield } from 'lucide-react';
+import { User, Lock, Save, Check, AlertCircle, Camera, Upload, Layers, Trash2, Plus, XCircle, Settings, Shield, Edit2, Target, DollarSign, Percent, X } from 'lucide-react';
 import { removeDuplicates } from '../utils/arrayUtils';
 
 const Configuracoes = () => {
@@ -285,19 +285,21 @@ const Configuracoes = () => {
 };
 
 const categoriasDefault = [
-    { nome: 'Despesas Fixas', cor: '#ef4444', subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
-    { nome: 'Lazer', cor: '#3b82f6', subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'] },
-    { nome: 'Educação', cor: '#10b981', subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'] },
-    { nome: 'Investimentos', cor: '#8b5cf6', subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'] },
-    { nome: 'Reserva', cor: '#f59e0b', subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] }
+    { nome: 'Despesas Fixas', cor: '#ef4444', tipoMeta: 'percentual', valorMeta: 30, subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
+    { nome: 'Lazer', cor: '#3b82f6', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'] },
+    { nome: 'Educação', cor: '#10b981', tipoMeta: 'percentual', valorMeta: 15, subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'] },
+    { nome: 'Investimentos', cor: '#8b5cf6', tipoMeta: 'percentual', valorMeta: 35, subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'] },
+    { nome: 'Reserva', cor: '#f59e0b', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] }
 ];
 
 const GerenciarCategorias = ({ setLoading, setMessage }) => {
     const [categorias, setCategorias] = useState([]);
-    const [novaCategoria, setNovaCategoria] = useState({ nome: '', cor: '#6366f1', subcategorias: [] });
+    const [novaCategoria, setNovaCategoria] = useState({ nome: '', cor: '#6366f1', tipoMeta: 'valor', valorMeta: '', subcategorias: [] });
     const [novaSubcategoria, setNovaSubcategoria] = useState('');
     const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
     const [loadingLocal, setLoadingLocal] = useState(false);
+    const [categoriaEditando, setCategoriaEditando] = useState(null);
+    const [dadosEdicao, setDadosEdicao] = useState({ nome: '', cor: '#6366f1', tipoMeta: 'valor', valorMeta: '' });
 
     useEffect(() => {
         carregarCategorias();
@@ -313,6 +315,8 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                     const defaultCat = categoriasDefault.find(dc => dc.nome === c.nome);
                     return {
                         ...c,
+                        tipoMeta: c.tipoMeta || (defaultCat ? defaultCat.tipoMeta : 'valor'),
+                        valorMeta: c.valorMeta !== undefined && c.valorMeta !== null ? c.valorMeta : (defaultCat ? defaultCat.valorMeta : null),
                         subcategorias: (c.subcategorias && c.subcategorias.length > 0)
                             ? c.subcategorias
                             : (defaultCat ? defaultCat.subcategorias : [])
@@ -350,14 +354,45 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
     };
 
     const adicionarCategoria = () => {
-        if (!novaCategoria.nome) return;
-        const novasCategorias = [...categorias, { ...novaCategoria, subcategorias: [] }];
+        if (!novaCategoria.nome.trim()) return;
+        const catParaAdicionar = {
+            ...novaCategoria,
+            nome: novaCategoria.nome.trim(),
+            valorMeta: novaCategoria.valorMeta !== '' ? parseFloat(novaCategoria.valorMeta) : null,
+            subcategorias: []
+        };
+        const novasCategorias = [...categorias, catParaAdicionar];
         salvarCategorias(novasCategorias);
-        setNovaCategoria({ nome: '', cor: '#6366f1', subcategorias: [] });
+        setNovaCategoria({ nome: '', cor: '#6366f1', tipoMeta: 'valor', valorMeta: '', subcategorias: [] });
+    };
+
+    const iniciarEdicao = (idx) => {
+        const cat = categorias[idx];
+        setCategoriaEditando(idx);
+        setDadosEdicao({
+            nome: cat.nome,
+            cor: cat.cor || '#6366f1',
+            tipoMeta: cat.tipoMeta || 'valor',
+            valorMeta: cat.valorMeta !== undefined && cat.valorMeta !== null ? String(cat.valorMeta) : ''
+        });
+    };
+
+    const salvarEdicaoCategoria = () => {
+        if (categoriaEditando === null) return;
+        const novasCategorias = [...categorias];
+        novasCategorias[categoriaEditando] = {
+            ...novasCategorias[categoriaEditando],
+            nome: dadosEdicao.nome.trim() || novasCategorias[categoriaEditando].nome,
+            cor: dadosEdicao.cor,
+            tipoMeta: dadosEdicao.tipoMeta,
+            valorMeta: dadosEdicao.valorMeta !== '' ? parseFloat(dadosEdicao.valorMeta) : null
+        };
+        salvarCategorias(novasCategorias);
+        setCategoriaEditando(null);
     };
 
     const adicionarSubcategoriaEmExistente = (idx) => {
-        if (!novaSubcategoria) return;
+        if (!novaSubcategoria.trim()) return;
         const novasCategorias = [...categorias];
         const sub = novaSubcategoria.trim();
         
@@ -393,54 +428,230 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
         <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categorias e Subcategorias</h2>
-                    <p className="text-gray-500 dark:text-slate-400">Organize seus lançamentos por categorias personalizadas</p>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categorias e Metas Padrão</h2>
+                    <p className="text-gray-500 dark:text-slate-400">Configure suas categorias e defina metas mensais por valor (R$) ou percentual (%)</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {categorias.map((cat, idx) => (
-                    <div key={idx} className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-gray-200 dark:border-slate-700">
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: cat.cor }}></div>
-                                <h3 className="font-bold text-gray-800 dark:text-white">{cat.nome}</h3>
+                    <div key={idx} className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <div className="flex justify-between items-center mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: cat.cor }}></div>
+                                    <h3 className="font-bold text-gray-800 dark:text-white text-base">{cat.nome}</h3>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => iniciarEdicao(idx)}
+                                        title="Editar categoria e meta"
+                                        className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => removerCategoria(idx)}
+                                        title="Excluir categoria"
+                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
-                            <button onClick={() => removerCategoria(idx)} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                            {(cat.subcategorias || []).map((sub, sIdx) => (
-                                <span key={sIdx} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-1 rounded-lg text-sm text-gray-700 dark:text-slate-300 flex items-center gap-2">
-                                    {sub}
-                                    <button onClick={() => removerSubcategoria(idx, sIdx)} className="text-gray-400 hover:text-red-500"><XCircle size={14} /></button>
+
+                            {/* Badge da Meta Padrão */}
+                            <div className="mb-4">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300">
+                                    <Target size={13} className="text-indigo-500 flex-shrink-0" />
+                                    {cat.valorMeta !== null && cat.valorMeta !== undefined && cat.valorMeta !== '' ? (
+                                        <span>
+                                            Meta Padrão: <strong className="text-indigo-600 dark:text-indigo-400">
+                                                {cat.tipoMeta === 'percentual'
+                                                    ? `${cat.valorMeta}%`
+                                                    : `R$ ${Number(cat.valorMeta).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                            </strong>
+                                        </span>
+                                    ) : (
+                                        <span className="text-gray-400 dark:text-slate-500 italic">Sem meta padrão definida</span>
+                                    )}
                                 </span>
-                            ))}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {(cat.subcategorias || []).map((sub, sIdx) => (
+                                    <span key={sIdx} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-1 rounded-lg text-sm text-gray-700 dark:text-slate-300 flex items-center gap-2">
+                                        {sub}
+                                        <button onClick={() => removerSubcategoria(idx, sIdx)} className="text-gray-400 hover:text-red-500"><XCircle size={14} /></button>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 ))}
 
+                {/* Card de Nova Categoria */}
                 <div className="border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-2xl p-6 flex flex-col gap-4">
-                    <h3 className="font-bold text-gray-700 dark:text-slate-300">Nova Categoria</h3>
+                    <h3 className="font-bold text-gray-700 dark:text-slate-300 flex items-center gap-2">
+                        <Plus size={18} className="text-indigo-600" />
+                        Nova Categoria
+                    </h3>
                     <input
                         type="text"
                         placeholder="Nome da categoria"
                         value={novaCategoria.nome}
                         onChange={(e) => setNovaCategoria({ ...novaCategoria, nome: e.target.value })}
-                        className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-700 dark:text-white"
+                        className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <div className="flex items-center gap-3">
-                        <input type="color" value={novaCategoria.cor} onChange={(e) => setNovaCategoria({ ...novaCategoria, cor: e.target.value })} className="h-10 w-20 cursor-pointer" />
-                        <span className="text-xs text-gray-500">Cor identificadora</span>
+                        <input type="color" value={novaCategoria.cor} onChange={(e) => setNovaCategoria({ ...novaCategoria, cor: e.target.value })} className="h-10 w-16 rounded cursor-pointer border border-gray-200 dark:border-slate-700" />
+                        <span className="text-xs text-gray-500 dark:text-slate-400">Cor identificadora</span>
                     </div>
-                    <button onClick={adicionarCategoria} className="bg-indigo-600 text-white py-2 rounded-xl font-bold hover:bg-indigo-700 transition-all">Criar Categoria</button>
+
+                    {/* Meta Padrão Opcional */}
+                    <div className="bg-gray-50 dark:bg-slate-800/80 p-3 rounded-xl border border-gray-200 dark:border-slate-700 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-600 dark:text-slate-300">Meta Padrão (opcional)</span>
+                            <div className="flex bg-gray-200 dark:bg-slate-700 p-0.5 rounded-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => setNovaCategoria({ ...novaCategoria, tipoMeta: 'valor' })}
+                                    className={`px-2.5 py-0.5 text-xs font-bold rounded ${novaCategoria.tipoMeta === 'valor' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-slate-300'}`}
+                                >
+                                    R$
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setNovaCategoria({ ...novaCategoria, tipoMeta: 'percentual' })}
+                                    className={`px-2.5 py-0.5 text-xs font-bold rounded ${novaCategoria.tipoMeta === 'percentual' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-slate-300'}`}
+                                >
+                                    %
+                                </button>
+                            </div>
+                        </div>
+                        <input
+                            type="number"
+                            step={novaCategoria.tipoMeta === 'valor' ? '0.01' : '0.1'}
+                            min="0"
+                            placeholder={novaCategoria.tipoMeta === 'valor' ? 'Valor da meta (R$)' : 'Percentual da meta (%)'}
+                            value={novaCategoria.valorMeta}
+                            onChange={(e) => setNovaCategoria({ ...novaCategoria, valorMeta: e.target.value })}
+                            className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-sm text-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                    </div>
+
+                    <button onClick={adicionarCategoria} className="bg-indigo-600 text-white py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 dark:shadow-none">Criar Categoria</button>
                 </div>
             </div>
+
+            {/* Modal de Edição de Categoria */}
+            {categoriaEditando !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-800 w-full max-w-md p-6 space-y-5">
+                        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800">
+                            <div className="flex items-center gap-2">
+                                <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-white">Editar Categoria e Meta</h3>
+                            </div>
+                            <button onClick={() => setCategoriaEditando(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Nome da Categoria</label>
+                                <input
+                                    type="text"
+                                    value={dadosEdicao.nome}
+                                    onChange={(e) => setDadosEdicao({ ...dadosEdicao, nome: e.target.value })}
+                                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Cor Identificadora</label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="color"
+                                        value={dadosEdicao.cor}
+                                        onChange={(e) => setDadosEdicao({ ...dadosEdicao, cor: e.target.value })}
+                                        className="h-10 w-16 rounded-lg cursor-pointer border border-gray-200 dark:border-slate-700"
+                                    />
+                                    <span className="text-sm font-mono text-gray-600 dark:text-slate-400">{dadosEdicao.cor}</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 dark:bg-slate-800/60 p-4 rounded-xl border border-gray-200 dark:border-slate-700 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider">Tipo da Meta</label>
+                                    <div className="flex bg-gray-200 dark:bg-slate-700 p-0.5 rounded-lg">
+                                        <button
+                                            type="button"
+                                            onClick={() => setDadosEdicao({ ...dadosEdicao, tipoMeta: 'valor' })}
+                                            className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition ${dadosEdicao.tipoMeta === 'valor' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-slate-300'}`}
+                                        >
+                                            <DollarSign size={13} /> Valor (R$)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setDadosEdicao({ ...dadosEdicao, tipoMeta: 'percentual' })}
+                                            className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition ${dadosEdicao.tipoMeta === 'percentual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-slate-300'}`}
+                                        >
+                                            <Percent size={13} /> Percentual (%)
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">
+                                        {dadosEdicao.tipoMeta === 'valor' ? 'Valor da Meta Mensal (R$):' : 'Percentual da Meta (% da Renda):'}
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">
+                                            {dadosEdicao.tipoMeta === 'valor' ? 'R$' : '%'}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            step={dadosEdicao.tipoMeta === 'valor' ? '0.01' : '0.1'}
+                                            min="0"
+                                            max={dadosEdicao.tipoMeta === 'percentual' ? '100' : undefined}
+                                            placeholder={dadosEdicao.tipoMeta === 'valor' ? 'Ex: 1500.00' : 'Ex: 25.0'}
+                                            value={dadosEdicao.valorMeta}
+                                            onChange={(e) => setDadosEdicao({ ...dadosEdicao, valorMeta: e.target.value })}
+                                            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">Deixe em branco caso esta categoria não possua meta fixa.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+                            <button
+                                type="button"
+                                onClick={() => setCategoriaEditando(null)}
+                                className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={salvarEdicaoCategoria}
+                                className="flex items-center gap-1.5 bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition shadow-md shadow-indigo-100 dark:shadow-none"
+                            >
+                                <Save size={16} /> Salvar Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="bg-indigo-50 dark:bg-indigo-900/10 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
                 <h3 className="font-bold text-indigo-900 dark:text-indigo-400 mb-4">Adicionar Subcategoria</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <select
-                        className="bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm"
+                        className="bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-gray-800 dark:text-white"
                         value={categoriaSelecionada}
                         onChange={(e) => setCategoriaSelecionada(e.target.value)}
                     >
@@ -450,7 +661,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                     <input
                         type="text"
                         placeholder="Nome da subcategoria"
-                        className="bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm"
+                        className="bg-white dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-gray-800 dark:text-white"
                         value={novaSubcategoria}
                         onChange={(e) => setNovaSubcategoria(e.target.value)}
                     />

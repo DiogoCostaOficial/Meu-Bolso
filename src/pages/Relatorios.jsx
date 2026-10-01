@@ -8,7 +8,7 @@ import {
 import {
   TrendingUp, TrendingDown, DollarSign, Calendar,
   PieChart as PieChartIcon, Filter, ChevronDown, ChevronUp, Target, GraduationCap,
-  BarChart3, AlertCircle, Sliders
+  BarChart3, AlertCircle, Sliders, ShieldCheck, PiggyBank
 } from 'lucide-react';
 import { useEdu } from '../contexts/EduContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,6 +28,22 @@ const ORDEM_CATEGORIAS = [
   'Investimentos',
   'Reserva de Emergência'
 ];
+
+const DEFAULT_CHART_CONFIGS = [
+  { id: 'orcamento', title: 'Acompanhamento de Orçamento', size: 'large', visible: true },
+  { id: 'distribuicao', title: 'Distribuição Geral (Reais vs Planejado)', size: 'large', visible: true },
+  { id: 'custo-vida', title: 'Análise de Custo de Vida', size: 'large', visible: true },
+  { id: 'precisao', title: 'Análise de Precisão por Subcategoria', size: 'large', visible: true },
+  { id: 'compromissos-essenciais', title: 'Compromissos Essenciais (Fixas + Educação)', size: 'large', visible: true },
+  { id: 'construcao-patrimonial', title: 'Construção Patrimonial (Investimentos + Reserva)', size: 'large', visible: true },
+  { id: 'evolucao', title: 'Evolução Temporal de Receitas/Despesas', size: 'large', visible: true },
+];
+
+const matchCat = (catName, target) => {
+  if (!catName || !target) return false;
+  return catName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
+         target.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
 
 const renderCustomAxisTick = ({ x, y, payload }) => {
   return (
@@ -84,16 +100,23 @@ const Relatorios = () => {
   const [chartConfigs, setChartConfigs] = useState(() => {
     const saved = localStorage.getItem('relatorios_chart_configs');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const existingIds = new Set(parsed.map(c => c.id));
+          const missing = DEFAULT_CHART_CONFIGS.filter(c => !existingIds.has(c.id));
+          if (missing.length > 0) {
+            return [...parsed, ...missing];
+          }
+          return parsed;
+        }
+      } catch (e) {}
     }
-    return [
-      { id: 'orcamento', title: 'Acompanhamento de Orçamento', size: 'large', visible: true },
-      { id: 'distribuicao', title: 'Distribuição Geral (Reais vs Planejado)', size: 'large', visible: true },
-      { id: 'custo-vida', title: 'Análise de Custo de Vida', size: 'large', visible: true },
-      { id: 'precisao', title: 'Análise de Precisão por Subcategoria', size: 'large', visible: true },
-      { id: 'evolucao', title: 'Evolução Temporal de Receitas/Despesas', size: 'large', visible: true },
-    ];
+    return DEFAULT_CHART_CONFIGS;
   });
+
+  const [dadosCompromissos, setDadosCompromissos] = useState(null);
+  const [dadosPatrimonio, setDadosPatrimonio] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('relatorios_chart_configs', JSON.stringify(chartConfigs));
@@ -517,6 +540,107 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
         }
       }
 
+      // ==========================================
+      // RELATÓRIOS UNIFICADOS (AGRUPAMENTOS INTELIGENTES)
+      // ==========================================
+
+      const getPlanejadoCat = (target) => {
+        if (!orcamentoSelecionado || !orcamentoSelecionado.categorias) return 0;
+        const item = orcamentoSelecionado.categorias.find(c => matchCat(c.nome, target));
+        if (!item) return 0;
+        const renda = parseFloat(orcamentoSelecionado.rendaReal || orcamentoSelecionado.rendaPrevista || 0);
+        return Number(item.valor || (renda * (Number(item.percentual) || 0) / 100)) || 0;
+      };
+
+      // 1. Relatório: Compromissos Essenciais (Despesas Fixas + Educação)
+      const planejadoFixas = getPlanejadoCat('Despesas Fixas');
+      const planejadoEducacao = getPlanejadoCat('Educação');
+      const planejadoCompromissos = planejadoFixas + planejadoEducacao;
+
+      const despesasFixas = despesasFiltradas.filter(d => matchCat(d.categoria, 'Despesas Fixas'));
+      const despesasEducacao = despesasFiltradas.filter(d => matchCat(d.categoria, 'Educação'));
+      const gastoFixas = despesasFixas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+      const gastoEducacao = despesasEducacao.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+      const gastoCompromissos = gastoFixas + gastoEducacao;
+
+      const disponivelCompromissos = planejadoCompromissos - gastoCompromissos;
+      const ultrapassouCompromissos = planejadoCompromissos > 0 && gastoCompromissos > planejadoCompromissos;
+      const percUtilizadoCompromissos = planejadoCompromissos > 0 ? (gastoCompromissos / planejadoCompromissos) * 100 : 0;
+
+      const subMapCompromissos = {};
+      [...despesasFixas, ...despesasEducacao].forEach(d => {
+        const sub = d.subcategoria?.trim() || 'Geral';
+        const catOrigem = matchCat(d.categoria, 'Educação') ? 'Educação' : 'Despesas Fixas';
+        if (!subMapCompromissos[sub]) {
+          subMapCompromissos[sub] = { name: sub, valor: 0, categoria: catOrigem };
+        }
+        subMapCompromissos[sub].valor += Number(d.valor || 0);
+      });
+      const topSubCompromissos = Object.values(subMapCompromissos)
+        .sort((a, b) => b.valor - a.valor)
+        .slice(0, 8);
+
+      setDadosCompromissos({
+        gastoTotal: gastoCompromissos,
+        gastoFixas,
+        gastoEducacao,
+        planejadoTotal: planejadoCompromissos,
+        planejadoFixas,
+        planejadoEducacao,
+        disponivel: disponivelCompromissos,
+        ultrapassou: ultrapassouCompromissos,
+        percentualUtilizado: percUtilizadoCompromissos,
+        subcategorias: topSubCompromissos,
+        porcentagemFixas: gastoCompromissos > 0 ? (gastoFixas / gastoCompromissos) * 100 : 50,
+        porcentagemEducacao: gastoCompromissos > 0 ? (gastoEducacao / gastoCompromissos) * 100 : 50,
+        hasOrcamento: planejadoCompromissos > 0
+      });
+
+      // 2. Relatório: Construção Patrimonial (Investimentos + Reserva de Emergência)
+      const planejadoInvestimentos = getPlanejadoCat('Investimentos');
+      const planejadoReserva = getPlanejadoCat('Reserva de Emergência');
+      const planejadoPatrimonio = planejadoInvestimentos + planejadoReserva;
+
+      const despesasInvestimentos = despesasFiltradas.filter(d => matchCat(d.categoria, 'Investimentos'));
+      const despesasReserva = despesasFiltradas.filter(d => matchCat(d.categoria, 'Reserva de Emergência'));
+      const aporteInvestimentos = despesasInvestimentos.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+      const aporteReserva = despesasReserva.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+      const aporteTotalPatrimonio = aporteInvestimentos + aporteReserva;
+
+      const percAtingidoPatrimonio = planejadoPatrimonio > 0 ? (aporteTotalPatrimonio / planejadoPatrimonio) * 100 : 0;
+      const metaSuperada = planejadoPatrimonio > 0 && aporteTotalPatrimonio >= planejadoPatrimonio;
+      const saldoRestanteMeta = Math.max(0, planejadoPatrimonio - aporteTotalPatrimonio);
+      const excedenteAporte = Math.max(0, aporteTotalPatrimonio - planejadoPatrimonio);
+
+      const subMapPatrimonio = {};
+      [...despesasInvestimentos, ...despesasReserva].forEach(d => {
+        const sub = d.subcategoria?.trim() || 'Geral';
+        const catOrigem = matchCat(d.categoria, 'Reserva de Emergência') ? 'Reserva' : 'Investimentos';
+        if (!subMapPatrimonio[sub]) {
+          subMapPatrimonio[sub] = { name: sub, valor: 0, categoria: catOrigem };
+        }
+        subMapPatrimonio[sub].valor += Number(d.valor || 0);
+      });
+      const topSubPatrimonio = Object.values(subMapPatrimonio)
+        .sort((a, b) => b.valor - a.valor)
+        .slice(0, 8);
+
+      setDadosPatrimonio({
+        aporteTotal: aporteTotalPatrimonio,
+        aporteInvestimentos,
+        aporteReserva,
+        metaTotal: planejadoPatrimonio,
+        planejadoInvestimentos,
+        planejadoReserva,
+        percentualAtingido: percAtingidoPatrimonio,
+        metaSuperada,
+        saldoRestanteMeta,
+        excedenteAporte,
+        subcategorias: topSubPatrimonio,
+        porcentagemInvestimentos: aporteTotalPatrimonio > 0 ? (aporteInvestimentos / aporteTotalPatrimonio) * 100 : 50,
+        porcentagemReserva: aporteTotalPatrimonio > 0 ? (aporteReserva / aporteTotalPatrimonio) * 100 : 50,
+        hasOrcamento: planejadoPatrimonio > 0
+      });
 
       setLoading(false);
     } catch (error) {
@@ -1089,6 +1213,406 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
                 <p className="text-sm mt-2">Verifique se há receitas e despesas registradas.</p>
               </div>
             )}
+          </div>
+        );
+
+      case 'compromissos-essenciais':
+        return (
+          <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom h-full flex flex-col justify-between">
+            <div>
+              {/* Header */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-custom-main flex items-center gap-2">
+                    <ShieldCheck className="w-6 h-6 text-custom-gold" />
+                    <span>Compromissos Essenciais (Fixas + Educação)</span>
+                  </h3>
+                  <p className="text-sm text-custom-main opacity-70 mt-1">
+                    Consolidação dos gastos estruturais básicos e capacitação/formação pessoal
+                  </p>
+                </div>
+                {dadosCompromissos && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`px-3 py-1.5 text-xs font-bold rounded-full border ${
+                      dadosCompromissos.ultrapassou
+                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                        : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                    }`}>
+                      {dadosCompromissos.ultrapassou ? 'Atenção: Teto Ultrapassado' : 'Dentro do Teto Planejado'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {dadosCompromissos ? (
+                <div className="space-y-6">
+                  {/* KPI Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color">
+                      <span className="text-xs font-bold text-custom-main opacity-60 uppercase block mb-1">Total Consolidado Gasto</span>
+                      <span className="text-2xl font-black text-custom-main">{formatarMoeda(dadosCompromissos.gastoTotal)}</span>
+                      <div className="flex items-center gap-2 text-[11px] text-custom-main opacity-70 mt-2">
+                        <span>Fixas: {formatarMoeda(dadosCompromissos.gastoFixas)}</span>
+                        <span>•</span>
+                        <span>Educação: {formatarMoeda(dadosCompromissos.gastoEducacao)}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color">
+                      <span className="text-xs font-bold text-custom-main opacity-60 uppercase block mb-1">Meta Orçamentária</span>
+                      <span className="text-2xl font-black text-custom-gold">
+                        {dadosCompromissos.hasOrcamento ? formatarMoeda(dadosCompromissos.planejadoTotal) : 'Não definida'}
+                      </span>
+                      <div className="flex items-center gap-2 text-[11px] text-custom-main opacity-70 mt-2">
+                        <span>Fixas: {formatarMoeda(dadosCompromissos.planejadoFixas)}</span>
+                        <span>•</span>
+                        <span>Educação: {formatarMoeda(dadosCompromissos.planejadoEducacao)}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color">
+                      <span className="text-xs font-bold text-custom-main opacity-60 uppercase block mb-1">Disponível no Teto</span>
+                      <span className={`text-2xl font-black ${dadosCompromissos.ultrapassou ? 'text-amber-500' : 'text-emerald-500'}`}>
+                        {dadosCompromissos.hasOrcamento ? formatarMoeda(dadosCompromissos.disponivel) : '—'}
+                      </span>
+                      <div className="text-[11px] text-custom-main opacity-70 mt-2">
+                        {dadosCompromissos.hasOrcamento
+                          ? `${dadosCompromissos.percentualUtilizado.toFixed(1)}% do orçamento consumido`
+                          : 'Sem orçamento mensal configurado'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Barra Proporcional de Composição (Fixas vs Educação) */}
+                  {dadosCompromissos.gastoTotal > 0 && (
+                    <div className="p-4 bg-custom-primary/20 rounded-xl border border-custom-color space-y-2">
+                      <div className="flex justify-between items-center text-xs font-semibold text-custom-main">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                          Despesas Fixas ({dadosCompromissos.porcentagemFixas.toFixed(1)}%)
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                          Educação ({dadosCompromissos.porcentagemEducacao.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-700/20 rounded-full h-3 flex overflow-hidden">
+                        <div
+                          className="bg-blue-500 h-3 transition-all duration-500"
+                          style={{ width: `${dadosCompromissos.porcentagemFixas}%` }}
+                          title={`Fixas: ${formatarMoeda(dadosCompromissos.gastoFixas)}`}
+                        ></div>
+                        <div
+                          className="bg-emerald-500 h-3 transition-all duration-500"
+                          style={{ width: `${dadosCompromissos.porcentagemEducacao}%` }}
+                          title={`Educação: ${formatarMoeda(dadosCompromissos.gastoEducacao)}`}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Grid: Gráfico e Subcategorias */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                    {/* Gráfico Comparativo */}
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color flex flex-col justify-between">
+                      <h4 className="text-xs font-bold tracking-wider text-custom-gold uppercase mb-4 text-center">
+                        Comparativo: Planejado vs Realizado
+                      </h4>
+                      <ResponsiveContainer width="100%" height={260}>
+                        <BarChart
+                          data={[
+                            {
+                              name: 'Fixas',
+                              planejado: dadosCompromissos.planejadoFixas,
+                              gasto: dadosCompromissos.gastoFixas
+                            },
+                            {
+                              name: 'Educação',
+                              planejado: dadosCompromissos.planejadoEducacao,
+                              gasto: dadosCompromissos.gastoEducacao
+                            },
+                            {
+                              name: 'Total',
+                              planejado: dadosCompromissos.planejadoTotal,
+                              gasto: dadosCompromissos.gastoTotal
+                            }
+                          ]}
+                          margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#E2E8F0'} />
+                          <XAxis dataKey="name" stroke={theme === 'dark' ? '#94a3b8' : '#64748B'} fontSize={12} tickLine={false} />
+                          <YAxis formatter={(value) => formatarMoeda(value).replace('R$', '').trim()} stroke={theme === 'dark' ? '#94a3b8' : '#64748B'} fontSize={11} tickLine={false} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', border: '1px solid var(--border-color)', borderRadius: '8px', color: theme === 'dark' ? '#fff' : '#000' }}
+                            formatter={(value) => formatarMoeda(value)}
+                          />
+                          <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                          <Bar dataKey="planejado" fill="#3B82F6" name="Planejado" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="gasto" fill="#EF4444" name="Gasto Real" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Detalhamento das Maiores Subcategorias */}
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color flex flex-col justify-between">
+                      <h4 className="text-xs font-bold tracking-wider text-custom-gold uppercase mb-4 text-center">
+                        Maiores Despesas do Grupo Unificado
+                      </h4>
+                      {dadosCompromissos.subcategorias && dadosCompromissos.subcategorias.length > 0 ? (
+                        <div className="space-y-3 overflow-y-auto max-h-[260px] pr-1">
+                          {dadosCompromissos.subcategorias.map((sub, idx) => {
+                            const pct = dadosCompromissos.gastoTotal > 0
+                              ? ((sub.valor / dadosCompromissos.gastoTotal) * 100).toFixed(1)
+                              : 0;
+                            return (
+                              <div key={idx} className="p-2.5 rounded-lg bg-custom-card/60 border border-custom-color flex items-center justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-custom-main truncate">{sub.name}</span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                                      sub.categoria === 'Educação'
+                                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                                        : 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
+                                    }`}>
+                                      {sub.categoria}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-slate-700/20 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                                    <div
+                                      className={`h-1.5 rounded-full ${sub.categoria === 'Educação' ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                      style={{ width: `${pct}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xs font-bold text-custom-main block">{formatarMoeda(sub.valor)}</span>
+                                  <span className="text-[10px] text-custom-main opacity-60">{pct}%</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+                          <AlertCircle className="w-8 h-8 text-custom-gold mb-2" />
+                          <p className="text-xs text-custom-main opacity-70">Nenhuma despesa registrada para o grupo no período.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-64 text-gray-400">
+                  <AlertCircle className="w-10 h-10 mb-2 text-custom-gold" />
+                  <p className="text-custom-main">Dados indisponíveis para o período selecionado.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'construcao-patrimonial':
+        return (
+          <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom h-full flex flex-col justify-between">
+            <div>
+              {/* Header */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-custom-main flex items-center gap-2">
+                    <PiggyBank className="w-6 h-6 text-custom-gold" />
+                    <span>Construção Patrimonial (Investimentos + Reserva)</span>
+                  </h3>
+                  <p className="text-sm text-custom-main opacity-70 mt-1">
+                    Aportes para segurança financeira e valorização patrimonial de longo prazo
+                  </p>
+                </div>
+                {dadosPatrimonio && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`px-3 py-1.5 text-xs font-bold rounded-full border ${
+                      dadosPatrimonio.metaSuperada
+                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                        : dadosPatrimonio.hasOrcamento
+                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                        : 'bg-custom-gold/10 text-custom-gold border-custom-gold/30'
+                    }`}>
+                      {dadosPatrimonio.metaSuperada
+                        ? 'Meta de Aporte Superada! 🎯'
+                        : dadosPatrimonio.hasOrcamento
+                        ? 'Acumulação em Andamento'
+                        : 'Aportes Ativos'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {dadosPatrimonio ? (
+                <div className="space-y-6">
+                  {/* KPI Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color">
+                      <span className="text-xs font-bold text-custom-main opacity-60 uppercase block mb-1">Total Aportado / Poupado</span>
+                      <span className="text-2xl font-black text-emerald-500">{formatarMoeda(dadosPatrimonio.aporteTotal)}</span>
+                      <div className="flex items-center gap-2 text-[11px] text-custom-main opacity-70 mt-2">
+                        <span>Investimentos: {formatarMoeda(dadosPatrimonio.aporteInvestimentos)}</span>
+                        <span>•</span>
+                        <span>Reserva: {formatarMoeda(dadosPatrimonio.aporteReserva)}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color">
+                      <span className="text-xs font-bold text-custom-main opacity-60 uppercase block mb-1">Meta Planejada de Aporte</span>
+                      <span className="text-2xl font-black text-custom-gold">
+                        {dadosPatrimonio.hasOrcamento ? formatarMoeda(dadosPatrimonio.metaTotal) : 'Sem meta estipulada'}
+                      </span>
+                      <div className="flex items-center gap-2 text-[11px] text-custom-main opacity-70 mt-2">
+                        <span>Investimentos: {formatarMoeda(dadosPatrimonio.planejadoInvestimentos)}</span>
+                        <span>•</span>
+                        <span>Reserva: {formatarMoeda(dadosPatrimonio.planejadoReserva)}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color">
+                      <span className="text-xs font-bold text-custom-main opacity-60 uppercase block mb-1">Progresso do Aporte</span>
+                      <span className="text-2xl font-black text-custom-main">
+                        {dadosPatrimonio.hasOrcamento ? `${dadosPatrimonio.percentualAtingido.toFixed(1)}%` : 'Ativo'}
+                      </span>
+                      <div className="text-[11px] text-custom-main opacity-70 mt-2">
+                        {dadosPatrimonio.hasOrcamento ? (
+                          dadosPatrimonio.metaSuperada
+                            ? `Excedente investido: +${formatarMoeda(dadosPatrimonio.excedenteAporte)}`
+                            : `Faltam ${formatarMoeda(dadosPatrimonio.saldoRestanteMeta)} para a meta`
+                        ) : (
+                          'Aportes registrados sem meta mensal'
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Barra Proporcional de Composição (Investimentos vs Reserva) */}
+                  {dadosPatrimonio.aporteTotal > 0 && (
+                    <div className="p-4 bg-custom-primary/20 rounded-xl border border-custom-color space-y-2">
+                      <div className="flex justify-between items-center text-xs font-semibold text-custom-main">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span>
+                          Investimentos ({dadosPatrimonio.porcentagemInvestimentos.toFixed(1)}%)
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                          Reserva de Emergência ({dadosPatrimonio.porcentagemReserva.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-700/20 rounded-full h-3 flex overflow-hidden">
+                        <div
+                          className="bg-cyan-500 h-3 transition-all duration-500"
+                          style={{ width: `${dadosPatrimonio.porcentagemInvestimentos}%` }}
+                          title={`Investimentos: ${formatarMoeda(dadosPatrimonio.aporteInvestimentos)}`}
+                        ></div>
+                        <div
+                          className="bg-emerald-500 h-3 transition-all duration-500"
+                          style={{ width: `${dadosPatrimonio.porcentagemReserva}%` }}
+                          title={`Reserva: ${formatarMoeda(dadosPatrimonio.aporteReserva)}`}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Grid: Gráfico e Subcategorias */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                    {/* Gráfico Comparativo */}
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color flex flex-col justify-between">
+                      <h4 className="text-xs font-bold tracking-wider text-custom-gold uppercase mb-4 text-center">
+                        Metas vs Aportes Efetivos
+                      </h4>
+                      <ResponsiveContainer width="100%" height={260}>
+                        <BarChart
+                          data={[
+                            {
+                              name: 'Investimentos',
+                              planejado: dadosPatrimonio.planejadoInvestimentos,
+                              aporte: dadosPatrimonio.aporteInvestimentos
+                            },
+                            {
+                              name: 'Reserva',
+                              planejado: dadosPatrimonio.planejadoReserva,
+                              aporte: dadosPatrimonio.aporteReserva
+                            },
+                            {
+                              name: 'Total',
+                              planejado: dadosPatrimonio.metaTotal,
+                              aporte: dadosPatrimonio.aporteTotal
+                            }
+                          ]}
+                          margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#E2E8F0'} />
+                          <XAxis dataKey="name" stroke={theme === 'dark' ? '#94a3b8' : '#64748B'} fontSize={12} tickLine={false} />
+                          <YAxis formatter={(value) => formatarMoeda(value).replace('R$', '').trim()} stroke={theme === 'dark' ? '#94a3b8' : '#64748B'} fontSize={11} tickLine={false} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#fff', border: '1px solid var(--border-color)', borderRadius: '8px', color: theme === 'dark' ? '#fff' : '#000' }}
+                            formatter={(value) => formatarMoeda(value)}
+                          />
+                          <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                          <Bar dataKey="planejado" fill="#64748B" name="Meta Planejada" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="aporte" fill="#10B981" name="Aporte Realizado" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Detalhamento dos Destinos */}
+                    <div className="p-4 bg-custom-primary/30 rounded-xl border border-custom-color flex flex-col justify-between">
+                      <h4 className="text-xs font-bold tracking-wider text-custom-gold uppercase mb-4 text-center">
+                        Destinos dos Recursos (Subcategorias)
+                      </h4>
+                      {dadosPatrimonio.subcategorias && dadosPatrimonio.subcategorias.length > 0 ? (
+                        <div className="space-y-3 overflow-y-auto max-h-[260px] pr-1">
+                          {dadosPatrimonio.subcategorias.map((sub, idx) => {
+                            const pct = dadosPatrimonio.aporteTotal > 0
+                              ? ((sub.valor / dadosPatrimonio.aporteTotal) * 100).toFixed(1)
+                              : 0;
+                            return (
+                              <div key={idx} className="p-2.5 rounded-lg bg-custom-card/60 border border-custom-color flex items-center justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-custom-main truncate">{sub.name}</span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                                      sub.categoria === 'Reserva'
+                                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                                        : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/20'
+                                    }`}>
+                                      {sub.categoria}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-slate-700/20 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                                    <div
+                                      className={`h-1.5 rounded-full ${sub.categoria === 'Reserva' ? 'bg-emerald-500' : 'bg-cyan-500'}`}
+                                      style={{ width: `${pct}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xs font-bold text-custom-main block">{formatarMoeda(sub.valor)}</span>
+                                  <span className="text-[10px] text-custom-main opacity-60">{pct}%</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+                          <AlertCircle className="w-8 h-8 text-custom-gold mb-2" />
+                          <p className="text-xs text-custom-main opacity-70">Nenhum aporte registrado para o grupo no período.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-64 text-gray-400">
+                  <AlertCircle className="w-10 h-10 mb-2 text-custom-gold" />
+                  <p className="text-custom-main">Dados indisponíveis para o período selecionado.</p>
+                </div>
+              )}
+            </div>
           </div>
         );
       default:

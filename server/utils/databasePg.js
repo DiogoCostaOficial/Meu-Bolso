@@ -12,6 +12,20 @@ const inicializarDB = async () => {
     try {
         const client = await pool.connect();
         console.log('✅ Conectado ao Supabase Postgres');
+        try {
+            await client.query(`
+                ALTER TABLE categories 
+                ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
+                ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
+
+                ALTER TABLE transactions 
+                ADD COLUMN IF NOT EXISTS cartao TEXT,
+                ADD COLUMN IF NOT EXISTS cartao_id TEXT,
+                ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20);
+            `);
+        } catch (colErr) {
+            console.warn('Nota: Não foi possível verificar/adicionar colunas em categories:', colErr.message);
+        }
         client.release();
     } catch (err) {
         console.error('Erro ao conectar ao DB:', err);
@@ -176,6 +190,10 @@ const buscarDadosUsuario = async (userId) => {
                 const catNome = row.categoria.replace('META_PERCENT_', '');
                 monthData.metaPercentuais = monthData.metaPercentuais || {};
                 monthData.metaPercentuais[catNome] = valor;
+            } else if (row.categoria.startsWith('META_TIPO_')) {
+                const catNome = row.categoria.replace('META_TIPO_', '');
+                monthData.metaTipos = monthData.metaTipos || {};
+                monthData.metaTipos[catNome] = valor === 1 ? 'valor' : 'percentual';
             } else {
                 // Regular category
                 monthData.categorias.push({
@@ -192,6 +210,7 @@ const buscarDadosUsuario = async (userId) => {
             if (orc.rendaReal > 0) {
                 orc.categorias = orc.categorias.map(cat => ({
                     ...cat,
+                    tipoMeta: (orc.metaTipos && orc.metaTipos[cat.nome]) ? orc.metaTipos[cat.nome] : 'percentual',
                     // Use explicit meta percentual if available, otherwise fallback to calculation
                     percentual: (orc.metaPercentuais && orc.metaPercentuais[cat.nome] !== undefined) 
                         ? orc.metaPercentuais[cat.nome] 
@@ -200,11 +219,18 @@ const buscarDadosUsuario = async (userId) => {
             } else if (orc.metaPercentuais) {
                 orc.categorias = orc.categorias.map(cat => ({
                     ...cat,
+                    tipoMeta: (orc.metaTipos && orc.metaTipos[cat.nome]) ? orc.metaTipos[cat.nome] : 'percentual',
                     percentual: orc.metaPercentuais[cat.nome] !== undefined ? orc.metaPercentuais[cat.nome] : 0
+                }));
+            } else {
+                orc.categorias = orc.categorias.map(cat => ({
+                    ...cat,
+                    tipoMeta: (orc.metaTipos && orc.metaTipos[cat.nome]) ? orc.metaTipos[cat.nome] : 'percentual'
                 }));
             }
             // Cleanup internal meta field
             delete orc.metaPercentuais;
+            delete orc.metaTipos;
             return orc;
         });
 
@@ -242,7 +268,10 @@ const buscarDadosUsuario = async (userId) => {
                     parcelas: r.parcelas_total,
                     parcelaAtual: r.parcela_atual,
                     observacao: r.observacao,
-                    dataVencimento: dataVenc || ''
+                    dataVencimento: dataVenc || '',
+                    cartao: r.cartao || null,
+                    cartaoId: r.cartao_id || null,
+                    mesFatura: r.mes_fatura || null
                 };
             }),
             categorias: categoriasRes.rows.map(c => ({
@@ -251,7 +280,9 @@ const buscarDadosUsuario = async (userId) => {
                 tipo: c.tipo,
                 subcategorias: c.subcategorias,
                 cor: c.cor,
-                icone: c.icone
+                icone: c.icone,
+                tipoMeta: c.tipo_meta || null,
+                valorMeta: c.valor_meta !== null && c.valor_meta !== undefined ? parseFloat(c.valor_meta) : null
             })),
             orcamentos: finalOrcamentos,
             cartoes: cartoesRes.rows.map(c => ({
@@ -344,17 +375,26 @@ const salvarDadosUsuario = async (userId, dados) => {
                 const val = t.observacao || t.observacoes;
                 return val ? String(val) : null;
             });
+            const tCartao = incomingTransactions.map(t => t.cartao ? String(t.cartao) : null);
+            const tCartaoId = incomingTransactions.map(t => {
+                const cid = t.cartaoId || t.cartao_id;
+                return cid ? String(cid) : null;
+            });
+            const tMesFatura = incomingTransactions.map(t => {
+                const mf = t.mesFatura || t.mes_fatura;
+                return mf ? String(mf) : null;
+            });
 
             await client.query(`
         INSERT INTO transactions (
           id, user_id, descricao, valor, data, data_compra, data_vencimento, categoria, subcategoria, 
           tipo, status, status_pagamento, parcelado, parcelas_total, 
-          parcela_atual, observacao
+          parcela_atual, observacao, cartao, cartao_id, mes_fatura
         )
         SELECT * FROM UNNEST(
           $1::text[], $2::text[], $3::text[], $4::numeric[], $5::date[], $6::date[], $7::date[], $8::text[], $9::text[],
           $10::text[], $11::text[], $12::text[], $13::boolean[], $14::integer[],
-          $15::integer[], $16::text[]
+          $15::integer[], $16::text[], $17::text[], $18::text[], $19::text[]
         )
         ON CONFLICT (id) DO UPDATE SET
           descricao = EXCLUDED.descricao,
@@ -370,11 +410,14 @@ const salvarDadosUsuario = async (userId, dados) => {
           parcelado = EXCLUDED.parcelado,
           parcelas_total = EXCLUDED.parcelas_total,
           parcela_atual = EXCLUDED.parcela_atual,
-          observacao = EXCLUDED.observacao
+          observacao = EXCLUDED.observacao,
+          cartao = EXCLUDED.cartao,
+          cartao_id = EXCLUDED.cartao_id,
+          mes_fatura = EXCLUDED.mes_fatura
       `, [
                 tIds, tUserIds, tDescs, tVals, tDatas, tDatasCompra, tDatasVencimento, tCats, tSubcats,
                 tTipos, tStatus, tStatusPg, tParcelado, tParcelas,
-                tParcelaAtual, tObs
+                tParcelaAtual, tObs, tCartao, tCartaoId, tMesFatura
             ]);
         }
 
@@ -403,14 +446,16 @@ const salvarDadosUsuario = async (userId, dados) => {
 
             for (const c of dados.categorias) {
                 await client.query(`
-                    INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom, tipo_meta, valor_meta)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                     ON CONFLICT (id) DO UPDATE SET
                         nome = EXCLUDED.nome,
                         tipo = EXCLUDED.tipo,
                         subcategorias = EXCLUDED.subcategorias,
                         cor = EXCLUDED.cor,
-                        icone = EXCLUDED.icone
+                        icone = EXCLUDED.icone,
+                        tipo_meta = EXCLUDED.tipo_meta,
+                        valor_meta = EXCLUDED.valor_meta
                 `, [
                     c.id,
                     userId,
@@ -419,7 +464,9 @@ const salvarDadosUsuario = async (userId, dados) => {
                     c.subcategorias || [],
                     c.cor || '#000000',
                     c.icone || null,
-                    true
+                    true,
+                    c.tipoMeta || null,
+                    c.valorMeta !== undefined && c.valorMeta !== null && c.valorMeta !== '' ? parseFloat(c.valorMeta) : null
                 ]);
             }
         }
@@ -460,7 +507,7 @@ const salvarDadosUsuario = async (userId, dados) => {
                 if (orcamento.categorias && Array.isArray(orcamento.categorias)) {
                     for (const cat of orcamento.categorias) {
                         let valorCalculado = 0;
-                        if (cat.valorPlanejado) {
+                        if (cat.valorPlanejado !== undefined && cat.valorPlanejado !== null && cat.valorPlanejado !== '') {
                             valorCalculado = parseFloat(cat.valorPlanejado);
                         } else if (cat.percentual && orcamento.rendaReal) {
                             valorCalculado = (parseFloat(orcamento.rendaReal) * parseFloat(cat.percentual)) / 100;
@@ -478,6 +525,15 @@ const salvarDadosUsuario = async (userId, dados) => {
                                 id: `budget-perc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                                 categoria: `META_PERCENT_${cat.nome}`,
                                 valor: parseFloat(cat.percentual),
+                                periodo: orcamento.mes
+                            });
+                        }
+
+                        if (cat.tipoMeta) {
+                            budgetRows.push({
+                                id: `budget-tipometa-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                categoria: `META_TIPO_${cat.nome}`,
+                                valor: cat.tipoMeta === 'valor' ? 1 : 2,
                                 periodo: orcamento.mes
                             });
                         }
@@ -588,8 +644,8 @@ const adicionarTransacao = async (userId, transacao) => {
             INSERT INTO transactions (
                 id, user_id, descricao, valor, data, data_compra, data_vencimento, categoria, subcategoria, 
                 tipo, status, status_pagamento, parcelado, parcelas_total, 
-                parcela_atual, observacao
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                parcela_atual, observacao, cartao, cartao_id, mes_fatura
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         `, [
             transacao.id,
             userId,
@@ -606,7 +662,10 @@ const adicionarTransacao = async (userId, transacao) => {
             transacao.parcelado || false,
             transacao.parcelas || transacao.parcelas_total || null,
             transacao.parcelaAtual || transacao.parcela_atual || null,
-            transacao.observacao || transacao.observacoes || null
+            transacao.observacao || transacao.observacoes || null,
+            transacao.cartao || null,
+            transacao.cartaoId || transacao.cartao_id || null,
+            transacao.mesFatura || transacao.mes_fatura || null
         ]);
         return true;
     } catch (err) {
@@ -632,8 +691,11 @@ const atualizarTransacao = async (userId, transacaoId, transacao) => {
                 parcelado = $11,
                 parcelas_total = $12,
                 parcela_atual = $13,
-                observacao = $14
-            WHERE id = $15 AND user_id = $16
+                observacao = $14,
+                cartao = $15,
+                cartao_id = $16,
+                mes_fatura = $17
+            WHERE id = $18 AND user_id = $19
         `, [
             transacao.descricao,
             transacao.valor,
@@ -649,6 +711,9 @@ const atualizarTransacao = async (userId, transacaoId, transacao) => {
             transacao.parcelas || transacao.parcelas_total || null,
             transacao.parcelaAtual || transacao.parcela_atual || null,
             transacao.observacao || transacao.observacoes || null,
+            transacao.cartao !== undefined ? transacao.cartao : null,
+            transacao.cartaoId !== undefined ? transacao.cartaoId : (transacao.cartao_id !== undefined ? transacao.cartao_id : null),
+            transacao.mesFatura !== undefined ? transacao.mesFatura : (transacao.mes_fatura !== undefined ? transacao.mes_fatura : null),
             transacaoId,
             userId
         ]);

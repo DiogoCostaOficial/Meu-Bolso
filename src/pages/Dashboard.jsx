@@ -9,7 +9,7 @@ import CurrencySelector from '../components/CurrencySelector';
 import {
   Wallet, TrendingUp, TrendingDown, CreditCard,
   ArrowUpRight, ArrowDownRight, DollarSign, Calendar,
-  GraduationCap, PiggyBank
+  GraduationCap, PiggyBank, Target
 } from 'lucide-react';
 import api from '../services/api';
 import { removeDuplicates } from '../utils/arrayUtils';
@@ -30,6 +30,7 @@ const Dashboard = () => {
     despesas: []
   });
   const [categorias, setCategorias] = useState([]);
+  const [orcamentos, setOrcamentos] = useState([]);
   const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
   const [mesSelecionado, setMesSelecionado] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
 
@@ -68,11 +69,13 @@ const Dashboard = () => {
 
       const receitas = userData.receitas || [];
       const despesas = userData.despesas || [];
+      const userOrcamentos = Array.isArray(userData.orcamentos) ? userData.orcamentos : [];
 
       setFinancialData({
         receitas: receitas,
         despesas: despesas
       });
+      setOrcamentos(userOrcamentos);
 
       // Calcular totais para o contexto educativo
       const totalReceitas = receitas.reduce((acc, curr) => acc + Number(curr.valor), 0);
@@ -213,6 +216,54 @@ const Dashboard = () => {
     }
   ];
 
+  // Metas por Categoria para o Mês Selecionado
+  const mesChave = `${anoSelecionado}-${mesSelecionado}`;
+  const orcamentoDoMes = orcamentos.find(o => o.mes === mesChave);
+
+  const metasCategorias = categorias.map(cat => {
+    const catOrcamento = orcamentoDoMes?.categorias?.find(c => c.nome === cat.nome);
+    let tipoMeta = catOrcamento?.tipoMeta || cat.tipoMeta || 'percentual';
+    let metaValor = 0;
+    let percentualMeta = 0;
+
+    const baseRenda = parseFloat(orcamentoDoMes?.rendaReal) || totalReceitas || 0;
+
+    if (catOrcamento) {
+      if (tipoMeta === 'valor') {
+        metaValor = parseFloat(catOrcamento.valorPlanejado) || 0;
+        percentualMeta = baseRenda > 0 ? parseFloat(((metaValor / baseRenda) * 100).toFixed(1)) : 0;
+      } else {
+        percentualMeta = parseFloat(catOrcamento.percentual) || 0;
+        metaValor = baseRenda > 0 ? (baseRenda * percentualMeta) / 100 : (parseFloat(catOrcamento.valorPlanejado) || 0);
+      }
+    } else if (cat.valorMeta !== null && cat.valorMeta !== undefined && cat.valorMeta !== '') {
+      if (tipoMeta === 'valor') {
+        metaValor = parseFloat(cat.valorMeta) || 0;
+        percentualMeta = baseRenda > 0 ? parseFloat(((metaValor / baseRenda) * 100).toFixed(1)) : 0;
+      } else {
+        percentualMeta = parseFloat(cat.valorMeta) || 0;
+        metaValor = baseRenda > 0 ? (baseRenda * percentualMeta) / 100 : 0;
+      }
+    }
+
+    const gastoAtual = despesasFiltradas
+      .filter(d => d.categoria === cat.nome && d.somarNoOrcamento !== false)
+      .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0);
+
+    const percentualConsumido = metaValor > 0 ? (gastoAtual / metaValor) * 100 : 0;
+
+    return {
+      nome: cat.nome,
+      cor: cat.cor,
+      tipoMeta,
+      metaValor,
+      percentualMeta,
+      gastoAtual,
+      percentualConsumido,
+      temMeta: metaValor > 0
+    };
+  }).filter(c => c.temMeta);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -305,6 +356,108 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Metas por Categoria do Mês */}
+      {metasCategorias.length > 0 && (
+        <div className="bg-custom-card rounded-custom shadow-custom p-5 md:p-6 border border-custom-color transition-custom">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-custom bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                <Target size={18} />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold tracking-wider uppercase text-custom-gold">Metas por Categoria</h3>
+                <p className="text-[11px] text-gray-500 dark:text-slate-400">Acompanhamento dos limites planejados para o mês</p>
+              </div>
+            </div>
+            <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
+              {metasCategorias.filter(m => m.percentualConsumido <= 100).length} de {metasCategorias.length} dentro da meta
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {metasCategorias.map((item) => {
+              const isOver = item.percentualConsumido > 100;
+              const isNear = item.percentualConsumido >= 80 && !isOver;
+              const barWidth = Math.min(item.percentualConsumido, 100);
+
+              const statusColor = isOver
+                ? 'text-red-600 dark:text-red-400'
+                : isNear
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-emerald-600 dark:text-emerald-400';
+
+              const barBgColor = isOver
+                ? 'bg-red-500'
+                : isNear
+                ? 'bg-amber-500'
+                : 'bg-emerald-500';
+
+              const badgeBg = isOver
+                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800'
+                : isNear
+                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+
+              return (
+                <div
+                  key={item.nome}
+                  className="p-3.5 rounded-custom border border-custom-color bg-gray-50/50 dark:bg-slate-800/40 hover:border-gray-300 dark:hover:border-slate-600 transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: item.cor || '#3B82F6' }}
+                      />
+                      <span className="font-semibold text-xs md:text-sm text-custom-main truncate" title={item.nome}>
+                        {item.nome}
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeBg}`}>
+                      {item.percentualConsumido.toFixed(0)}%
+                    </span>
+                  </div>
+
+                  {/* Barra de Progresso */}
+                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2 mb-2.5 overflow-hidden">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-500 ${barBgColor}`}
+                      style={{ width: `${barWidth}%` }}
+                    />
+                  </div>
+
+                  {/* Detalhes de Valores */}
+                  <div className="flex justify-between items-center text-xs">
+                    <div>
+                      <span className="text-[10px] text-gray-500 dark:text-slate-400 block">Gasto</span>
+                      <span className="font-semibold text-custom-main">{formatCurrency(item.gastoAtual)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-gray-500 dark:text-slate-400 block">
+                        Meta {item.tipoMeta === 'percentual' && item.percentualMeta > 0 ? `(${item.percentualMeta}%)` : ''}
+                      </span>
+                      <span className="font-semibold text-gray-700 dark:text-slate-300">{formatCurrency(item.metaValor)}</span>
+                    </div>
+                  </div>
+
+                  {/* Mensagem de alerta / status */}
+                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center text-[11px]">
+                    <span className={`font-medium ${statusColor}`}>
+                      {isOver ? 'Excedeu a meta' : isNear ? 'Próximo do limite' : 'Dentro da meta'}
+                    </span>
+                    <span className="text-gray-400 text-[10px]">
+                      {isOver
+                        ? `+${formatCurrency(item.gastoAtual - item.metaValor)}`
+                        : `Resta ${formatCurrency(Math.max(0, item.metaValor - item.gastoAtual))}`}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Gráfico de Evolução Mensal (Fluxo de Caixa Premium) */}
       <div className="bg-custom-card rounded-custom shadow-custom overflow-hidden border border-custom-color transition-custom">
