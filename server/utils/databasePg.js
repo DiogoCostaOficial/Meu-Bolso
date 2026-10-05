@@ -33,7 +33,6 @@ const inicializarDB = async () => {
                             dados JSONB DEFAULT '{}'::jsonb,
                             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                         );
-
                         ALTER TABLE categories 
                         ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
                         ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
