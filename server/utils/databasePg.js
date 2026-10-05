@@ -19,6 +19,14 @@ const inicializarDB = async () => {
                 console.log('🐘 Conectado ao Supabase Postgres - Verificando migrações de schema...');
                 try {
                     await client.query(`
+                        CREATE TABLE IF NOT EXISTS cards (
+                            id TEXT PRIMARY KEY,
+                            user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                            nome TEXT,
+                            valores JSONB DEFAULT '{}'::jsonb,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                        );
+
                         ALTER TABLE categories 
                         ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
                         ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
@@ -577,7 +585,7 @@ const salvarDadosUsuario = async (userId, dados) => {
         // 4. CARTÕES - BATCH UPSERT
         // =========================================================================
         if (dados.cartoes && Array.isArray(dados.cartoes)) {
-            const cardIds = dados.cartoes.map(c => c.id).filter(id => id);
+            const cardIds = dados.cartoes.map(c => String(c.id)).filter(id => id && id !== 'undefined' && id !== 'null');
             if (cardIds.length > 0) {
                 await client.query(`
           DELETE FROM cards 
@@ -588,9 +596,9 @@ const salvarDadosUsuario = async (userId, dados) => {
             }
 
             if (dados.cartoes.length > 0) {
-                const cIds = dados.cartoes.map(c => c.id);
-                const cUserIds = dados.cartoes.map(() => userId);
-                const cNomes = dados.cartoes.map(c => c.nome);
+                const cIds = dados.cartoes.map(c => String(c.id));
+                const cUserIds = dados.cartoes.map(() => String(userId));
+                const cNomes = dados.cartoes.map(c => String(c.nome || 'Cartão'));
                 const cValores = dados.cartoes.map(c => typeof c.valores === 'object' ? JSON.stringify(c.valores) : '{}');
 
                 await client.query(`

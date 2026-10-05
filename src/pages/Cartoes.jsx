@@ -69,11 +69,10 @@ const Cartoes = () => {
     const salvarDados = async () => {
         try {
             setSalvando(true);
-            const response = await api.get('/user/dados');
-            const data = response.data.dados || {};
 
             // Sincronizar cartões com valores efetivos e guardar manual overrides
             const cartoesAtualizados = cartoes.map(c => {
+                const cardId = c.id || crypto.randomUUID();
                 const novosValores = { ...(c.valores || {}) };
                 mesesChaves.forEach((mesChave, idx) => {
                     const chave = `${anoSelecionado}-${mesChave}`;
@@ -83,16 +82,12 @@ const Cartoes = () => {
 
                 return {
                     ...c,
+                    id: cardId,
                     valores: novosValores
                 };
             });
 
-            const updatedData = {
-                ...data,
-                cartoes: cartoesAtualizados
-            };
-
-            await api.post('/user/dados', { dados: updatedData });
+            await api.post('/user/dados', { cartoes: cartoesAtualizados });
             setCartoes(cartoesAtualizados);
             toast.success('Dados salvos com sucesso!');
         } catch (error) {
@@ -111,11 +106,55 @@ const Cartoes = () => {
             manualOverrides: {}
         };
         setCartoes([...cartoes, novoCartao]);
+        toast.info('Novo cartão adicionado. Digite o nome e clique em "Salvar Alterações" para gravar.');
     };
 
-    const removerCartao = (id) => {
-        if (confirm('Tem certeza que deseja remover este cartão?')) {
-            setCartoes(cartoes.filter(c => c.id !== id));
+    const removerCartao = async (id) => {
+        const cartaoParaRemover = cartoes.find(c => c.id === id);
+        const nomeCartao = cartaoParaRemover?.nome || 'este cartão';
+        const despesasVinculadas = despesas.filter(d => isCartaoMatch(d, cartaoParaRemover));
+
+        let mensagemConfirm = `Tem certeza que deseja remover o cartão "${nomeCartao}"?`;
+        if (despesasVinculadas.length > 0) {
+            mensagemConfirm += `\n\nAtenção: Existem ${despesasVinculadas.length} despesa(s) associada(s) a este cartão. A exclusão será definitiva no banco de dados.`;
+        }
+
+        if (!window.confirm(mensagemConfirm)) {
+            return;
+        }
+
+        const novosCartoes = cartoes.filter(c => c.id !== id);
+        setCartoes(novosCartoes);
+
+        try {
+            setSalvando(true);
+
+            // Sincronizar os cartões restantes com valores efetivos e manual overrides
+            const cartoesAtualizados = novosCartoes.map(c => {
+                const cardId = c.id || crypto.randomUUID();
+                const novosValores = { ...(c.valores || {}) };
+                mesesChaves.forEach((mesChave, idx) => {
+                    const chave = `${anoSelecionado}-${mesChave}`;
+                    novosValores[chave] = getValorEfetivo(c, idx);
+                });
+                novosValores._manualOverrides = c.manualOverrides || {};
+
+                return {
+                    ...c,
+                    id: cardId,
+                    valores: novosValores
+                };
+            });
+
+            await api.post('/user/dados', { cartoes: cartoesAtualizados });
+            setCartoes(cartoesAtualizados);
+            toast.success(`Cartão "${nomeCartao}" excluído em definitivo!`);
+        } catch (error) {
+            console.error('Erro ao excluir cartão no servidor:', error);
+            toast.error('Erro ao salvar exclusão no servidor. As alterações foram revertidas.');
+            setCartoes(cartoes); // Reverte o estado em caso de falha
+        } finally {
+            setSalvando(false);
         }
     };
 
