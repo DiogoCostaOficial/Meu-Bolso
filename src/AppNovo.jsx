@@ -26,6 +26,7 @@ import PainelAdmin from './pages/admin/PainelAdmin';
 import Backup from './pages/Backup';
 import SystemRestore from './pages/SystemRestore';
 import Configuracoes from './pages/Configuracoes';
+import Viagens from './pages/Viagens';
 
 function AppNovo() {
   return (
@@ -95,6 +96,14 @@ function AppNovo() {
         element={
           <ProtectedRoute>
             <Orcamento />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/viagens"
+        element={
+          <ProtectedRoute>
+            <Viagens />
           </ProtectedRoute>
         }
       />

@@ -19,6 +19,21 @@ const inicializarDB = async () => {
                 console.log('🐘 Conectado ao Supabase Postgres - Verificando migrações de schema...');
                 try {
                     await client.query(`
+                        CREATE TABLE IF NOT EXISTS cards (
+                            id TEXT PRIMARY KEY,
+                            user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                            nome TEXT,
+                            valores JSONB DEFAULT '{}'::jsonb,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                        );
+
+                        CREATE TABLE IF NOT EXISTS trips (
+                            id TEXT PRIMARY KEY,
+                            user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                            dados JSONB DEFAULT '{}'::jsonb,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                        );
+
                         ALTER TABLE categories 
                         ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
                         ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
@@ -28,7 +43,7 @@ const inicializarDB = async () => {
                         ADD COLUMN IF NOT EXISTS cartao_id TEXT,
                         ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20);
                     `);
-                    console.log('✅ Migração de colunas concluída com sucesso no PostgreSQL!');
+                    console.log('✅ Migração de colunas e tabela cards concluída com sucesso no PostgreSQL!');
                 } catch (colErr) {
                     console.warn('Nota: Aviso ao aplicar colunas no Postgres:', colErr.message);
                 }
@@ -168,6 +183,7 @@ const buscarDadosUsuario = async (userId) => {
         const categoriasRes = await client.query("SELECT * FROM categories WHERE user_id = $1", [userId]);
         const orcamentosRes = await client.query("SELECT * FROM budgets WHERE user_id = $1", [userId]);
         const cartoesRes = await client.query("SELECT * FROM cards WHERE user_id = $1", [userId]);
+        const tripsRes = await client.query("SELECT * FROM trips WHERE user_id = $1", [userId]).catch(() => ({ rows: [] }));
 
         // Reconstruct Budgets from flat SQL rows
         const rawBudgets = orcamentosRes.rows;
@@ -304,11 +320,12 @@ const buscarDadosUsuario = async (userId) => {
                 id: c.id,
                 nome: c.nome,
                 valores: typeof c.valores === 'string' ? JSON.parse(c.valores) : (c.valores || {})
-            }))
+            })),
+            viagens: tripsRes.rows.map(t => (typeof t.dados === 'string' ? JSON.parse(t.dados) : (t.dados || {})))
         };
     } catch (err) {
         console.error('Erro ao buscar dados do usuário:', err);
-        return { receitas: [], despesas: [], categorias: [], orcamentos: [], cartoes: [] };
+        return { receitas: [], despesas: [], categorias: [], orcamentos: [], cartoes: [], viagens: [] };
     } finally {
         client.release();
     }
@@ -577,7 +594,7 @@ const salvarDadosUsuario = async (userId, dados) => {
         // 4. CARTÕES - BATCH UPSERT
         // =========================================================================
         if (dados.cartoes && Array.isArray(dados.cartoes)) {
-            const cardIds = dados.cartoes.map(c => c.id).filter(id => id);
+            const cardIds = dados.cartoes.map(c => String(c.id)).filter(id => id && id !== 'undefined' && id !== 'null');
             if (cardIds.length > 0) {
                 await client.query(`
           DELETE FROM cards 
@@ -588,9 +605,9 @@ const salvarDadosUsuario = async (userId, dados) => {
             }
 
             if (dados.cartoes.length > 0) {
-                const cIds = dados.cartoes.map(c => c.id);
-                const cUserIds = dados.cartoes.map(() => userId);
-                const cNomes = dados.cartoes.map(c => c.nome);
+                const cIds = dados.cartoes.map(c => String(c.id));
+                const cUserIds = dados.cartoes.map(() => String(userId));
+                const cNomes = dados.cartoes.map(c => String(c.nome || 'Cartão'));
                 const cValores = dados.cartoes.map(c => typeof c.valores === 'object' ? JSON.stringify(c.valores) : '{}');
 
                 await client.query(`
@@ -603,6 +620,36 @@ const salvarDadosUsuario = async (userId, dados) => {
             nome = EXCLUDED.nome,
             valores = EXCLUDED.valores
         `, [cIds, cUserIds, cNomes, cValores]);
+            }
+        }
+
+        // =========================================================================
+        // 4.1 TRIPS / VIAGENS
+        // =========================================================================
+        if (dados.viagens && Array.isArray(dados.viagens)) {
+            const tripIds = dados.viagens.map(v => String(v.id)).filter(id => id && id !== 'undefined' && id !== 'null');
+            if (tripIds.length > 0) {
+                await client.query(`
+                    DELETE FROM trips 
+                    WHERE user_id = $1 AND NOT (id = ANY($2::text[]))
+                `, [userId, tripIds]);
+            } else {
+                await client.query(`DELETE FROM trips WHERE user_id = $1`, [userId]);
+            }
+
+            if (dados.viagens.length > 0) {
+                const tIds = dados.viagens.map(v => String(v.id));
+                const tUserIds = dados.viagens.map(() => String(userId));
+                const tDados = dados.viagens.map(v => JSON.stringify(v));
+
+                await client.query(`
+                    INSERT INTO trips (id, user_id, dados)
+                    SELECT id, user_id, dados::jsonb
+                    FROM UNNEST($1::text[], $2::text[], $3::text[]) AS x(id, user_id, dados)
+                    ON CONFLICT (id) DO UPDATE SET
+                        dados = EXCLUDED.dados,
+                        updated_at = CURRENT_TIMESTAMP
+                `, [tIds, tUserIds, tDados]);
             }
         }
 

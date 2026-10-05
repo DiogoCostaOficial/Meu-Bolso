@@ -54,6 +54,20 @@ const categoriasDefault = [
     nome: 'Reserva de Emergência',
     cor: '#F59E0B',
     subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva']
+  },
+  {
+    nome: 'Viagens',
+    cor: '#0EA5E9',
+    subcategorias: [
+      'Passagens e Deslocamento',
+      'Hospedagem',
+      'Alimentação em Viagem',
+      'Passeios e Ingressos',
+      'Documentação e Seguros',
+      'Compras e Lembranças',
+      'Câmbio e Taxas',
+      'Imprevistos e Emergências'
+    ]
   }
 ];
 
@@ -176,7 +190,12 @@ const Despesas = () => {
     try {
       const response = await api.get('/user/dados');
       if (response.data && response.data.dados && Array.isArray(response.data.dados.categorias) && response.data.dados.categorias.length > 0) {
-        const categoriasUnicas = removeDuplicates(response.data.dados.categorias, 'nome');
+        let categoriasUnicas = removeDuplicates(response.data.dados.categorias, 'nome');
+        const temViagens = categoriasUnicas.some(c => (c.nome || '').toLowerCase() === 'viagens');
+        if (!temViagens) {
+          const catViagens = categoriasDefault.find(c => c.nome === 'Viagens');
+          if (catViagens) categoriasUnicas.push(catViagens);
+        }
         setCategorias(categoriasUnicas);
       } else {
         // Se não houver categorias no backend, usa as padrão

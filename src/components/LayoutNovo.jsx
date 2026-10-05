@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  Plane,
 } from 'lucide-react';
 
 const LayoutNovo = ({ children }) => {
@@ -50,6 +51,7 @@ const LayoutNovo = ({ children }) => {
     { path: '/receitas', icon: TrendingUp, label: 'Receitas' },
     { path: '/despesas', icon: TrendingDown, label: 'Despesas' },
     { path: '/cartoes', icon: CreditCard, label: 'Cartões' },
+    { path: '/viagens', icon: Plane, label: 'Viagens' },
     { path: '/relatorios', icon: PieChart, label: 'Relatórios' },
     { path: '/dre', icon: FileBarChart, label: 'DRE' },
     { path: '/backup', icon: Database, label: 'Backup' },

@@ -115,6 +115,9 @@ const buscarDadosUsuario = async (userId) => {
                 data: d.dataVencimento || d.data // prioritize due date
             }));
         }
+        if (!parsed.viagens) {
+            parsed.viagens = [];
+        }
         return parsed;
     } catch (error) {
         // Return empty structure if no data found
@@ -123,7 +126,8 @@ const buscarDadosUsuario = async (userId) => {
             despesas: [],
             categorias: [],
             orcamentos: [],
-            cartoes: []
+            cartoes: [],
+            viagens: []
         };
     }
 };
@@ -138,7 +142,8 @@ const salvarDadosUsuario = async (userId, dados) => {
             despesas: [],
             categorias: [],
             orcamentos: [],
-            cartoes: []
+            cartoes: [],
+            viagens: []
         };
         try {
             const fileContent = await fs.readFile(filePath, 'utf8');
@@ -162,7 +167,8 @@ const salvarDadosUsuario = async (userId, dados) => {
             despesas: dados.despesas || currentData.despesas || [],
             categorias: dados.categorias || currentData.categorias || [],
             orcamentos: finalOrcamentos,
-            cartoes: dados.cartoes || currentData.cartoes || []
+            cartoes: Array.isArray(dados.cartoes) ? dados.cartoes : (currentData.cartoes || []),
+            viagens: Array.isArray(dados.viagens) ? dados.viagens : (currentData.viagens || [])
         };
 
         await fs.writeFile(filePath, JSON.stringify(newData, null, 2));

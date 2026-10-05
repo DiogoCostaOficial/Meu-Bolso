@@ -289,7 +289,8 @@ const categoriasDefault = [
     { nome: 'Lazer', cor: '#3b82f6', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'] },
     { nome: 'Educação', cor: '#10b981', tipoMeta: 'percentual', valorMeta: 15, subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'] },
     { nome: 'Investimentos', cor: '#8b5cf6', tipoMeta: 'percentual', valorMeta: 35, subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'] },
-    { nome: 'Reserva', cor: '#f59e0b', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] }
+    { nome: 'Reserva', cor: '#f59e0b', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] },
+    { nome: 'Viagens', cor: '#0ea5e9', tipoMeta: 'valor', valorMeta: null, subcategorias: ['Passagens e Deslocamento', 'Hospedagem', 'Alimentação em Viagem', 'Passeios e Ingressos', 'Documentação e Seguros', 'Compras e Lembranças', 'Câmbio e Taxas', 'Imprevistos e Emergências'] }
 ];
 
 const GerenciarCategorias = ({ setLoading, setMessage }) => {
@@ -322,6 +323,11 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                             : (defaultCat ? defaultCat.subcategorias : [])
                     };
                 });
+                const temViagens = listaCategorias.some(c => (c.nome || '').toLowerCase() === 'viagens');
+                if (!temViagens) {
+                    const catViagens = categoriasDefault.find(c => c.nome === 'Viagens');
+                    if (catViagens) listaCategorias.push(catViagens);
+                }
             } else {
                 listaCategorias = categoriasDefault;
             }
