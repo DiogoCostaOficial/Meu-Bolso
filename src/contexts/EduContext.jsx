@@ -9,16 +9,54 @@ export const EduProvider = ({ children }) => {
     const [financialData, setFinancialData] = useState({ receitas: 0, despesas: 0 });
     const [mascotState, setMascotState] = useState('coin'); // 'wallet', 'coin', 'bill', 'gold'
     const [transitionMessage, setTransitionMessage] = useState(null);
+    const [isDocked, setIsDocked] = useState(() => {
+        try {
+            return localStorage.getItem('fin_mascot_docked') === 'true';
+        } catch {
+            return false;
+        }
+    });
+
+    const dockMascot = () => {
+        setIsDocked(true);
+        setIsVisible(false);
+        try {
+            localStorage.setItem('fin_mascot_docked', 'true');
+        } catch {}
+    };
+
+    const undockMascot = (topic) => {
+        setIsDocked(false);
+        setIsVisible(true);
+        if (topic) setCurrentTopic(topic);
+        try {
+            localStorage.setItem('fin_mascot_docked', 'false');
+        } catch {}
+    };
 
     const showLesson = (topic) => {
-        setCurrentTopic(topic);
+        if (topic) setCurrentTopic(topic);
+        setIsDocked(false);
         setIsVisible(true);
         setTransitionMessage(null); // Limpa mensagem de transição ao abrir lição normal
     };
 
     const hideMascot = () => {
         setIsVisible(false);
-        setCurrentTopic(null);
+        setTransitionMessage(null);
+    };
+
+    const toggleMascot = (topic) => {
+        if (isDocked) {
+            undockMascot(topic);
+            return;
+        }
+        setIsVisible((prev) => {
+            if (!prev && topic) {
+                setCurrentTopic(topic);
+            }
+            return !prev;
+        });
         setTransitionMessage(null);
     };
 
@@ -80,11 +118,24 @@ export const EduProvider = ({ children }) => {
             };
         }
 
-        if (!currentTopic) return null;
+        // Determinar tópico atual: prioridade para o selecionado, senão detecta pela URL atual
+        let topic = currentTopic;
+        if (!topic && typeof window !== 'undefined') {
+            const path = window.location.pathname.toLowerCase();
+            if (path.includes('despesa')) topic = 'despesas';
+            else if (path.includes('receita')) topic = 'receitas';
+            else if (path.includes('carto')) topic = 'cartoes';
+            else if (path.includes('orcamento')) topic = 'orcamento';
+            else if (path.includes('dre')) topic = 'dre';
+            else if (path.includes('relatorio')) topic = 'relatorios';
+            else topic = 'dashboard';
+        }
+
+        if (!topic) topic = 'dashboard';
 
         // Se for uma análise geral (ex: dashboard), combina conteúdo estático com análise dinâmica
-        if (currentTopic === 'dashboard') {
-            const baseContent = EDU_CONTENT['dashboard'];
+        if (topic === 'dashboard') {
+            const baseContent = EDU_CONTENT['dashboard'] || {};
             const analysis = analyzeFinances(financialData.receitas, financialData.despesas);
 
             return {
@@ -93,7 +144,7 @@ export const EduProvider = ({ children }) => {
             };
         }
 
-        return EDU_CONTENT[currentTopic];
+        return EDU_CONTENT[topic] || EDU_CONTENT['dashboard'];
     };
 
     return (
@@ -101,6 +152,10 @@ export const EduProvider = ({ children }) => {
             isVisible,
             showLesson,
             hideMascot,
+            toggleMascot,
+            isDocked,
+            dockMascot,
+            undockMascot,
             updateFinancialData,
             getLessonContent,
             mascotState

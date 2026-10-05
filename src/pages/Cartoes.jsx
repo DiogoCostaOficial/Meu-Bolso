@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useEdu } from '../contexts/EduContext';
-import EduHelpButton from '../components/EduHelpButton';
 import CurrencySelector from '../components/CurrencySelector';
 
 const Cartoes = () => {
@@ -308,11 +307,10 @@ const Cartoes = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-start gap-3">
                     <CurrencySelector />
-                    <EduHelpButton topic="cartoes" />
-                    <div className="flex items-center gap-2 bg-custom-primary/30 dark:bg-slate-800/40 px-3 py-2 rounded-lg border border-custom-color">
-                        <Calendar className="w-4 h-4 text-custom-gold" />
+                    <div className="h-11 flex items-center gap-2 bg-custom-card text-custom-main px-4 rounded-full border border-custom-color shadow-custom transition-custom">
+                        <Calendar className="w-4 h-4 text-custom-gold flex-shrink-0" />
                         <select
                             value={anoSelecionado}
                             onChange={(e) => setAnoSelecionado(e.target.value)}
@@ -326,7 +324,7 @@ const Cartoes = () => {
 
                     <button
                         onClick={adicionarCartao}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-sm font-medium"
+                        className="h-11 flex items-center gap-2 px-4 bg-green-600 text-white rounded-full hover:bg-green-700 transition shadow-sm font-medium"
                     >
                         <Plus className="w-4 h-4" />
                         Novo Cartão

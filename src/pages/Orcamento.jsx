@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
-import EduHelpButton from '../components/EduHelpButton';
 import CurrencySelector from '../components/CurrencySelector';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
@@ -539,9 +538,17 @@ const Orcamento = () => {
     }
   };
 
+  const realDisponivel = parseFloat(rendaReal) || 0;
   const totalPlanejado = categorias.reduce((acc, cat) => acc + calcularValorCategoria(cat), 0);
   const totalGastoAtual = categorias.reduce((acc, cat) => acc + (parseFloat(cat.gastoAtual) || 0), 0);
-  const totalDisponivel = (parseFloat(rendaReal) || totalPlanejado) - totalGastoAtual;
+  const totalDisponivel = (realDisponivel || totalPlanejado) - totalGastoAtual;
+
+  const diferencaValor = realDisponivel - totalPlanejado;
+  const diferencaPercentual = 100 - totalPercentual;
+
+  const todasEmValor = categorias.length > 0 && categorias.every(c => c.tipoMeta === 'valor');
+  const todasEmPercentual = categorias.length > 0 && categorias.every(c => c.tipoMeta === 'percentual');
+  const modoMisto = !todasEmValor && !todasEmPercentual;
 
   const dadosGrafico = categorias
     .filter(cat => calcularValorCategoria(cat) > 0 || (cat.percentual && cat.percentual > 0))
@@ -559,18 +566,17 @@ const Orcamento = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Programação do Orçamento</h1>
           <p className="text-gray-600 dark:text-slate-400 mt-1 text-sm md:text-base">Configure seu orçamento mensal de acordo com suas metas</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-start gap-3">
           <CurrencySelector />
-          <EduHelpButton topic="orcamento" />
           <input
             type="month"
             value={mesSelecionado}
             onChange={(e) => setMesSelecionado(e.target.value)}
-            className="px-3 py-2.5 border-2 border-blue-200 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-base font-semibold bg-white dark:bg-slate-800 dark:text-white"
+            className="h-11 px-4 border border-custom-color rounded-full focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm font-semibold bg-custom-card dark:bg-slate-800 text-custom-main shadow-sm cursor-pointer"
           />
           <button
             onClick={resetarOrcamento}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition"
+            className="h-11 flex items-center gap-2 px-4 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-full hover:bg-gray-300 dark:hover:bg-slate-600 transition"
           >
             <RefreshCw className="w-4 h-4" />
             <span className="hidden sm:inline">Resetar</span>
@@ -707,7 +713,18 @@ const Orcamento = () => {
               <AlertCircle className="w-12 h-12 mb-2 text-custom-gold" />
               <p className="text-custom-main opacity-65 text-center">Configure sua renda e percentuais para ver o gráfico.</p>
               {!percentualValido && totalPercentual > 0 && (
-                <p className="text-sm mt-2 text-red-500 font-bold">Total de percentuais: {totalPercentual.toFixed(2)}% (deve ser 100%)</p>
+                <div className="text-center mt-2 space-y-1">
+                  <p className="text-sm text-amber-500 font-bold">
+                    Configurado: {totalPercentual.toFixed(1)}% ({formatarMoeda(totalPlanejado)})
+                  </p>
+                  {realDisponivel > 0 && (
+                    <p className={`text-xs font-semibold ${diferencaPercentual > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-500'}`}>
+                      {diferencaPercentual > 0
+                        ? `Falta configurar: ${diferencaPercentual.toFixed(1)}% (${formatarMoeda(diferencaValor)})`
+                        : `Ultrapassou em: ${Math.abs(diferencaPercentual).toFixed(1)}% (${formatarMoeda(Math.abs(diferencaValor))})`}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -733,6 +750,71 @@ const Orcamento = () => {
             Copiar Metas para Outros Meses
           </button>
         </div>
+
+        {/* RESUMO DE ALOCAÇÃO DO ORÇAMENTO (VALOR E PERCENTUAL) */}
+        {realDisponivel > 0 && (
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-slate-800/60 rounded-xl border border-custom-color">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center sm:text-left">
+              <div className="space-y-0.5">
+                <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                  Renda Real Disponível
+                </span>
+                <p className="text-base sm:text-lg font-bold text-custom-main">
+                  {formatarMoeda(realDisponivel)} <span className="text-xs font-normal text-gray-400">(100%)</span>
+                </p>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                  Já Configurado
+                </span>
+                <p className="text-base sm:text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                  {formatarMoeda(totalPlanejado)}{' '}
+                  <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                    ({totalPercentual.toFixed(1)}%)
+                  </span>
+                </p>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                  {diferencaValor > 0.01 ? 'Falta Configurar' : diferencaValor < -0.01 ? 'Ultrapassou da Renda' : 'Status da Alocação'}
+                </span>
+                <p className={`text-base sm:text-lg font-bold ${
+                  diferencaValor > 0.01 
+                    ? 'text-amber-500' 
+                    : diferencaValor < -0.01 
+                      ? 'text-red-500' 
+                      : 'text-green-600 dark:text-green-400'
+                }`}>
+                  {diferencaValor > 0.01 ? (
+                    <>
+                      {formatarMoeda(diferencaValor)}{' '}
+                      <span className="text-xs font-semibold">({diferencaPercentual.toFixed(1)}%)</span>
+                    </>
+                  ) : diferencaValor < -0.01 ? (
+                    <>
+                      {formatarMoeda(Math.abs(diferencaValor))}{' '}
+                      <span className="text-xs font-semibold">({Math.abs(diferencaPercentual).toFixed(1)}%)</span>
+                    </>
+                  ) : (
+                    '100% Configurado'
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Barra visual de alocação */}
+            <div className="mt-3 w-full bg-gray-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  totalPercentual > 100.5 ? 'bg-red-500' : percentualValido ? 'bg-green-500' : 'bg-amber-500'
+                }`}
+                style={{ width: `${Math.min(totalPercentual, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* TABELA — apenas desktop */}
         <div className="hidden md:block overflow-x-auto">
@@ -822,13 +904,30 @@ const Orcamento = () => {
                 <td className="px-4 py-4"><span className="font-bold text-gray-900 dark:text-white text-base">TOTAL</span></td>
                 <td className="px-4 py-4 text-center">-</td>
                 <td className="px-4 py-4 text-center">
-                  <span className={`text-lg font-bold ${percentualValido ? 'text-green-600 dark:text-green-400' : 'text-amber-500'}`}>
-                    {totalPercentual.toFixed(1)}%
+                  <div className="flex flex-col items-center">
+                    <span className={`text-base font-bold ${percentualValido ? 'text-green-600 dark:text-green-400' : totalPercentual > 100.5 ? 'text-red-500' : 'text-amber-500'}`}>
+                      {totalPercentual.toFixed(1)}%
+                    </span>
+                    {realDisponivel > 0 && (
+                      <span className={`text-[11px] font-semibold mt-0.5 ${diferencaValor > 0.01 || diferencaPercentual > 0.05 ? 'text-amber-600 dark:text-amber-400' : diferencaValor < -0.01 || diferencaPercentual < -0.05 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                        {todasEmValor ? (
+                          diferencaValor > 0.01 ? `Falta ${formatarMoeda(diferencaValor)}` : diferencaValor < -0.01 ? `Excede ${formatarMoeda(Math.abs(diferencaValor))}` : '100% Configurado'
+                        ) : todasEmPercentual ? (
+                          diferencaPercentual > 0.05 ? `Falta ${diferencaPercentual.toFixed(1)}%` : diferencaPercentual < -0.05 ? `Excede ${Math.abs(diferencaPercentual).toFixed(1)}%` : '100% Configurado'
+                        ) : (
+                          diferencaValor > 0.01 ? `Falta ${formatarMoeda(diferencaValor)} (${diferencaPercentual.toFixed(1)}%)` : diferencaValor < -0.01 ? `Excede ${formatarMoeda(Math.abs(diferencaValor))} (${Math.abs(diferencaPercentual).toFixed(1)}%)` : '100% Configurado'
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-4 text-right">
+                  <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
+                    {formatarMoeda(totalPlanejado)}
                   </span>
                 </td>
-                <td className="px-4 py-4 text-right"><span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{formatarMoeda(totalPlanejado)}</span></td>
-                <td className="px-4 py-4 text-right"><span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{formatarMoeda(totalGastoAtual)}</span></td>
-                <td className="px-4 py-4 text-right"><span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{formatarMoeda(totalDisponivel)}</span></td>
+                <td className="px-4 py-4 text-right"><span className="text-base font-bold text-indigo-600 dark:text-indigo-400">{formatarMoeda(totalGastoAtual)}</span></td>
+                <td className="px-4 py-4 text-right"><span className="text-base font-bold text-indigo-600 dark:text-indigo-400">{formatarMoeda(totalDisponivel)}</span></td>
               </tr>
             </tbody>
           </table>
@@ -912,21 +1011,43 @@ const Orcamento = () => {
           })}
 
           {/* Totais no mobile */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800">
-            <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800 space-y-3">
+            <div className="grid grid-cols-2 gap-2 text-center">
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Total %</p>
-                <p className={`text-xl font-bold ${percentualValido ? 'text-green-600' : 'text-amber-500'}`}>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Configurado</p>
+                <p className="text-base font-bold text-blue-600 dark:text-blue-400">{formatarMoeda(totalPlanejado)}</p>
+                <p className={`text-xs font-bold ${percentualValido ? 'text-green-600 dark:text-green-400' : 'text-amber-500'}`}>
                   {totalPercentual.toFixed(1)}%
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Planejado</p>
-                <p className="text-lg font-bold text-blue-600">{formatarMoeda(totalPlanejado)}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  {diferencaValor > 0.01 ? 'Falta Configurar' : diferencaValor < -0.01 ? 'Ultrapassou' : 'Alocação'}
+                </p>
+                <p className={`text-base font-bold ${diferencaValor > 0.01 ? 'text-amber-500' : diferencaValor < -0.01 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                  {todasEmValor ? (
+                    diferencaValor > 0.01 ? formatarMoeda(diferencaValor) : diferencaValor < -0.01 ? formatarMoeda(Math.abs(diferencaValor)) : '100% Configurado'
+                  ) : todasEmPercentual ? (
+                    diferencaPercentual > 0.05 ? `${diferencaPercentual.toFixed(1)}%` : diferencaPercentual < -0.05 ? `${Math.abs(diferencaPercentual).toFixed(1)}%` : '100%'
+                  ) : (
+                    formatarMoeda(Math.abs(diferencaValor))
+                  )}
+                </p>
+                {modoMisto && (
+                  <p className={`text-xs font-bold ${diferencaPercentual > 0.01 ? 'text-amber-500' : diferencaPercentual < -0.01 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                    {diferencaValor > 0.01 || diferencaValor < -0.01 ? `${Math.abs(diferencaPercentual).toFixed(1)}%` : '100%'}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-center pt-2 border-t border-blue-200/60 dark:border-blue-800/60">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Gasto Atual</p>
+                <p className="text-sm font-bold text-gray-800 dark:text-white">{formatarMoeda(totalGastoAtual)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Disponível</p>
-                <p className={`text-lg font-bold ${totalDisponivel >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Disponível Total</p>
+                <p className={`text-sm font-bold ${totalDisponivel >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {formatarMoeda(totalDisponivel)}
                 </p>
               </div>

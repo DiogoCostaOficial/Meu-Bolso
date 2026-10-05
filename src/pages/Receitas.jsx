@@ -5,7 +5,6 @@ import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
-import EduHelpButton from '../components/EduHelpButton';
 import CurrencySelector from '../components/CurrencySelector';
 
 const Receitas = () => {
@@ -333,20 +332,19 @@ const Receitas = () => {
   return (
     <div className="space-y-6 bg-transparent min-h-screen transition-colors duration-300">
       {/* Header — mobile-first */}
-      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-start">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Receitas</h1>
           <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">Gerencie suas entradas e acompanhe sua evolução financeira.</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-start gap-3 flex-wrap">
           <CurrencySelector />
-          <EduHelpButton topic="receitas" />
           <button
             onClick={() => {
               setMostrarFormulario(!mostrarFormulario);
               setEditingItemId(null);
             }}
-            className="flex-1 sm:flex-none px-5 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+            className="h-11 px-5 bg-green-600 text-white rounded-full shadow-md hover:bg-green-700 transition flex items-center justify-center gap-2 font-medium"
           >
             <Plus className="w-5 h-5" />
             {mostrarFormulario ? 'Cancelar' : 'Nova Receita'}

@@ -14,7 +14,6 @@ import { useEdu } from '../contexts/EduContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../components/theme-provider';
-import EduHelpButton from '../components/EduHelpButton';
 import CurrencySelector from '../components/CurrencySelector';
 
 // Helper functions and constants defined outside the component
@@ -1622,17 +1621,16 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
       <div className="bg-custom-card p-4 md:p-6 rounded-custom shadow-custom border border-custom-color transition-colors">
-        <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-4">
+        <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-start mb-4">
           <h2 className="text-xl md:text-2xl font-bold text-custom-main flex items-center gap-2">
             <PieChartIcon className="w-6 h-6 text-custom-gold" />
             Relatórios Financeiros
           </h2>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-start gap-3 flex-wrap">
             <CurrencySelector />
-            <EduHelpButton topic="relatorios" />
             <button
               onClick={() => setIsFiltrosMinimized(!isFiltrosMinimized)}
-              className="p-2 text-custom-main opacity-80 hover:opacity-100 hover:bg-custom-primary/30 rounded-lg transition cursor-pointer"
+              className="h-11 px-3 text-custom-main opacity-80 hover:opacity-100 hover:bg-custom-primary/30 rounded-full border border-custom-color transition cursor-pointer flex items-center justify-center"
               title={isFiltrosMinimized ? 'Expandir Filtros' : 'Minimizar Filtros'}
             >
               {isFiltrosMinimized ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}

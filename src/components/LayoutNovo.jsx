@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from "./theme-provider";
-import { EduProvider } from '../contexts/EduContext';
+import { useEdu } from '../contexts/EduContext';
 import EduMascot from './EduMascot';
 import VideoPopup from './VideoPopup';
 import CurrencyUpdateAnnouncer from './CurrencyUpdateAnnouncer';
@@ -35,6 +35,7 @@ const LayoutNovo = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { isDocked, undockMascot } = useEdu();
 
   const handleLogout = () => {
     logout();
@@ -85,8 +86,7 @@ const LayoutNovo = ({ children }) => {
   };
 
   return (
-    <EduProvider>
-      <div className="min-h-screen bg-custom-primary text-custom-main flex transition-custom">
+    <div className="min-h-screen bg-custom-primary text-custom-main flex transition-custom">
         <VideoPopup />
         <CurrencyUpdateAnnouncer />
 
@@ -140,6 +140,32 @@ const LayoutNovo = ({ children }) => {
             {menuItems.map((item) => (
               <NavLink key={item.path} item={item} />
             ))}
+
+            {/* Item fixo de Ajuda FIN logo abaixo de Configurações */}
+            <button
+              type="button"
+              onClick={() => undockMascot()}
+              title={isSidebarCollapsed ? "Ajuda FIN (Clique para ativar)" : undefined}
+              className={`flex items-center w-full rounded-custom transition-custom ${
+                isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'
+              } text-gray-600 dark:text-slate-400 hover:bg-custom-gold/15 hover:text-custom-gold dark:hover:text-custom-gold cursor-pointer group`}
+            >
+              <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 border border-custom-gold/50 flex items-center justify-center bg-white shadow-xs">
+                <img src="/assets/fin_coin_boy.png" alt="FIN" className="w-full h-full object-cover" />
+              </div>
+              {!isSidebarCollapsed && (
+                <div className="flex items-center justify-between flex-1 min-w-0">
+                  <span className="font-medium text-sm text-custom-main group-hover:text-custom-gold transition-colors">
+                    Ajuda FIN
+                  </span>
+                  {isDocked && (
+                    <span className="text-[10px] bg-custom-gold/20 text-custom-gold font-bold px-1.5 py-0.5 rounded-full border border-custom-gold/30 animate-pulse">
+                      Ativar
+                    </span>
+                  )}
+                </div>
+              )}
+            </button>
           </nav>
 
           <div className="p-4 border-t border-custom-color space-y-2">
@@ -246,6 +272,30 @@ const LayoutNovo = ({ children }) => {
             {menuItems.map((item) => (
               <NavLink key={item.path} item={item} onClick={closeMobileMenu} />
             ))}
+
+            {/* Item de Ajuda FIN no mobile */}
+            <button
+              type="button"
+              onClick={() => {
+                undockMascot();
+                closeMobileMenu();
+              }}
+              className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-custom text-gray-600 dark:text-slate-400 hover:bg-custom-gold/15 hover:text-custom-gold dark:hover:text-custom-gold cursor-pointer group transition-custom"
+            >
+              <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 border border-custom-gold/50 flex items-center justify-center bg-white shadow-xs">
+                <img src="/assets/fin_coin_boy.png" alt="FIN" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex items-center justify-between flex-1 min-w-0">
+                <span className="font-medium text-sm text-custom-main group-hover:text-custom-gold transition-colors">
+                  Ajuda FIN
+                </span>
+                {isDocked && (
+                  <span className="text-[10px] bg-custom-gold/20 text-custom-gold font-bold px-1.5 py-0.5 rounded-full border border-custom-gold/30 animate-pulse">
+                    Ativar
+                  </span>
+                )}
+              </div>
+            </button>
           </nav>
 
           {/* Rodapé do menu mobile */}
@@ -285,7 +335,6 @@ const LayoutNovo = ({ children }) => {
         {/* MASCOTE GLOBAL */}
         <EduMascot />
       </div>
-    </EduProvider>
   );
 };
 

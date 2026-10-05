@@ -5,6 +5,7 @@ const CurrencyContext = createContext();
 export function CurrencyProvider({ children }) {
   const [currency, setCurrency] = useState('BRL');
   const [exchangeRates, setExchangeRates] = useState({ BRL: 1, USD: 0.18, EUR: 0.16 });
+  const [exchangeDate, setExchangeDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   const locales = {
@@ -26,6 +27,10 @@ export function CurrencyProvider({ children }) {
               USD: data.rates.USD || 0.18,
               EUR: data.rates.EUR || 0.16
             };
+            if (data.date) {
+              const [y, m, d] = data.date.split('-');
+              setExchangeDate(`${d}/${m}/${y}`);
+            }
           }
         } catch (apiError) {
           console.warn('Falha ao buscar cotação. Usando valores fallback.', apiError);
@@ -57,7 +62,7 @@ export function CurrencyProvider({ children }) {
   }, [currency, exchangeRates]);
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, formatCurrency, isLoading }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, formatCurrency, isLoading, exchangeRates, exchangeDate }}>
       {children}
     </CurrencyContext.Provider>
   );

@@ -3,7 +3,6 @@ import { TrendingUp, TrendingDown, DollarSign, Calendar, GraduationCap } from 'l
 import api from '../services/api';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
-import EduHelpButton from '../components/EduHelpButton';
 import CurrencySelector from '../components/CurrencySelector';
 
 const DRE = () => {
@@ -217,9 +216,8 @@ const DRE = () => {
           <h1 className="text-2xl font-bold text-custom-main tracking-tight">
             Demonstração do Resultado do Exercício (DRE)
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <CurrencySelector />
-            <EduHelpButton topic="dre" />
           </div>
         </div>
 

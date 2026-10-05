@@ -130,6 +130,14 @@ When user's prompt is NOT in English:
 - Skills: `.agent/skills/` (Project)
 - Runtime Scripts: `.agent/skills/<skill>/scripts/`
 
+### 🚀 Homologação Automática & Link de Testes (MANDATÓRIO)
+
+**Sempre que realizar uma atualização, melhoria ou correção:**
+
+1. **Subir Servidores Locais:** Garantir que os servidores de homologação (Backend na porta 5000 e Frontend Vite na porta 5173) estejam iniciados em background caso ainda não estejam rodando.
+2. **Fornecer o Link Imediatamente:** Enviar na resposta final o link direto de homologação (**[http://localhost:5173](http://localhost:5173)**) para que o usuário possa testar e analisar diretamente no navegador, dispensando a necessidade de executar `iniciar_sistema.bat` manualmente.
+3. **Ambiente Seguro:** Manter as alterações estritamente em homologação local até que o usuário valide e aprove explicitamente o deploy para produção.
+
 ### 🧠 Read → Understand → Apply
 
 ```

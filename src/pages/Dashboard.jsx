@@ -4,7 +4,6 @@ import { useEdu } from '../contexts/EduContext';
 import { useTheme } from '../components/theme-provider';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useLayoutVariant } from '../contexts/LayoutVariantContext';
-import EduHelpButton from '../components/EduHelpButton';
 import CurrencySelector from '../components/CurrencySelector';
 import {
   Wallet, TrendingUp, TrendingDown, CreditCard,
@@ -275,32 +274,33 @@ const Dashboard = () => {
   return (
     <div className="space-y-5 transition-custom">
       {/* Cabeçalho com Filtro de Mês/Ano — mobile-first */}
-      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-start">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-custom-main">Dashboard</h2>
           <p className="text-gray-600 dark:text-slate-400 mt-1 text-sm md:text-base">Visão geral das suas finanças</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <div className="flex items-center gap-2">
-            <CurrencySelector />
-            <EduHelpButton topic="dashboard" />
-          </div>
-          <div className="flex items-center gap-2 bg-custom-card text-custom-main px-3 py-2 rounded-custom shadow-custom border border-custom-color w-full sm:w-auto transition-custom">
+        <div className="flex flex-col sm:flex-row items-start gap-3">
+          {/* Seletor de Moeda e Cotação Comercial */}
+          <CurrencySelector />
+
+          {/* Filtro de Mês/Ano com altura h-11 idêntica e formato pill */}
+          <div className="h-11 flex items-center gap-2 bg-custom-card text-custom-main px-4 rounded-full shadow-custom border border-custom-color w-full sm:w-auto transition-custom">
             <Calendar className="w-4 h-4 text-custom-gold flex-shrink-0" />
             <select
               value={mesSelecionado}
               onChange={(e) => setMesSelecionado(e.target.value)}
-              className="flex-1 py-1 border-0 focus:ring-0 bg-transparent font-medium text-custom-main text-sm cursor-pointer"
+              className="py-1 border-0 focus:ring-0 bg-transparent font-medium text-custom-main text-sm cursor-pointer capitalize"
             >
               {meses.map(mes => (
                 <option key={mes.valor} value={mes.valor} className="bg-custom-card text-custom-main">{mes.nome}</option>
               ))}
             </select>
+            <span className="text-custom-main opacity-30 select-none">|</span>
             <select
               value={anoSelecionado}
               onChange={(e) => setAnoSelecionado(e.target.value)}
-              className="py-1 border-0 focus:ring-0 bg-transparent font-medium text-custom-main text-sm w-20 cursor-pointer"
+              className="py-1 border-0 focus:ring-0 bg-transparent font-medium text-custom-main text-sm w-18 cursor-pointer"
             >
               {gerarListaAnos().map(ano => (
                 <option key={ano} value={ano} className="bg-custom-card text-custom-main">{ano}</option>

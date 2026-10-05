@@ -4,6 +4,8 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LayoutNovo from './LayoutNovo';
 
+import { EduProvider } from '../contexts/EduContext';
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation(); // Hook para obter a localização atual
@@ -36,7 +38,11 @@ const ProtectedRoute = ({ children }) => {
   }
 
   const content = children ? children : <Outlet />;
-  return <LayoutNovo>{content}</LayoutNovo>;
+  return (
+    <EduProvider>
+      <LayoutNovo>{content}</LayoutNovo>
+    </EduProvider>
+  );
 };
 
 export default ProtectedRoute;
