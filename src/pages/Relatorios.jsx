@@ -8,7 +8,7 @@ import {
 import {
   TrendingUp, TrendingDown, DollarSign, Calendar,
   PieChart as PieChartIcon, Filter, ChevronDown, ChevronUp, Target, GraduationCap,
-  BarChart3, AlertCircle, Sliders, ShieldCheck, PiggyBank
+  BarChart3, AlertCircle, Sliders, ShieldCheck, PiggyBank, GripVertical
 } from 'lucide-react';
 import { useEdu } from '../contexts/EduContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -353,17 +353,54 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
 
       // Evolução Temporal
       const dadosEvolucao = [];
-      const mesesDoAno = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-      mesesDoAno.forEach(mes => {
-        const recMes = receitas.filter(r => r.data.startsWith(`${anoSelecionado}-${mes}`) && r.somarNoOrcamento !== false).reduce((acc, r) => acc + Number(r.valor), 0);
-        const despMes = despesas.filter(d => d.data.startsWith(`${anoSelecionado}-${mes}`) && d.somarNoOrcamento !== false).reduce((acc, d) => acc + Number(d.valor), 0);
-        dadosEvolucao.push({
-          name: mes,
-          receitas: recMes,
-          despesas: despMes,
-          saldo: recMes - despMes
+      if (graficoEvolucaoPeriodo === 'trimestral') {
+        const trimestresConfig = [
+          { nome: '1º Trim', meses: ['01', '02', '03'] },
+          { nome: '2º Trim', meses: ['04', '05', '06'] },
+          { nome: '3º Trim', meses: ['07', '08', '09'] },
+          { nome: '4º Trim', meses: ['10', '11', '12'] }
+        ];
+        trimestresConfig.forEach(t => {
+          const recTrim = receitas.filter(r => t.meses.some(m => r.data && r.data.startsWith(`${anoSelecionado}-${m}`)) && r.somarNoOrcamento !== false).reduce((acc, r) => acc + Number(r.valor), 0);
+          const despTrim = despesas.filter(d => t.meses.some(m => d.data && d.data.startsWith(`${anoSelecionado}-${m}`)) && d.somarNoOrcamento !== false).reduce((acc, d) => acc + Number(d.valor), 0);
+          dadosEvolucao.push({
+            name: t.nome,
+            receitas: recTrim,
+            despesas: despTrim,
+            saldo: recTrim - despTrim
+          });
         });
-      });
+      } else if (graficoEvolucaoPeriodo === 'anual') {
+        const todosAnos = [...new Set([
+          ...receitas.map(r => r.data?.split('-')[0]),
+          ...despesas.map(d => d.data?.split('-')[0]),
+          anoSelecionado
+        ])].filter(Boolean).sort();
+        const anosParaExibir = todosAnos.slice(-5);
+        anosParaExibir.forEach(ano => {
+          const recAno = receitas.filter(r => r.data && r.data.startsWith(`${ano}-`) && r.somarNoOrcamento !== false).reduce((acc, r) => acc + Number(r.valor), 0);
+          const despAno = despesas.filter(d => d.data && d.data.startsWith(`${ano}-`) && d.somarNoOrcamento !== false).reduce((acc, d) => acc + Number(d.valor), 0);
+          dadosEvolucao.push({
+            name: String(ano),
+            receitas: recAno,
+            despesas: despAno,
+            saldo: recAno - despAno
+          });
+        });
+      } else {
+        const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const mesesDoAno = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+        mesesDoAno.forEach((mes, idx) => {
+          const recMes = receitas.filter(r => r.data && r.data.startsWith(`${anoSelecionado}-${mes}`) && r.somarNoOrcamento !== false).reduce((acc, r) => acc + Number(r.valor), 0);
+          const despMes = despesas.filter(d => d.data && d.data.startsWith(`${anoSelecionado}-${mes}`) && d.somarNoOrcamento !== false).reduce((acc, d) => acc + Number(d.valor), 0);
+          dadosEvolucao.push({
+            name: nomesMeses[idx] || mes,
+            receitas: recMes,
+            despesas: despMes,
+            saldo: recMes - despMes
+          });
+        });
+      }
       setDadosEvolucaoTemporal(dadosEvolucao);
 
       // Dados Trimestrais
@@ -1132,16 +1169,18 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
       case 'evolucao':
         return (
           <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom h-full">
-            <h3 className="text-xl font-bold text-custom-main mb-4 flex items-center justify-between gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-custom-gold" />
-                <span>Evolução Temporal de Receitas e Despesas</span>
+                <TrendingUp className="w-6 h-6 text-custom-gold shrink-0" />
+                <h3 className="text-lg md:text-xl font-bold text-custom-main">
+                  Evolução Temporal de Receitas e Despesas
+                </h3>
               </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="graficoEvolucaoPeriodo" className="text-sm font-medium text-custom-main opacity-80">Período:</label>
+              <div className="flex items-center gap-2 self-start sm:self-auto bg-custom-primary/50 px-3 py-1.5 rounded-custom border border-custom-color">
+                <label htmlFor="graficoEvolucaoPeriodo" className="text-xs font-bold text-custom-gold uppercase tracking-wider">Período:</label>
                 <select
                   id="graficoEvolucaoPeriodo"
-                  className="bg-transparent border border-custom-color text-custom-main text-sm focus:outline-none focus:ring-amber-500/50 rounded-custom px-2 py-1 dark:bg-slate-900"
+                  className="bg-transparent border-none text-sm font-semibold text-custom-main focus:outline-none cursor-pointer dark:bg-slate-900"
                   value={graficoEvolucaoPeriodo}
                   onChange={(e) => setGraficoEvolucaoPeriodo(e.target.value)}
                 >
@@ -1150,7 +1189,7 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
                   <option value="anual" className="dark:bg-slate-900">Anual</option>
                 </select>
               </div>
-            </h3>
+            </div>
             {dadosEvolucaoTemporal.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
                 <AreaChart
@@ -1766,35 +1805,60 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
             return (
               <div
                 key={chart.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
-                className={`${sizeClass} cursor-move relative transition-all duration-300`}
+                className={`${sizeClass} flex flex-col transition-all duration-300`}
               >
-                {/* Tamanho controls overlay on top right */}
-                <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity bg-custom-card/90 px-2 py-1 rounded-custom border border-custom-color">
-                  <span className="text-[9px] font-bold text-custom-gold uppercase tracking-wider mr-1">Tamanho:</span>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); changeChartSize(chart.id, 'small'); }} 
-                    className={`text-[9px] px-1.5 py-0.5 rounded-sm font-bold cursor-pointer transition-colors ${chart.size === 'small' ? 'bg-custom-gold text-black' : 'text-custom-main opacity-70 hover:opacity-100'}`}
-                  >
-                    P
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); changeChartSize(chart.id, 'medium'); }} 
-                    className={`text-[9px] px-1.5 py-0.5 rounded-sm font-bold cursor-pointer transition-colors ${chart.size === 'medium' ? 'bg-custom-gold text-black' : 'text-custom-main opacity-70 hover:opacity-100'}`}
-                  >
-                    M
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); changeChartSize(chart.id, 'large'); }} 
-                    className={`text-[9px] px-1.5 py-0.5 rounded-sm font-bold cursor-pointer transition-colors ${chart.size === 'large' ? 'bg-custom-gold text-black' : 'text-custom-main opacity-70 hover:opacity-100'}`}
-                  >
-                    G
-                  </button>
+                {/* Barra Superior Dedicada: Alça de Arraste & Seletor de Tamanho (Zero sobreposição) */}
+                <div 
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, index)}
+                  className="flex items-center justify-between px-3.5 py-1.5 mb-2 bg-custom-card/90 backdrop-blur-xs rounded-xl border border-custom-color shadow-xs select-none cursor-grab active:cursor-grabbing hover:border-custom-gold/50 transition-colors"
+                  title="Clique e arraste por esta barra para reordenar o relatório"
+                >
+                  <div className="flex items-center gap-2 text-custom-main opacity-80 min-w-0">
+                    <GripVertical className="w-4 h-4 text-custom-gold shrink-0" />
+                    <span className="text-[11px] font-bold truncate">
+                      {chart.title}
+                    </span>
+                    <span className="text-[10px] text-gray-400 hidden sm:inline shrink-0">(arraste para mover)</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-[10px] font-bold text-custom-gold uppercase tracking-wider mr-0.5">Tamanho:</span>
+                    <div className="flex items-center bg-custom-primary/60 p-0.5 rounded-lg border border-custom-color">
+                      <button 
+                        type="button"
+                        onClick={() => changeChartSize(chart.id, 'small')} 
+                        title="Tamanho Pequeno (1/3 da tela)"
+                        className={`text-[10px] px-2 py-0.5 rounded font-bold cursor-pointer transition-colors ${chart.size === 'small' ? 'bg-custom-gold text-black shadow-xs' : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-card'}`}
+                      >
+                        P
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => changeChartSize(chart.id, 'medium')} 
+                        title="Tamanho Médio (Metade da tela)"
+                        className={`text-[10px] px-2 py-0.5 rounded font-bold cursor-pointer transition-colors ${chart.size === 'medium' ? 'bg-custom-gold text-black shadow-xs' : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-card'}`}
+                      >
+                        M
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => changeChartSize(chart.id, 'large')} 
+                        title="Tamanho Grande (Largura total)"
+                        className={`text-[10px] px-2 py-0.5 rounded font-bold cursor-pointer transition-colors ${chart.size === 'large' ? 'bg-custom-gold text-black shadow-xs' : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-card'}`}
+                      >
+                        G
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                {renderChartContent(chart.id)}
+
+                {/* Conteúdo do Relatório */}
+                <div className="flex-1 min-h-0">
+                  {renderChartContent(chart.id)}
+                </div>
               </div>
             );
           })}
