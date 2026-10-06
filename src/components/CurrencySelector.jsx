@@ -146,7 +146,7 @@ export default function CurrencySelector({ className = '' }) {
               <span className="font-semibold text-gray-700 dark:text-slate-200">R$ 1 = US$ {usdCommercial} · € {eurCommercial}</span>
             </div>
             <div className="text-[10px] text-gray-400 dark:text-slate-500 text-center pt-1">
-              * Taxa oficial de abertura {exchangeDate ? `(${exchangeDate})` : 'do dia'}
+              * Atualizada de hora em hora {exchangeDate ? `(${exchangeDate})` : ''}
             </div>
           </div>
         </div>

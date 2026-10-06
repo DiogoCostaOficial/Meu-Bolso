@@ -140,8 +140,10 @@ const Dashboard = () => {
   const totalDespesas = calculateTotal(despesasFiltradas.filter(d => d.somarNoOrcamento !== false)); // Soma apenas despesas que devem ser somadas
   // Atualizar dados do mascote com base nos valores filtrados
   useEffect(() => {
-    updateFinancialData(totalReceitas, totalDespesas);
-  }, [totalReceitas, totalDespesas, updateFinancialData]);
+    if (!loading) {
+      updateFinancialData(totalReceitas, totalDespesas);
+    }
+  }, [loading, totalReceitas, totalDespesas, updateFinancialData]);
 
   const getHistoricalData = () => {
     const data = [];

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useCallback, useMemo } from 'react';
 import { EDU_CONTENT, analyzeFinances, TRANSITION_MESSAGES } from '../utils/eduContent';
 
 const EduContext = createContext();
@@ -17,40 +17,48 @@ export const EduProvider = ({ children }) => {
         }
     });
 
-    const dockMascot = () => {
+    const dockMascot = useCallback(() => {
         setIsDocked(true);
         setIsVisible(false);
         try {
             localStorage.setItem('fin_mascot_docked', 'true');
         } catch {}
-    };
+    }, []);
 
-    const undockMascot = (topic) => {
+    const undockMascot = useCallback((topic) => {
         setIsDocked(false);
         setIsVisible(true);
         if (topic) setCurrentTopic(topic);
         try {
             localStorage.setItem('fin_mascot_docked', 'false');
         } catch {}
-    };
+    }, []);
 
-    const showLesson = (topic) => {
+    const showLesson = useCallback((topic) => {
         if (topic) setCurrentTopic(topic);
         setIsDocked(false);
         setIsVisible(true);
         setTransitionMessage(null); // Limpa mensagem de transição ao abrir lição normal
-    };
+    }, []);
 
-    const hideMascot = () => {
+    const hideMascot = useCallback(() => {
         setIsVisible(false);
         setTransitionMessage(null);
-    };
+    }, []);
 
-    const toggleMascot = (topic) => {
-        if (isDocked) {
-            undockMascot(topic);
-            return;
-        }
+    const toggleMascot = useCallback((topic) => {
+        setIsDocked((prevDocked) => {
+            if (prevDocked) {
+                try {
+                    localStorage.setItem('fin_mascot_docked', 'false');
+                } catch {}
+                setIsVisible(true);
+                if (topic) setCurrentTopic(topic);
+                return false;
+            }
+            return false;
+        });
+
         setIsVisible((prev) => {
             if (!prev && topic) {
                 setCurrentTopic(topic);
@@ -58,14 +66,21 @@ export const EduProvider = ({ children }) => {
             return !prev;
         });
         setTransitionMessage(null);
-    };
+    }, []);
 
-    const updateFinancialData = (receitas, despesas) => {
-        setFinancialData({ receitas, despesas });
-
-        // Lógica para definir o estado do mascote FIN
+    const updateFinancialData = useCallback((receitas, despesas) => {
         const totalReceitas = Number(receitas) || 0;
         const totalDespesas = Number(despesas) || 0;
+
+        // Evita re-render se os valores forem idênticos aos anteriores
+        setFinancialData(prev => {
+            if (prev.receitas === totalReceitas && prev.despesas === totalDespesas) {
+                return prev;
+            }
+            return { receitas: totalReceitas, despesas: totalDespesas };
+        });
+
+        // Lógica para definir o estado do mascote FIN
         const saldo = totalReceitas - totalDespesas;
 
         // Calcular percentual de economia (quanto sobrou)
@@ -86,28 +101,27 @@ export const EduProvider = ({ children }) => {
             newState = 'gold'; // Acima de 75% é Ouro
         }
 
-        // Verificar transição
-        if (newState !== mascotState) {
-            // Definir hierarquia: wallet < coin < bill < gold
+        // Atualização funcional do estado do mascote
+        setMascotState(prevMascot => {
+            if (prevMascot === newState) return prevMascot;
+
             const hierarchy = { wallet: 0, coin: 1, bill: 2, gold: 3 };
-            const oldRank = hierarchy[mascotState] !== undefined ? hierarchy[mascotState] : 1;
+            const oldRank = hierarchy[prevMascot] !== undefined ? hierarchy[prevMascot] : 1;
             const newRank = hierarchy[newState];
 
             if (newRank > oldRank) {
-                // Upgrade
                 setTransitionMessage(TRANSITION_MESSAGES.upgrade);
-                setIsVisible(true); // Mostrar mascote automaticamente para dar parabéns
+                setIsVisible(true);
             } else if (newRank < oldRank) {
-                // Downgrade
                 setTransitionMessage(TRANSITION_MESSAGES.downgrade);
-                setIsVisible(true); // Mostrar mascote automaticamente para alertar
+                setIsVisible(true);
             }
 
-            setMascotState(newState);
-        }
-    };
+            return newState;
+        });
+    }, []);
 
-    const getLessonContent = () => {
+    const getLessonContent = useCallback(() => {
         // Prioridade para mensagem de transição
         if (transitionMessage) {
             return {
@@ -128,6 +142,7 @@ export const EduProvider = ({ children }) => {
             else if (path.includes('orcamento')) topic = 'orcamento';
             else if (path.includes('dre')) topic = 'dre';
             else if (path.includes('relatorio')) topic = 'relatorios';
+            else if (path.includes('viagem') || path.includes('viagens')) topic = 'viagens';
             else topic = 'dashboard';
         }
 
@@ -145,21 +160,34 @@ export const EduProvider = ({ children }) => {
         }
 
         return EDU_CONTENT[topic] || EDU_CONTENT['dashboard'];
-    };
+    }, [currentTopic, transitionMessage, financialData]);
+
+    const contextValue = useMemo(() => ({
+        isVisible,
+        showLesson,
+        hideMascot,
+        toggleMascot,
+        isDocked,
+        dockMascot,
+        undockMascot,
+        updateFinancialData,
+        getLessonContent,
+        mascotState
+    }), [
+        isVisible,
+        showLesson,
+        hideMascot,
+        toggleMascot,
+        isDocked,
+        dockMascot,
+        undockMascot,
+        updateFinancialData,
+        getLessonContent,
+        mascotState
+    ]);
 
     return (
-        <EduContext.Provider value={{
-            isVisible,
-            showLesson,
-            hideMascot,
-            toggleMascot,
-            isDocked,
-            dockMascot,
-            undockMascot,
-            updateFinancialData,
-            getLessonContent,
-            mascotState
-        }}>
+        <EduContext.Provider value={contextValue}>
             {children}
         </EduContext.Provider>
     );
