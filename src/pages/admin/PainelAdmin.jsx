@@ -696,6 +696,17 @@ const PainelAdmin = () => {
                                 )}
                               </div>
                               <div className="text-[11px] text-slate-400">{u.email}</div>
+                              {(u.whatsapp || u.telefone) && (
+                                <a
+                                  href={`https://wa.me/${String(u.whatsapp || u.telefone).replace(/\D/g, '')}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[10px] text-green-400 hover:text-green-300 flex items-center gap-1 mt-0.5"
+                                  title="Abrir WhatsApp do usuário"
+                                >
+                                  <span>💬 {u.whatsapp || u.telefone}</span>
+                                </a>
+                              )}
                             </div>
                           </div>
                         </td>

@@ -18,9 +18,14 @@ const registrarAtividadeAdmin = (usuarioId, ip, tipo) => {
   // Salvar em arquivo de logs
   const fs = require('fs');
   const path = require('path');
-  const logPath = path.join(__dirname, '..', 'data', 'admin-logs.json');
+  const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const logDir = isVercel ? '/tmp/meu-bolso-data' : path.join(__dirname, '..', 'data');
+  const logPath = path.join(logDir, 'admin-logs.json');
 
   try {
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
     let logs = [];
     if (fs.existsSync(logPath)) {
       const logsData = fs.readFileSync(logPath, 'utf8');
@@ -46,15 +51,31 @@ const normalizarEmail = (email) => String(email || '').trim().toLowerCase();
 // Registrar novo usuário
 const registrar = async (req, res) => {
   try {
-    const { nome, email, senha } = req.body;
+    const { nome, email, senha, pais, whatsapp, telefone } = req.body;
     const emailNorm = normalizarEmail(email);
     const nomeLimpo = String(nome || '').trim();
+    const paisLimpo = String(pais || '').trim();
+    const whatsappLimpo = String(whatsapp || telefone || '').trim();
 
     // Validações
     if (!nomeLimpo || !emailNorm || !senha) {
       return res.status(400).json({
         success: false,
         message: 'Nome, e-mail e senha são obrigatórios'
+      });
+    }
+
+    if (!paisLimpo) {
+      return res.status(400).json({
+        success: false,
+        message: 'O país é obrigatório'
+      });
+    }
+
+    if (!whatsappLimpo) {
+      return res.status(400).json({
+        success: false,
+        message: 'O telefone de WhatsApp é obrigatório'
       });
     }
 
@@ -86,6 +107,9 @@ const registrar = async (req, res) => {
       usuarioExistente.nome = nomeLimpo;
       usuarioExistente.email = emailNorm;
       usuarioExistente.senha = senhaHash;
+      usuarioExistente.pais = paisLimpo;
+      usuarioExistente.whatsapp = whatsappLimpo;
+      usuarioExistente.telefone = whatsappLimpo;
       usuarioExistente.otpCodigo = otpCodigo;
       usuarioExistente.otpExpira = otpExpira;
 
@@ -115,6 +139,9 @@ const registrar = async (req, res) => {
       email: emailNorm,
       senha: senhaHash,
       tipo: 'usuario',
+      pais: paisLimpo,
+      whatsapp: whatsappLimpo,
+      telefone: whatsappLimpo,
       ativo: true,
       primeiroAcesso: true,
       verificado: false,

@@ -198,8 +198,8 @@ const LoginNovo = () => {
     <div className={`min-h-screen w-full grid grid-cols-1 lg:grid-cols-12 bg-custom-primary transition-colors duration-300 layout-${layoutVariant}`}>
       {/* LADO ESQUERDO: Área de Login Clean & Minimalista */}
       <div className="lg:col-span-5 xl:col-span-5 flex flex-col justify-between px-8 sm:px-14 xl:px-20 py-10 bg-custom-card text-custom-main relative z-10">
-        {/* Topo: Logo + Alternador de Tema */}
-        <div className="flex items-center justify-between">
+        {/* Topo: Logo + Seletor de Idioma + Alternador de Tema */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Link to="/" className="inline-flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-custom-gold flex items-center justify-center text-black font-black shadow-sm group-hover:scale-105 transition">
               <TrendingUp className="w-5 h-5 stroke-[2.5]" />
@@ -209,7 +209,8 @@ const LoginNovo = () => {
             </span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
             <button
               type="button"
               onClick={() => {
@@ -477,8 +478,8 @@ const LoginNovo = () => {
           </form>
         </div>
 
-        {/* Rodapé Minimalista + Seletor de Idioma */}
-        <div className="pt-4 border-t border-custom-color/60 space-y-3">
+        {/* Rodapé Minimalista */}
+        <div className="pt-4 border-t border-custom-color/60">
           <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-custom-main opacity-80">
             <div>
               {t('Ainda não tem conta?')}{' '}
@@ -489,13 +490,6 @@ const LoginNovo = () => {
             <Link to="/" className="hover:text-custom-gold transition">
               {t('← Página inicial')}
             </Link>
-          </div>
-
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <span className="text-[11px] font-medium text-custom-main opacity-60">
-              {t('Idioma')}:
-            </span>
-            <LanguageSelector variant="footer" align="right" showQuickFeatured={true} />
           </div>
         </div>
       </div>

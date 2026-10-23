@@ -9,8 +9,10 @@ const uuidv4 = () => {
     });
 };
 
-const DATA_FILE = path.join(__dirname, '../data/database.json');
-const DATA_DIR = path.join(__dirname, '../data');
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_DIR = isVercel ? '/tmp/meu-bolso-data' : path.join(__dirname, '../data');
+const DATA_FILE = path.join(DATA_DIR, 'database.json');
+const SEED_DATA_FILE = path.join(__dirname, '../data/database.json');
 
 // Ensure data directory exists
 const ensureDataDir = async () => {
@@ -24,6 +26,22 @@ const ensureDataDir = async () => {
 const readData = async () => {
     try {
         await ensureDataDir();
+
+        // Se estiver na Vercel e o arquivo no /tmp ainda não existir, tenta carregar o seed empacotado
+        if (isVercel) {
+            try {
+                await fs.access(DATA_FILE);
+            } catch {
+                try {
+                    const seedData = await fs.readFile(SEED_DATA_FILE, 'utf8');
+                    await fs.writeFile(DATA_FILE, seedData);
+                } catch {
+                    // Seed não encontrado, cria vazio
+                    await fs.writeFile(DATA_FILE, JSON.stringify({ usuarios: [] }, null, 2));
+                }
+            }
+        }
+
         const data = await fs.readFile(DATA_FILE, 'utf8');
         const parsed = JSON.parse(data);
 
@@ -62,6 +80,8 @@ const getUsuarios = async () => {
     return (data.usuarios || []).map(u => ({
         ...u,
         pais: u.pais || 'Brasil',
+        whatsapp: u.whatsapp || u.telefone || '',
+        telefone: u.telefone || u.whatsapp || '',
         idioma: u.idioma || 'pt-BR',
         moeda: u.moeda || 'BRL',
         plano: u.plano || 'Gratuito',

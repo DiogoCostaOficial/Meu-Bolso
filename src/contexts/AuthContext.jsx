@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Função de cadastro
-  const register = async (nome, email, senha) => {
+  const register = async (nome, email, senha, extras = {}) => {
     try {
       const API_URL = import.meta.env.PROD
         ? '/api'
@@ -121,7 +121,14 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ nome, email, senha }),
+        body: JSON.stringify({
+          nome,
+          email,
+          senha,
+          pais: extras.pais,
+          whatsapp: extras.whatsapp,
+          telefone: extras.whatsapp
+        }),
       });
 
       const data = await response.json();

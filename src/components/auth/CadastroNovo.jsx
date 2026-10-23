@@ -13,7 +13,10 @@ import {
   TrendingUp,
   Plane,
   Heart,
-  Users
+  Users,
+  Globe,
+  Phone,
+  MessageSquare
 } from 'lucide-react';
 import { ModeToggle } from '../mode-toggle';
 import LanguageSelector from '../LanguageSelector';
@@ -61,6 +64,30 @@ const PRESENTATION_SLIDES = [
   }
 ];
 
+const LISTA_PAISES = [
+  { nome: 'Brasil', ddi: '+55', flag: '🇧🇷' },
+  { nome: 'Portugal', ddi: '+351', flag: '🇵🇹' },
+  { nome: 'Estados Unidos', ddi: '+1', flag: '🇺🇸' },
+  { nome: 'Espanha', ddi: '+34', flag: '🇪🇸' },
+  { nome: 'Argentina', ddi: '+54', flag: '🇦🇷' },
+  { nome: 'Uruguai', ddi: '+598', flag: '🇺🇾' },
+  { nome: 'Paraguai', ddi: '+595', flag: '🇵🇾' },
+  { nome: 'Chile', ddi: '+56', flag: '🇨🇱' },
+  { nome: 'Colômbia', ddi: '+57', flag: '🇨🇴' },
+  { nome: 'México', ddi: '+52', flag: '🇲🇽' },
+  { nome: 'Peru', ddi: '+51', flag: '🇵🇪' },
+  { nome: 'Itália', ddi: '+39', flag: '🇮🇹' },
+  { nome: 'França', ddi: '+33', flag: '🇫🇷' },
+  { nome: 'Alemanha', ddi: '+49', flag: '🇩🇪' },
+  { nome: 'Reino Unido', ddi: '+44', flag: '🇬🇧' },
+  { nome: 'Canadá', ddi: '+1', flag: '🇨🇦' },
+  { nome: 'Angola', ddi: '+244', flag: '🇦🇴' },
+  { nome: 'Moçambique', ddi: '+258', flag: '🇲🇿' },
+  { nome: 'Japão', ddi: '+81', flag: '🇯🇵' },
+  { nome: 'Austrália', ddi: '+61', flag: '🇦🇺' },
+  { nome: 'Outro', ddi: '+1', flag: '🌐' },
+];
+
 const CadastroNovo = () => {
   const navigate = useNavigate();
   const { register, loginGoogle, loginOutlookOTP } = useAuth();
@@ -70,6 +97,9 @@ const CadastroNovo = () => {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
+    pais: 'Brasil',
+    ddi: '+55',
+    whatsapp: '',
     senha: '',
     confirmarSenha: ''
   });
@@ -90,6 +120,46 @@ const CadastroNovo = () => {
     }, 5500);
     return () => clearInterval(interval);
   }, []);
+
+  const handlePaisChange = (e) => {
+    const selectedPais = e.target.value;
+    const item = LISTA_PAISES.find((p) => p.nome === selectedPais);
+    setFormData((prev) => ({
+      ...prev,
+      pais: selectedPais,
+      ddi: item ? item.ddi : prev.ddi
+    }));
+
+    if (errors.pais) {
+      setErrors((prev) => ({ ...prev, pais: '' }));
+    }
+  };
+
+  const handleWhatsappChange = (e) => {
+    const rawVal = e.target.value;
+    let formatted = rawVal;
+
+    // Se for Brasil (+55), aplica máscara (XX) XXXXX-XXXX
+    if (formData.ddi === '+55') {
+      const numbers = rawVal.replace(/\D/g, '').slice(0, 11);
+      if (numbers.length <= 2) {
+        formatted = numbers.length > 0 ? `(${numbers}` : '';
+      } else if (numbers.length <= 7) {
+        formatted = `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+      } else {
+        formatted = `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
+      }
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      whatsapp: formatted
+    }));
+
+    if (errors.whatsapp) {
+      setErrors((prev) => ({ ...prev, whatsapp: '' }));
+    }
+  };
 
   const handleOutlookQuickAccess = async (targetEmail) => {
     const emailFinal = String(targetEmail ?? emailOutlook ?? formData.email ?? '').trim();
@@ -149,6 +219,17 @@ const CadastroNovo = () => {
       newErrors.email = 'E-mail inválido';
     }
 
+    if (!formData.pais?.trim()) {
+      newErrors.pais = 'País é obrigatório';
+    }
+
+    const whatsappLimpo = formData.whatsapp.replace(/\D/g, '');
+    if (!formData.whatsapp.trim()) {
+      newErrors.whatsapp = 'Telefone de WhatsApp é obrigatório';
+    } else if (whatsappLimpo.length < 8) {
+      newErrors.whatsapp = 'Informe um WhatsApp com DDD válido';
+    }
+
     if (!formData.senha) {
       newErrors.senha = 'Senha é obrigatória';
     } else if (formData.senha.length < 6) {
@@ -174,7 +255,11 @@ const CadastroNovo = () => {
     setApiError('');
 
     try {
-      const result = await register(formData.nome, formData.email, formData.senha);
+      const whatsappCompleto = `${formData.ddi} ${formData.whatsapp}`.trim();
+      const result = await register(formData.nome, formData.email, formData.senha, {
+        pais: formData.pais,
+        whatsapp: whatsappCompleto
+      });
 
       if (result.success) {
         toast.success('Cadastro realizado com sucesso! Verifique seu e-mail.');
@@ -196,8 +281,8 @@ const CadastroNovo = () => {
     <div className={`min-h-screen w-full grid grid-cols-1 lg:grid-cols-12 bg-custom-primary transition-colors duration-300 layout-${layoutVariant}`}>
       {/* LADO ESQUERDO: Área de Cadastro Clean & Minimalista */}
       <div className="lg:col-span-5 xl:col-span-5 flex flex-col justify-between px-8 sm:px-14 xl:px-20 py-10 bg-custom-card text-custom-main relative z-10">
-        {/* Topo: Logo + Alternador de Tema */}
-        <div className="flex items-center justify-between">
+        {/* Topo: Logo + Seletor de Idioma + Alternador de Tema */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Link to="/" className="inline-flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-custom-gold flex items-center justify-center text-black font-black shadow-sm group-hover:scale-105 transition">
               <TrendingUp className="w-5 h-5 stroke-[2.5]" />
@@ -207,7 +292,8 @@ const CadastroNovo = () => {
             </span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
             <Link
               to="/login"
               className="text-xs font-medium text-custom-main opacity-60 hover:opacity-100 hover:text-custom-gold transition"
@@ -294,6 +380,76 @@ const CadastroNovo = () => {
               {errors.email && (
                 <p className="mt-1 text-xs text-red-500">{errors.email}</p>
               )}
+            </div>
+
+            {/* País e WhatsApp Obrigatórios */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* País */}
+              <div>
+                <label
+                  htmlFor="pais"
+                  className="block text-[11px] font-bold uppercase tracking-wider text-custom-main opacity-70 mb-1.5"
+                >
+                  {t('País de Residência')}*
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Globe className="h-4 w-4 text-custom-gold" />
+                  </div>
+                  <select
+                    id="pais"
+                    name="pais"
+                    value={formData.pais}
+                    onChange={handlePaisChange}
+                    className={`block w-full pl-10 pr-8 py-3 bg-custom-primary/60 border ${
+                      errors.pais ? 'border-red-400' : 'border-custom-color'
+                    } rounded-xl text-sm text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition appearance-none cursor-pointer`}
+                    disabled={loading}
+                  >
+                    {LISTA_PAISES.map((p) => (
+                      <option key={p.nome} value={p.nome} className="bg-custom-card text-custom-main">
+                        {p.flag} {p.nome} ({p.ddi})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-custom-main opacity-50">
+                    <span className="text-[10px]">▼</span>
+                  </div>
+                </div>
+                {errors.pais && (
+                  <p className="mt-1 text-xs text-red-500">{errors.pais}</p>
+                )}
+              </div>
+
+              {/* WhatsApp */}
+              <div>
+                <label
+                  htmlFor="whatsapp"
+                  className="block text-[11px] font-bold uppercase tracking-wider text-custom-main opacity-70 mb-1.5"
+                >
+                  {t('WhatsApp com DDD')}*
+                </label>
+                <div className="relative flex rounded-xl border border-custom-color focus-within:ring-2 focus-within:ring-custom-gold transition overflow-hidden">
+                  <span className="inline-flex items-center px-3 bg-custom-primary/80 text-custom-gold text-xs font-bold border-r border-custom-color select-none">
+                    {formData.ddi}
+                  </span>
+                  <input
+                    type="text"
+                    id="whatsapp"
+                    name="whatsapp"
+                    value={formData.whatsapp}
+                    onChange={handleWhatsappChange}
+                    className={`block w-full px-3 py-3 bg-custom-primary/60 text-sm text-custom-main outline-none ${
+                      errors.whatsapp ? 'border-red-400' : ''
+                    }`}
+                    placeholder={formData.ddi === '+55' ? '(11) 99999-9999' : '99999-9999'}
+                    disabled={loading}
+                  />
+                </div>
+                {errors.whatsapp && (
+                  <p className="mt-1 text-xs text-red-500">{errors.whatsapp}</p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -502,8 +658,8 @@ const CadastroNovo = () => {
           </form>
         </div>
 
-        {/* Rodapé Minimalista + Seletor de Idioma */}
-        <div className="pt-4 border-t border-custom-color/60 space-y-3">
+        {/* Rodapé Minimalista */}
+        <div className="pt-4 border-t border-custom-color/60">
           <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-custom-main opacity-80">
             <div>
               {t('Já tem uma conta?')}{' '}
@@ -514,13 +670,6 @@ const CadastroNovo = () => {
             <Link to="/" className="hover:text-custom-gold transition">
               {t('← Página inicial')}
             </Link>
-          </div>
-
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <span className="text-[11px] font-medium text-custom-main opacity-60">
-              {t('Idioma')}:
-            </span>
-            <LanguageSelector variant="footer" align="right" showQuickFeatured={true} />
           </div>
         </div>
       </div>
