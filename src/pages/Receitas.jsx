@@ -37,7 +37,7 @@ const Receitas = () => {
     categoria: '',
     subcategoria: '',
     mes: '',
-    ano: new Date().getFullYear().toString(),
+    ano: '', // Padrão: Todos os Anos (sem filtro)
     dataInicio: '',
     dataFim: '',
     descricao: ''
@@ -261,29 +261,90 @@ const Receitas = () => {
       categoria: '',
       subcategoria: '',
       mes: '',
-      ano: new Date().getFullYear().toString(),
+      ano: '',
       dataInicio: '',
       dataFim: '',
       descricao: ''
     });
   };
+
+  const extrairAnoMesDia = (dataStr) => {
+    if (!dataStr) return { ano: '', mes: '', dia: '', ymd: '' };
+    const str = String(dataStr).trim();
+    if (str.includes('-')) {
+      const cleanDate = str.split('T')[0];
+      const parts = cleanDate.split('-');
+      if (parts.length >= 3 && parts[0].length === 4) {
+        return {
+          ano: parts[0],
+          mes: parts[1].padStart(2, '0'),
+          dia: parts[2].padStart(2, '0'),
+          ymd: `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`
+        };
+      }
+    }
+    if (str.includes('/')) {
+      const parts = str.split(' ')[0].split('/');
+      if (parts.length >= 3) {
+        if (parts[2].length === 4) {
+          return {
+            ano: parts[2],
+            mes: parts[1].padStart(2, '0'),
+            dia: parts[0].padStart(2, '0'),
+            ymd: `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
+          };
+        }
+      }
+    }
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      const ano = d.getFullYear().toString();
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return { ano, mes, dia, ymd: `${ano}-${mes}-${dia}` };
+    }
+    return { ano: '', mes: '', dia: '', ymd: '' };
+  };
+
+  const extrairValorNumerico = (val) => {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    const clean = String(val)
+      .replace(/[R$\s]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+    const num = parseFloat(clean);
+    return isNaN(num) ? 0 : num;
+  };
+
   const formatarData = (data) => {
     return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
   };
+
   const receitasFiltradas = receitas.filter(receita => {
+    let passaNoFiltro = true;
+
     if (filtros.categoria && receita.categoria !== filtros.categoria) return false;
     if (filtros.subcategoria && receita.subcategoria !== filtros.subcategoria) return false;
-    if (filtros.mes) {
-      const [ano, mes] = receita.data.split('-');
-      if (mes !== filtros.mes) return false;
+
+    const { ano, mes, ymd } = extrairAnoMesDia(receita.data);
+
+    // Filtro por Mês (funciona independente de ter ano ou não)
+    if (filtros.mes && mes !== filtros.mes) return false;
+
+    // Filtro por Ano (funciona independente de ter mês ou não)
+    if (filtros.ano && ano !== filtros.ano) return false;
+
+    // Filtro por intervalo de datas (quando não estiver filtrando por mês específico)
+    if (!filtros.mes) {
+      if (filtros.dataInicio && ymd && ymd < filtros.dataInicio) return false;
+      if (filtros.dataFim && ymd && ymd > filtros.dataFim) return false;
     }
-    if (filtros.ano) {
-      const [ano] = receita.data.split('-');
-      if (ano !== filtros.ano) return false;
+
+    if (filtros.descricao && !String(receita.descricao || '').toLowerCase().includes(filtros.descricao.toLowerCase())) {
+      return false;
     }
-    if (filtros.dataInicio && receita.data < filtros.dataInicio) return false;
-    if (filtros.dataFim && receita.data > filtros.dataFim) return false;
-    if (filtros.descricao && !receita.descricao.toLowerCase().includes(filtros.descricao.toLowerCase())) return false;
+
     return true;
   });
 
@@ -303,13 +364,12 @@ const Receitas = () => {
         let bValue = b[sortConfig.key];
 
         if (sortConfig.key === 'valor') {
-          aValue = parseFloat(aValue);
-          bValue = parseFloat(bValue);
+          aValue = extrairValorNumerico(aValue);
+          bValue = extrairValorNumerico(bValue);
+        } else {
+          if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+          if (typeof bValue === 'string') bValue = bValue.toLowerCase();
         }
-
-        // Normalização para strings
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
 
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
@@ -323,12 +383,11 @@ const Receitas = () => {
     return sortableItems;
   }, [receitasFiltradas, sortConfig]);
 
-
+  // Total de receitas: soma todas as receitas visíveis na lista (ou todas se sem filtro)
   const totalReceitas = receitasFiltradas
-    .filter(r => r.somarNoOrcamento !== false)
-    .reduce((acc, r) => acc + (parseFloat(r.valor) || 0), 0);
-  const categoriasAtivas = [...new Set(receitasFiltradas.map(r => r.categoria))].length;
-  const subcategoriasAtivas = [...new Set(receitasFiltradas.filter(r => r.subcategoria).map(r => r.subcategoria))].length;
+    .reduce((acc, r) => acc + extrairValorNumerico(r.valor), 0);
+  const categoriasAtivas = [...new Set(receitasFiltradas.map(r => r.categoria).filter(Boolean))].length;
+  const subcategoriasAtivas = [...new Set(receitasFiltradas.map(r => r.subcategoria).filter(Boolean))].length;
   return (
     <div className="space-y-6 bg-transparent min-h-screen transition-colors duration-300">
       {/* Header — mobile-first */}
@@ -596,6 +655,7 @@ const Receitas = () => {
                 value={filtros.ano}
                 onChange={(e) => setFiltros({ ...filtros, ano: e.target.value })}
               >
+                <option value="" className="dark:bg-slate-900">Todos os Anos</option>
                 {gerarListaAnos().map(ano => (
                   <option key={ano} value={ano} className="dark:bg-slate-900">{ano}</option>
                 ))}

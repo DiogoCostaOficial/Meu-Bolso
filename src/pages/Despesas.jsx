@@ -101,7 +101,7 @@ const Despesas = () => {
   const [filtroDataFim, setFiltroDataFim] = useState('');
   const [filtroDescricao, setFiltroDescricao] = useState('');
   const [filtroMes, setFiltroMes] = useState('');
-  const [filtroAno, setFiltroAno] = useState(new Date().getFullYear().toString());
+  const [filtroAno, setFiltroAno] = useState(''); // Padrão: Todos os Anos (sem filtro)
   const [filtroStatus, setFiltroStatus] = useState(''); // Estado para o filtro de status
   const [isCategoriasMinimized, setIsCategoriasMinimized] = useState(false); // Não usado no código atual, mas mantido
   const [isFiltrosMinimized, setIsFiltrosMinimized] = useState(false);
@@ -598,6 +598,56 @@ const Despesas = () => {
     return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
   };
 
+  // Funções utilitárias seguras para data e valor monetário
+  const extrairAnoMesDia = (dataStr) => {
+    if (!dataStr) return { ano: '', mes: '', dia: '', ymd: '' };
+    const str = String(dataStr).trim();
+    if (str.includes('-')) {
+      const cleanDate = str.split('T')[0];
+      const parts = cleanDate.split('-');
+      if (parts.length >= 3 && parts[0].length === 4) {
+        return {
+          ano: parts[0],
+          mes: parts[1].padStart(2, '0'),
+          dia: parts[2].padStart(2, '0'),
+          ymd: `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`
+        };
+      }
+    }
+    if (str.includes('/')) {
+      const parts = str.split(' ')[0].split('/');
+      if (parts.length >= 3) {
+        if (parts[2].length === 4) {
+          return {
+            ano: parts[2],
+            mes: parts[1].padStart(2, '0'),
+            dia: parts[0].padStart(2, '0'),
+            ymd: `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
+          };
+        }
+      }
+    }
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      const ano = d.getFullYear().toString();
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return { ano, mes, dia, ymd: `${ano}-${mes}-${dia}` };
+    }
+    return { ano: '', mes: '', dia: '', ymd: '' };
+  };
+
+  const extrairValorNumerico = (val) => {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    const clean = String(val)
+      .replace(/[R$\s]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+    const num = parseFloat(clean);
+    return isNaN(num) ? 0 : num;
+  };
+
   // Função para obter o tooltip da data de vencimento
   const getDueDateTooltip = (despesa) => {
     if (despesa.dataVencimento) {
@@ -611,20 +661,17 @@ const Despesas = () => {
     return categoria ? categoria.cor : '#6B7280';
   };
 
-  /* Filtragem com filtro de ano funcionando corretamente */
+  /* Filtragem com suporte a filtro vazio, mês e ano combinados ou isolados */
   const despesasFiltradas = despesas.filter(despesa => {
     let passaNoFiltro = true;
+
     // Filtro por categoria
     if (filtroCategoria && despesa.categoria !== filtroCategoria) {
       passaNoFiltro = false;
     }
+
     // Filtro por subcategoria
-    // A subcategoria só é filtrada se uma categoria também estiver selecionada,
-    // ou se o filtro de subcategoria estiver ativo e a subcategoria da despesa não corresponder.
-    // Com o useEffect, garantimos que filtroSubcategoria será resetado se a categoria mudar.
     if (passaNoFiltro && filtroSubcategoria) {
-      // Se uma categoria está selecionada no filtro, verifica se a subcategoria pertence a ela.
-      // Se não houver categoria selecionada, verifica contra todas as subcategorias.
       const subcategoriasPermitidasParaFiltro = filtroCategoria
         ? getAvailableSubcategories(filtroCategoria)
         : allSubcategories;
@@ -638,48 +685,42 @@ const Despesas = () => {
     if (passaNoFiltro && filtroStatus && despesa.statusPagamento !== filtroStatus) {
       passaNoFiltro = false;
     }
-    // FILTRO POR MÊS E ANO (tem prioridade sobre data início/fim)
-    if (passaNoFiltro && filtroMes && filtroAno) {
-      const primeiroDia = new Date(`${filtroAno}-${filtroMes}-01T00:00:00-03:00`);
-      const ultimoDia = new Date(primeiroDia);
-      ultimoDia.setMonth(ultimoDia.getMonth() + 1);
-      ultimoDia.setDate(0);
-      ultimoDia.setHours(23, 59, 59, 999);
-      const dataDespesa = new Date(despesa.data + 'T00:00:00-03:00');
-      if (dataDespesa < primeiroDia || dataDespesa > ultimoDia) {
+
+    // Extração robusta da data da despesa
+    const { ano, mes, ymd } = extrairAnoMesDia(despesa.data);
+
+    // Filtro por Mês (funciona com ou sem filtro de ano selecionado)
+    if (passaNoFiltro && filtroMes) {
+      if (mes !== filtroMes) {
         passaNoFiltro = false;
       }
-    } else {
-      // Filtro por ano quando não há filtro de mês
-      if (passaNoFiltro && filtroAno && !filtroMes) {
-        const dataDespesa = new Date(despesa.data + 'T00:00:00-03:00');
-        const anoDespesa = dataDespesa.getFullYear();
-        if (anoDespesa !== parseInt(filtroAno)) {
-          passaNoFiltro = false;
-        }
-      }
-      // Filtros de data início e fim (quando não há filtro por mês)
-      if (passaNoFiltro && filtroDataInicio && !filtroMes) {
-        const dataDespesa = new Date(despesa.data + 'T00:00:00-03:00');
-        const dataInicio = new Date(filtroDataInicio + 'T00:00:00-03:00');
-        if (dataDespesa < dataInicio) {
-          passaNoFiltro = false;
-        }
-      }
-      if (passaNoFiltro && filtroDataFim && !filtroMes) {
-        const dataDespesa = new Date(despesa.data + 'T00:00:00-03:00');
-        const dataFim = new Date(filtroDataFim + 'T23:59:59-03:00');
-        if (dataDespesa > dataFim) {
-          passaNoFiltro = false;
-        }
+    }
+
+    // Filtro por Ano (funciona com ou sem filtro de mês selecionado)
+    if (passaNoFiltro && filtroAno) {
+      if (ano !== filtroAno) {
+        passaNoFiltro = false;
       }
     }
+
+    // Filtros de data início e fim (quando não há filtro por mês)
+    if (passaNoFiltro && !filtroMes) {
+      if (filtroDataInicio && ymd && ymd < filtroDataInicio) {
+        passaNoFiltro = false;
+      }
+      if (filtroDataFim && ymd && ymd > filtroDataFim) {
+        passaNoFiltro = false;
+      }
+    }
+
     // Filtro por descrição
     if (passaNoFiltro && filtroDescricao) {
-      if (!despesa.descricao.toLowerCase().includes(filtroDescricao.toLowerCase())) {
+      const desc = String(despesa.descricao || '').toLowerCase();
+      if (!desc.includes(filtroDescricao.toLowerCase())) {
         passaNoFiltro = false;
       }
     }
+
     return passaNoFiltro;
   });
 
@@ -698,9 +739,13 @@ const Despesas = () => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        // Normalização para ordenação correta
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        if (sortConfig.key === 'valor') {
+          aValue = extrairValorNumerico(aValue);
+          bValue = extrairValorNumerico(bValue);
+        } else {
+          if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+          if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        }
 
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
@@ -714,16 +759,16 @@ const Despesas = () => {
     return sortableItems;
   }, [despesasFiltradas, sortConfig]);
 
-  // Cálculos para os cards de resumo
-  const totalDespesasFiltradas = despesasFiltradas.reduce((acc, d) => acc + d.valor, 0);
-  const categoriasAtivasDespesas = [...new Set(despesasFiltradas.map(d => d.categoria))].length;
-  const subcategoriasAtivasDespesas = [...new Set(despesasFiltradas.filter(d => d.subcategoria).map(d => d.subcategoria))].length;
+  // Cálculos para os cards de resumo (sempre sincronizados com os itens filtrados ou totais da lista)
+  const totalDespesasFiltradas = despesasFiltradas.reduce((acc, d) => acc + extrairValorNumerico(d.valor), 0);
+  const categoriasAtivasDespesas = [...new Set(despesasFiltradas.map(d => d.categoria).filter(Boolean))].length;
+  const subcategoriasAtivasDespesas = [...new Set(despesasFiltradas.map(d => d.subcategoria).filter(Boolean))].length;
 
   // Estes cálculos não são usados diretamente nos cards de resumo, mas podem ser úteis para outros gráficos ou análises.
   const despesasPorCategoriaFiltradas = categorias.map(cat => {
     const total = despesasFiltradas
       .filter(d => d.categoria === cat.nome)
-      .reduce((acc, d) => acc + d.valor, 0);
+      .reduce((acc, d) => acc + extrairValorNumerico(d.valor), 0);
     return {
       categoria: cat.nome,
       cor: cat.cor,
@@ -733,7 +778,7 @@ const Despesas = () => {
   const despesasPorSubcategoriaFiltradas = allSubcategories.map(sub => {
     const total = despesasFiltradas
       .filter(d => d.subcategoria === sub)
-      .reduce((acc, d) => acc + d.valor, 0);
+      .reduce((acc, d) => acc + extrairValorNumerico(d.valor), 0);
     return { subcategoria: sub, total };
   }).filter(item => item.total > 0);
 
@@ -744,7 +789,7 @@ const Despesas = () => {
     setFiltroDataFim('');
     setFiltroDescricao('');
     setFiltroMes('');
-    setFiltroAno(new Date().getFullYear().toString());
+    setFiltroAno('');
     setFiltroStatus(''); // Limpar filtro de status
   };
 
@@ -1263,6 +1308,7 @@ const Despesas = () => {
                   onChange={e => setFiltroAno(e.target.value)}
                   className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
+                  <option value="" className="dark:bg-slate-900">Todos os Anos</option>
                   {gerarListaAnos().map(ano => (
                     <option key={ano} value={ano} className="dark:bg-slate-900">
                       {ano}
