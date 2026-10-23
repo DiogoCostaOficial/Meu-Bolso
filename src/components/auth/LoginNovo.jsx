@@ -134,7 +134,7 @@ const LoginNovo = () => {
     if (!modoAdmin) {
       if (!formData.email) {
         newErrors.email = 'E-mail é obrigatório';
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      } else if (!/\S+@\S+\.\S+/.test(formData.email) && formData.email.trim().toLowerCase() !== 'admin') {
         newErrors.email = 'E-mail inválido';
       }
     } else {
@@ -163,8 +163,9 @@ const LoginNovo = () => {
     try {
       let result;
 
-      if (modoAdmin) {
-        result = await login(null, formData.senha, formData.username);
+      const isAdminDirect = modoAdmin || formData.email.trim().toLowerCase() === 'admin';
+      if (isAdminDirect) {
+        result = await login(null, formData.senha, formData.username || 'admin');
       } else {
         result = await login(formData.email, formData.senha);
       }

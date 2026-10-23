@@ -27,10 +27,12 @@ const obterPerfil = async (req, res) => {
   }
 };
 
+const normalizarEmail = (email) => String(email || '').trim().toLowerCase();
+
 const atualizarPerfil = async (req, res) => {
   try {
     const userId = req.usuario.id;
-    const { nome, avatar } = req.body;
+    const { nome, avatar, email, telefone, whatsapp } = req.body;
 
     const usuarios = await db.getUsuarios();
     const usuario = usuarios.find(u => u.id === userId);
@@ -39,9 +41,33 @@ const atualizarPerfil = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
     }
 
-    // Update fields if provided
-    if (nome) usuario.nome = nome;
+    // Atualiza nome
+    if (nome) usuario.nome = String(nome).trim();
+
+    // Atualiza avatar
     if (avatar !== undefined) usuario.avatar = avatar;
+
+    // Atualiza e-mail com validação de unicidade
+    if (email) {
+      const emailNorm = normalizarEmail(email);
+      if (!/\S+@\S+\.\S+/.test(emailNorm)) {
+        return res.status(400).json({ success: false, message: 'Formato de e-mail inválido' });
+      }
+
+      const outroUsuario = usuarios.find(u => u.id !== userId && normalizarEmail(u.email) === emailNorm);
+      if (outroUsuario) {
+        return res.status(400).json({ success: false, message: 'Este e-mail já está em uso por outro usuário' });
+      }
+
+      usuario.email = emailNorm;
+    }
+
+    // Atualiza telefone e WhatsApp
+    if (telefone !== undefined || whatsapp !== undefined) {
+      const telFinal = String(telefone || whatsapp || '').trim();
+      usuario.telefone = telFinal;
+      usuario.whatsapp = telFinal;
+    }
 
     await db.atualizarUsuario(usuario);
 

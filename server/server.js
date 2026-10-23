@@ -8,31 +8,41 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-// Middleware
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://localhost:5000',
   'https://financas-facil-i3zn.vercel.app',
-  'https://meu-bolso.vercel.app' // Adicione outras URLs se tiver
+  'https://meu-bolso.vercel.app',
+  'https://meubolso.capital',
+  'https://www.meubolso.capital',
+  'http://meubolso.capital',
+  'http://www.meubolso.capital'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      // Se a origem não estiver na lista, mas for um subdomínio do vercel.app, permite (opcional, mas útil para previews)
-      if (origin.endsWith('.vercel.app')) {
-        return callback(null, true);
-      }
-      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+
+    const isAllowed =
+      allowedOrigins.indexOf(origin) !== -1 ||
+      origin.endsWith('.vercel.app') ||
+      origin.includes('meubolso.capital') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1');
+
+    if (isAllowed) {
+      return callback(null, true);
     }
-    return callback(null, true);
+
+    console.warn(`[CORS] Origem não permitida: ${origin}`);
+    var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
