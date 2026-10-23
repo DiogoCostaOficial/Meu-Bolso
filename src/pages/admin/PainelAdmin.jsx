@@ -1,9 +1,10 @@
 // src/pages/admin/PainelAdmin.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminService } from '../../services/api';
 import {
   Users,
+  Activity,
   CheckCircle,
   XCircle,
   UserPlus,
@@ -17,31 +18,101 @@ import {
   X,
   Save,
   Loader2,
+  Globe,
+  DollarSign,
+  TrendingUp,
+  BarChart3,
+  MessageSquare,
+  Sparkles,
+  CreditCard,
+  Plane,
+  Bot,
+  HelpCircle,
+  FileText,
+  Star,
+  ToggleLeft,
+  ToggleRight,
+  Filter,
+  Check,
+  Plus,
+  Wallet
 } from 'lucide-react';
+
+const PAISES_DISPONIVEIS = [
+  { nome: 'Brasil', flag: '🇧🇷', ddi: '+55', moeda: 'BRL', idioma: 'pt-BR' },
+  { nome: 'Estados Unidos', flag: '🇺🇸', ddi: '+1', moeda: 'USD', idioma: 'en' },
+  { nome: 'Itália', flag: '🇮🇹', ddi: '+39', moeda: 'EUR', idioma: 'it' },
+  { nome: 'Portugal', flag: '🇵🇹', ddi: '+351', moeda: 'EUR', idioma: 'pt-PT' },
+  { nome: 'Espanha', flag: '🇪🇸', ddi: '+34', moeda: 'EUR', idioma: 'es' },
+  { nome: 'Alemanha', flag: '🇩🇪', ddi: '+49', moeda: 'EUR', idioma: 'de' },
+  { nome: 'França', flag: '🇫🇷', ddi: '+33', moeda: 'EUR', idioma: 'fr' },
+  { nome: 'China', flag: '🇨🇳', ddi: '+86', moeda: 'CNY', idioma: 'zh' }
+];
 
 const PainelAdmin = () => {
   const { user } = useAuth();
+  const [abaAtiva, setAbaAtiva] = useState('usuarios'); // 'usuarios', 'retencao', 'features', 'feedbacks', 'backlog'
   const [estatisticas, setEstatisticas] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [backlogPM, setBacklogPM] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
-  const [filtroEmail, setFiltroEmail] = useState('');
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const [usuariosPorPagina] = useState(10);
 
-  // Estados para modais
+  // Filtros de Usuários
+  const [filtroTexto, setFiltroTexto] = useState('');
+  const [filtroPlano, setFiltroPlano] = useState('todos');
+  const [filtroStatus, setFiltroStatus] = useState('todos');
+  const [filtroPais, setFiltroPais] = useState('todos');
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [usuariosPorPagina] = useState(8);
+
+  // Modais de Usuário
   const [modalCriarAberto, setModalCriarAberto] = useState(false);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState(null);
   const [salvando, setSalvando] = useState(false);
   const [excluindo, setExcluindo] = useState(null);
+  const [alternandoStatus, setAlternandoStatus] = useState(null);
 
-  // Estados do formulário
+  // Modal de Feedback
+  const [modalFeedbackAberto, setModalFeedbackAberto] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({
+    usuario: '',
+    pais: 'Brasil',
+    funcionalidade: 'Cartões',
+    tipo: 'Sugestão',
+    facilidadeUso: 9,
+    organizacaoFinanceira: 9,
+    tomadaDecisao: 9,
+    intencaoUso: 10,
+    recomendacao: 10,
+    comentario: ''
+  });
+
+  // Modal de Backlog PM
+  const [modalBacklogAberto, setModalBacklogAberto] = useState(false);
+  const [backlogForm, setBacklogForm] = useState({
+    sugestao: '',
+    usuarioSugeriu: '',
+    impacto: 'Alto',
+    esforco: 'Médio',
+    prioridade: 'Alta',
+    status: 'Backlog',
+    motivoPriorizacao: ''
+  });
+
+  // Formulário de Usuário (com os novos campos do backlog)
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
     senha: '',
     tipo: 'usuario',
+    pais: 'Brasil',
+    idioma: 'pt-BR',
+    moeda: 'BRL',
+    plano: 'Gratuito',
+    status: 'Ativo'
   });
   const [errosForm, setErrosForm] = useState({});
 
@@ -53,6 +124,8 @@ const PainelAdmin = () => {
       if (statsResponse.sucesso) {
         setEstatisticas(statsResponse.dados);
         setUsuarios(statsResponse.dados.usuarios || []);
+        setFeedbacks(statsResponse.dados.feedbacks || []);
+        setBacklogPM(statsResponse.dados.backlogPM || []);
       } else {
         setErro(statsResponse.mensagem);
       }
@@ -73,140 +146,162 @@ const PainelAdmin = () => {
     }
   }, [user, buscarDadosAdmin]);
 
-  // Função para abrir modal de criação
+  // Abertura de Modais de Usuário
   const abrirModalCriar = () => {
     setFormData({
       nome: '',
       email: '',
       senha: '',
       tipo: 'usuario',
+      pais: 'Brasil',
+      idioma: 'pt-BR',
+      moeda: 'BRL',
+      plano: 'Gratuito',
+      status: 'Ativo'
     });
     setErrosForm({});
     setModalCriarAberto(true);
   };
 
-  // Função para abrir modal de edição
-  const abrirModalEdicao = (user) => {
-    setUsuarioEditando(user);
+  const abrirModalEdicao = (u) => {
+    setUsuarioEditando(u);
     setFormData({
-      nome: user.nome,
-      email: user.email,
-      tipo: user.tipo,
-      senha: '', // Senha não é editada por padrão
+      nome: u.nome || '',
+      email: u.email || '',
+      senha: '', // Opcional ao editar
+      tipo: u.tipo || 'usuario',
+      pais: u.pais || 'Brasil',
+      idioma: u.idioma || 'pt-BR',
+      moeda: u.moeda || 'BRL',
+      plano: u.plano || 'Gratuito',
+      status: u.status || 'Ativo'
     });
     setErrosForm({});
     setModalEditarAberto(true);
   };
 
-  // Função para fechar modais
   const fecharModais = () => {
     setModalCriarAberto(false);
     setModalEditarAberto(false);
+    setModalFeedbackAberto(false);
+    setModalBacklogAberto(false);
     setUsuarioEditando(null);
-    setFormData({ nome: '', email: '', senha: '', tipo: 'usuario' });
     setErrosForm({});
   };
 
-  // Validação do formulário
-  const validarFormulario = (isCriacao = false) => {
-    const erros = {};
-
-    if (!formData.nome.trim()) {
-      erros.nome = 'Nome é obrigatório';
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Auto-ajustar moeda e idioma quando país muda
+    if (name === 'pais') {
+      const match = PAISES_DISPONIVEIS.find(p => p.nome === value);
+      if (match) {
+        setFormData(prev => ({
+          ...prev,
+          pais: value,
+          moeda: match.moeda,
+          idioma: match.idioma
+        }));
+        return;
+      }
     }
 
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errosForm[name]) {
+      setErrosForm(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validarFormulario = (isCriacao = false) => {
+    const erros = {};
+    if (!formData.nome.trim()) erros.nome = 'Nome é obrigatório';
     if (!formData.email.trim()) {
       erros.email = 'E-mail é obrigatório';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       erros.email = 'E-mail inválido';
     }
 
-    // Senha obrigatória apenas na criação
     if (isCriacao && !formData.senha.trim()) {
       erros.senha = 'Senha é obrigatória';
     } else if (formData.senha && formData.senha.length < 6) {
-      erros.senha = 'Senha deve ter no mínimo 6 caracteres';
-    }
-
-    if (!formData.tipo) {
-      erros.tipo = 'Tipo de usuário é obrigatório';
+      erros.senha = 'Mínimo de 6 caracteres';
     }
 
     setErrosForm(erros);
     return Object.keys(erros).length === 0;
   };
 
-  // Função para criar usuário
   const criarUsuario = async (e) => {
     e.preventDefault();
-
-    if (!validarFormulario(true)) {
-      return;
-    }
+    if (!validarFormulario(true)) return;
 
     setSalvando(true);
     try {
-      const response = await adminService.criarUsuario(formData);
-
-      if (response.sucesso) {
-        alert('Usuário criado com sucesso!');
+      const res = await adminService.criarUsuario(formData);
+      if (res.sucesso) {
         fecharModais();
-        buscarDadosAdmin();
+        await buscarDadosAdmin();
       } else {
-        alert(`Erro ao criar usuário: ${response.mensagem}`);
+        alert(res.mensagem || 'Erro ao criar usuário');
       }
     } catch (err) {
-      alert(`Erro ao criar usuário: ${err.message}`);
-      console.error('Erro ao criar usuário:', err);
+      alert(err.message || 'Erro ao criar usuário');
     } finally {
       setSalvando(false);
     }
   };
 
-  // Função para salvar edição
   const salvarEdicao = async (e) => {
     e.preventDefault();
-
-    if (!validarFormulario(false)) {
-      return;
-    }
+    if (!validarFormulario(false)) return;
 
     if (usuarioEditando.id === user.id && formData.tipo !== 'admin') {
-      alert('Você não pode remover seus próprios privilégios de administrador!');
+      alert('Você não pode revogar seus próprios privilégios de administrador!');
       return;
     }
 
     setSalvando(true);
     try {
-      const dadosAtualizacao = {
-        nome: formData.nome,
-        email: formData.email,
-        tipo: formData.tipo,
-      };
-
-      // Só inclui senha se foi preenchida
-      if (formData.senha.trim()) {
-        dadosAtualizacao.senha = formData.senha;
+      const dadosAtualizacao = { ...formData };
+      if (!dadosAtualizacao.senha.trim()) {
+        delete dadosAtualizacao.senha;
       }
-
-      const response = await adminService.atualizarUsuario(usuarioEditando.id, dadosAtualizacao);
-
-      if (response.sucesso) {
-        alert('Usuário atualizado com sucesso!');
+      const res = await adminService.atualizarUsuario(usuarioEditando.id, dadosAtualizacao);
+      if (res.sucesso) {
         fecharModais();
-        buscarDadosAdmin();
+        await buscarDadosAdmin();
       } else {
-        alert(`Erro ao atualizar usuário: ${response.mensagem}`);
+        alert(res.mensagem || 'Erro ao atualizar usuário');
       }
     } catch (err) {
-      alert(`Erro ao atualizar usuário: ${err.message}`);
-      console.error('Erro ao atualizar usuário:', err);
+      alert(err.message || 'Erro ao atualizar usuário');
     } finally {
       setSalvando(false);
     }
   };
 
-  // Função para excluir usuário
+  const alternarStatus = async (usuario) => {
+    if (usuario.id === user.id && usuario.status === 'Ativo') {
+      alert('Você não pode inativar seu próprio acesso de administrador!');
+      return;
+    }
+
+    const novoStatus = usuario.status === 'Ativo' ? 'Inativo' : 'Ativo';
+    setAlternandoStatus(usuario.id);
+    try {
+      const res = await adminService.alternarStatusUsuario(usuario.id, novoStatus);
+      if (res.sucesso) {
+        await buscarDadosAdmin();
+      } else {
+        alert(res.mensagem || 'Erro ao alterar status');
+      }
+    } catch (err) {
+      alert(err.message || 'Erro ao alterar status');
+    } finally {
+      setAlternandoStatus(null);
+    }
+  };
+
   const excluirUsuario = async (userId, userName) => {
     if (userId === user.id) {
       alert('Você não pode excluir sua própria conta de administrador!');
@@ -219,393 +314,1082 @@ const PainelAdmin = () => {
 
     setExcluindo(userId);
     try {
-      const response = await adminService.excluirUsuario(userId);
-
-      if (response.sucesso) {
-        alert(`Usuário "${userName}" excluído com sucesso!`);
-        buscarDadosAdmin();
+      const res = await adminService.excluirUsuario(userId);
+      if (res.sucesso) {
+        await buscarDadosAdmin();
       } else {
-        alert(`Erro ao excluir usuário: ${response.mensagem}`);
+        alert(res.mensagem || 'Erro ao excluir');
       }
     } catch (err) {
-      alert(`Erro ao excluir usuário: ${err.message}`);
-      console.error('Erro ao excluir usuário:', err);
+      alert(err.message || 'Erro ao excluir');
     } finally {
       setExcluindo(null);
     }
   };
 
-  const handleFiltroChange = (e) => {
-    setFiltroEmail(e.target.value);
-    setPaginaAtual(1);
-  };
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errosForm[name]) {
-      setErrosForm(prev => ({ ...prev, [name]: '' }));
+  // Envio de Feedback
+  const salvarNovoFeedback = async (e) => {
+    e.preventDefault();
+    setSalvando(true);
+    try {
+      const res = await adminService.adicionarFeedback(feedbackForm);
+      if (res.sucesso) {
+        fecharModais();
+        await buscarDadosAdmin();
+      }
+    } catch (err) {
+      alert('Erro ao registrar feedback: ' + err.message);
+    } finally {
+      setSalvando(false);
     }
   };
 
-  const usuariosFiltrados = usuarios.filter((u) =>
-    u.email.toLowerCase().includes(filtroEmail.toLowerCase())
-  );
+  // Envio de Backlog PM
+  const salvarNovoBacklog = async (e) => {
+    e.preventDefault();
+    setSalvando(true);
+    try {
+      const res = await adminService.adicionarBacklogPM(backlogForm);
+      if (res.sucesso) {
+        fecharModais();
+        await buscarDadosAdmin();
+      }
+    } catch (err) {
+      alert('Erro ao adicionar melhoria: ' + err.message);
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  // Filtragem dinâmica de usuários
+  const usuariosFiltrados = useMemo(() => {
+    return usuarios.filter(u => {
+      const matchTexto = 
+        u.nome?.toLowerCase().includes(filtroTexto.toLowerCase()) ||
+        u.email?.toLowerCase().includes(filtroTexto.toLowerCase()) ||
+        u.id?.toLowerCase().includes(filtroTexto.toLowerCase());
+
+      const matchPlano = filtroPlano === 'todos' || (u.plano || 'Gratuito') === filtroPlano;
+      const matchStatus = filtroStatus === 'todos' || (u.status || 'Ativo') === filtroStatus;
+      const matchPais = filtroPais === 'todos' || (u.pais || 'Brasil') === filtroPais;
+
+      return matchTexto && matchPlano && matchStatus && matchPais;
+    });
+  }, [usuarios, filtroTexto, filtroPlano, filtroStatus, filtroPais]);
 
   const indiceUltimoUsuario = paginaAtual * usuariosPorPagina;
   const indicePrimeiroUsuario = indiceUltimoUsuario - usuariosPorPagina;
-  const usuariosAtuais = usuariosFiltrados.slice(
-    indicePrimeiroUsuario,
-    indiceUltimoUsuario
-  );
-  const totalPaginas = Math.ceil(usuariosFiltrados.length / usuariosPorPagina);
+  const usuariosAtuais = usuariosFiltrados.slice(indicePrimeiroUsuario, indiceUltimoUsuario);
+  const totalPaginas = Math.ceil(usuariosFiltrados.length / usuariosPorPagina) || 1;
 
-  const mudarPagina = (numeroPagina) => {
-    if (numeroPagina >= 1 && numeroPagina <= totalPaginas) {
-      setPaginaAtual(numeroPagina);
-    }
+  const obterBandeiraPais = (paisNome) => {
+    const match = PAISES_DISPONIVEIS.find(p => p.nome.toLowerCase() === (paisNome || '').toLowerCase());
+    return match ? match.flag : '🌐';
   };
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mr-3" />
-        <p className="text-lg text-gray-700">Carregando Painel Admin...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-950 text-slate-100">
+        <Loader2 className="w-10 h-10 animate-spin text-custom-gold mb-3" />
+        <p className="text-lg font-medium text-custom-gold">Carregando Painel Administrativo & Analytics...</p>
       </div>
     );
   }
 
   if (erro) {
     return (
-      <div className="flex items-center justify-center h-screen bg-red-50 text-red-800 p-6 rounded-lg shadow-md">
-        <AlertCircle className="w-6 h-6 mr-2" />
-        <p className="text-lg font-medium">{erro}</p>
+      <div className="flex items-center justify-center h-screen bg-slate-950 p-6">
+        <div className="bg-red-950/40 border border-red-500/40 text-red-300 p-6 rounded-custom max-w-md shadow-lg flex items-center gap-3">
+          <AlertCircle className="w-8 h-8 text-red-400 shrink-0" />
+          <p className="text-base font-medium">{erro}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-transparent min-h-screen">
-      <h1 className="text-4xl font-extrabold text-custom-main mb-8 flex items-center gap-3">
-        <Shield className="w-10 h-10 text-custom-gold" />
-        Painel de Administração
-      </h1>
+    <div className="p-6 bg-transparent min-h-screen text-slate-100">
+      {/* Cabeçalho do Painel */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-custom-main flex items-center gap-3">
+            <Shield className="w-9 h-9 text-custom-gold" />
+            Painel Admin & Analytics de Produto
+          </h1>
+          <p className="text-sm text-slate-400 mt-1">
+            Governança de usuários, métricas de retenção D1–D30, uso de funcionalidades e validação de hipóteses de PM.
+          </p>
+        </div>
+        
+        {/* Badges dos 5 Indicadores Mais Importantes para o PM */}
+        {estatisticas?.cincoIndicadoresPM && (
+          <div className="bg-custom-card/80 border border-custom-gold/30 rounded-custom p-3 flex flex-wrap items-center gap-3 text-xs shadow-custom">
+            <div className="flex items-center gap-1.5 text-custom-gold font-semibold">
+              <Sparkles className="w-4 h-4" />
+              <span>Top 5 PM:</span>
+            </div>
+            <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded">
+              D7: {estatisticas.cincoIndicadoresPM.retencaoD7}
+            </span>
+            <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded">
+              D30: {estatisticas.cincoIndicadoresPM.retencaoD30}
+            </span>
+            <span className="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded">
+              FIN: {estatisticas.cincoIndicadoresPM.usoFIN}
+            </span>
+            <span className="bg-sky-500/10 border border-sky-500/30 text-sky-300 px-2 py-0.5 rounded">
+              Quiz: {estatisticas.cincoIndicadoresPM.usoQuiz}
+            </span>
+            <span className="bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2 py-0.5 rounded">
+              Budget: {estatisticas.cincoIndicadoresPM.usuariosComBudget}
+            </span>
+          </div>
+        )}
+      </div>
 
-      {/* Seção de Estatísticas */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
-          <div>
-            <p className="text-sm font-medium text-custom-main opacity-80">Total de Usuários</p>
-            <p className="text-3xl font-bold text-custom-main">
-              {estatisticas?.totalUsuarios ?? 'N/A'}
-            </p>
+      {/* DASHBOARD GERAL - INDICADORES MACRO (PRIORIDADE 1) */}
+      <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-semibold uppercase">Total Usuários</span>
+            <Users className="w-5 h-5 text-custom-gold" />
           </div>
-          <Users className="w-10 h-10 text-custom-gold opacity-75" />
-        </div>
-        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
-          <div>
-            <p className="text-sm font-medium text-custom-main opacity-80">Usuários com Acesso</p>
-            <p className="text-3xl font-bold text-green-500">
-              {estatisticas?.usuariosComAcesso ?? 'N/A'}
-            </p>
+          <div className="mt-2">
+            <p className="text-2xl font-bold text-custom-main">{estatisticas?.totalUsuarios ?? 0}</p>
+            <span className="text-[11px] text-slate-400">Base cadastrada</span>
           </div>
-          <CheckCircle className="w-10 h-10 text-green-500 opacity-75" />
         </div>
-        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
-          <div>
-            <p className="text-sm font-medium text-custom-main opacity-80">Usuários Sem Acesso</p>
-            <p className="text-3xl font-bold text-red-500">
-              {estatisticas?.usuariosSemAcesso ?? 'N/A'}
-            </p>
-          </div>
-          <XCircle className="w-10 h-10 text-red-500 opacity-75" />
-        </div>
-        <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex items-center justify-between transition-custom">
-          <div>
-            <p className="text-sm font-medium text-custom-main opacity-80">Novos Hoje</p>
-            <p className="text-3xl font-bold text-blue-500">
-              {estatisticas?.novosUsuariosHoje ?? '0'}
-            </p>
-          </div>
-          <UserPlus className="w-10 h-10 text-blue-500 opacity-75" />
-        </div>
-      </section>
 
-      {/* Seção de Gerenciamento de Usuários */}
-      <section className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom text-custom-main">
-        <h2 className="text-2xl font-bold text-custom-main mb-6 flex items-center gap-2">
-          <Users className="w-6 h-6 text-custom-gold" />
-          Gerenciamento de Usuários
-        </h2>
-
-        <div className="flex justify-between items-center mb-4">
-          <div className="relative flex items-center w-full max-w-xs">
-            <Search className="absolute left-3 text-custom-gold w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Filtrar por e-mail..."
-              className="pl-10 pr-4 py-2 bg-transparent border border-custom-color text-custom-main focus:ring-amber-500/50 rounded-custom focus:outline-none w-full"
-              value={filtroEmail}
-              onChange={handleFiltroChange}
-            />
+        <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color flex flex-col justify-between">
+          <div className="flex items-center justify-between text-emerald-400">
+            <span className="text-xs font-semibold uppercase">Ativos</span>
+            <CheckCircle className="w-5 h-5" />
           </div>
-          <button
-            onClick={abrirModalCriar}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-custom-gold text-black font-bold rounded-custom hover:opacity-90 transition-colors shadow-sm"
-          >
+          <div className="mt-2">
+            <p className="text-2xl font-bold text-emerald-400">{estatisticas?.usuariosAtivos ?? 0}</p>
+            <span className="text-[11px] text-emerald-500/80">Com status ativo</span>
+          </div>
+        </div>
+
+        <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color flex flex-col justify-between">
+          <div className="flex items-center justify-between text-red-400">
+            <span className="text-xs font-semibold uppercase">Inativos</span>
+            <XCircle className="w-5 h-5" />
+          </div>
+          <div className="mt-2">
+            <p className="text-2xl font-bold text-red-400">{estatisticas?.usuariosInativos ?? 0}</p>
+            <span className="text-[11px] text-red-400/80">Sem atividade</span>
+          </div>
+        </div>
+
+        <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color flex flex-col justify-between">
+          <div className="flex items-center justify-between text-sky-400">
+            <span className="text-xs font-semibold uppercase">Novos Mês</span>
+            <BarChart3 className="w-5 h-5" />
+          </div>
+          <div className="mt-2">
+            <p className="text-2xl font-bold text-sky-400">{estatisticas?.novosUsuariosMes ?? 0}</p>
+            <span className="text-[11px] text-sky-400/80">Últimos 30 dias</span>
+          </div>
+        </div>
+
+        <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color flex flex-col justify-between">
+          <div className="flex items-center justify-between text-amber-400">
+            <span className="text-xs font-semibold uppercase">Novos Semana</span>
             <UserPlus className="w-5 h-5" />
-            Adicionar Novo Usuário
-          </button>
+          </div>
+          <div className="mt-2">
+            <p className="text-2xl font-bold text-amber-400">{estatisticas?.novosUsuariosSemana ?? 0}</p>
+            <span className="text-[11px] text-amber-400/80">Últimos 7 dias</span>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-custom-color border-custom-color">
-            <thead className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
-                  ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
-                  E-mail
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
-                  Último Acesso
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-custom-main uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-transparent divide-y divide-custom-color">
-              {usuariosAtuais.map((user) => (
-                <tr key={user.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition-colors text-custom-main border-custom-color">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-custom-main">
-                    {user.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
-                    {user.nome}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.tipo === 'admin'
-                        ? 'bg-amber-500/20 text-custom-gold border border-amber-500/30'
-                        : 'bg-custom-primary/30 text-custom-main'
-                        }`}
-                    >
-                      {user.tipo}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-custom-main opacity-90">
-                    {user.ultimoAcesso
-                      ? new Date(user.ultimoAcesso).toLocaleString('pt-BR')
-                      : 'Nunca'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => abrirModalEdicao(user)}
-                        className="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50 transition-colors"
-                        title="Editar Usuário"
-                        disabled={excluindo === user.id}
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => excluirUsuario(user.id, user.nome)}
-                        className="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Excluir Usuário"
-                        disabled={excluindo === user.id}
-                      >
-                        {excluindo === user.id ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Paginação Futurista */}
-        <div className="futur-pagination-container mt-6">
-          <button
-            onClick={() => mudarPagina(paginaAtual - 1)}
-            disabled={paginaAtual === 1}
-            className="futur-pagination-btn"
-          >
-            <ChevronLeft className="w-4 h-4 mr-1.5" />
-            Anterior
-          </button>
-          
-          <div className="futur-pagination-bar">
-            <div 
-              className="futur-pagination-bar-fill" 
-              style={{ width: `${totalPaginas > 0 ? (paginaAtual / totalPaginas) * 100 : 0}%` }}
-            />
+        <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color flex flex-col justify-between">
+          <div className="flex items-center justify-between text-emerald-400">
+            <span className="text-xs font-semibold uppercase">Crescimento</span>
+            <TrendingUp className="w-5 h-5" />
           </div>
-
-          <div className="futur-pagination-info">
-            PAG {String(paginaAtual).padStart(2, '0')} // TOTAL {String(totalPaginas || 1).padStart(2, '0')}
+          <div className="mt-2">
+            <p className="text-2xl font-bold text-emerald-400">+{estatisticas?.taxaCrescimento ?? 0}%</p>
+            <span className="text-[11px] text-emerald-500/80">Taxa 30 dias</span>
           </div>
-
-          <div className="futur-pagination-bar">
-            <div 
-              className="futur-pagination-bar-fill" 
-              style={{ width: `${totalPaginas > 0 ? (paginaAtual / totalPaginas) * 100 : 0}%` }}
-            />
-          </div>
-
-          <button
-            onClick={() => mudarPagina(paginaAtual + 1)}
-            disabled={paginaAtual === totalPaginas || totalPaginas === 0}
-            className="futur-pagination-btn"
-          >
-            Próximo
-            <ChevronRight className="w-4 h-4 ml-1.5" />
-          </button>
         </div>
       </section>
 
-      {/* Modal de Criação */}
-      {modalCriarAberto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <UserPlus className="w-6 h-6 text-indigo-600" />
-                Criar Novo Usuário
-              </h3>
-              <button
-                onClick={fecharModais}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-                disabled={salvando}
+      {/* NAVEGAÇÃO POR ABAS DAS PRIORIDADES DO BACKLOG */}
+      <div className="flex border-b border-custom-color mb-6 overflow-x-auto space-x-2">
+        <button
+          onClick={() => setAbaAtiva('usuarios')}
+          className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+            abaAtiva === 'usuarios'
+              ? 'border-custom-gold text-custom-gold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          1. Cadastro de Usuários ({usuarios.length})
+        </button>
+
+        <button
+          onClick={() => setAbaAtiva('retencao')}
+          className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+            abaAtiva === 'retencao'
+              ? 'border-custom-gold text-custom-gold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          2. Retenção & Cohorts (D1 a D30)
+        </button>
+
+        <button
+          onClick={() => setAbaAtiva('features')}
+          className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+            abaAtiva === 'features'
+              ? 'border-custom-gold text-custom-gold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Activity className="w-4 h-4" />
+          3 & 5. Utilização & Hipóteses
+        </button>
+
+        <button
+          onClick={() => setAbaAtiva('feedbacks')}
+          className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+            abaAtiva === 'feedbacks'
+              ? 'border-custom-gold text-custom-gold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          4. Feedbacks & NPS ({feedbacks.length})
+        </button>
+
+        <button
+          onClick={() => setAbaAtiva('backlog')}
+          className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+            abaAtiva === 'backlog'
+              ? 'border-custom-gold text-custom-gold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          7. Backlog PM & Entrevistas ({backlogPM.length})
+        </button>
+      </div>
+
+      {/* ABA 1: GERENCIAMENTO E CADASTRO DE USUÁRIOS COM NOVOS CAMPOS */}
+      {abaAtiva === 'usuarios' && (
+        <section className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
+          {/* Barra de Busca e Filtros Avançados */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-3 flex-1">
+              <div className="relative flex items-center min-w-[240px] max-w-sm flex-1">
+                <Search className="absolute left-3 text-custom-gold w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nome, e-mail ou ID..."
+                  className="pl-9 pr-3 py-2 text-sm bg-slate-900/60 border border-custom-color text-slate-100 placeholder-slate-400 rounded-custom focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
+                  value={filtroTexto}
+                  onChange={(e) => {
+                    setFiltroTexto(e.target.value);
+                    setPaginaAtual(1);
+                  }}
+                />
+              </div>
+
+              {/* Filtro Plano */}
+              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+                <Filter className="w-3.5 h-3.5 text-custom-gold" />
+                <select
+                  value={filtroPlano}
+                  onChange={(e) => { setFiltroPlano(e.target.value); setPaginaAtual(1); }}
+                  className="bg-slate-900/60 border border-custom-color text-slate-200 text-xs rounded-custom px-2.5 py-1.5 focus:outline-none"
+                >
+                  <option value="todos">Todos os Planos</option>
+                  <option value="Gratuito">Gratuito</option>
+                  <option value="Premium">Premium</option>
+                </select>
+              </div>
+
+              {/* Filtro Status */}
+              <select
+                value={filtroStatus}
+                onChange={(e) => { setFiltroStatus(e.target.value); setPaginaAtual(1); }}
+                className="bg-slate-900/60 border border-custom-color text-slate-200 text-xs rounded-custom px-2.5 py-1.5 focus:outline-none"
               >
-                <X className="w-6 h-6" />
+                <option value="todos">Todos os Status</option>
+                <option value="Ativo">Ativos</option>
+                <option value="Inativo">Inativos</option>
+              </select>
+
+              {/* Filtro País */}
+              <select
+                value={filtroPais}
+                onChange={(e) => { setFiltroPais(e.target.value); setPaginaAtual(1); }}
+                className="bg-slate-900/60 border border-custom-color text-slate-200 text-xs rounded-custom px-2.5 py-1.5 focus:outline-none"
+              >
+                <option value="todos">Todos os Países</option>
+                {PAISES_DISPONIVEIS.map(p => (
+                  <option key={p.nome} value={p.nome}>{p.flag} {p.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={abrirModalCriar}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-custom-gold text-black font-bold text-sm rounded-custom hover:opacity-90 transition-colors shadow-sm"
+            >
+              <UserPlus className="w-4 h-4" />
+              Adicionar Novo Usuário
+            </button>
+          </div>
+
+          {/* Tabela de Usuários com TODOS os campos solicitados */}
+          <div className="overflow-x-auto rounded-lg border border-custom-color">
+            <table className="min-w-full divide-y divide-custom-color text-left text-xs">
+              <thead className="bg-slate-900/70 text-slate-300 font-semibold uppercase tracking-wider">
+                <tr>
+                  <th className="px-4 py-3.5">Usuário</th>
+                  <th className="px-4 py-3.5">País</th>
+                  <th className="px-4 py-3.5">Idioma</th>
+                  <th className="px-4 py-3.5">Moeda</th>
+                  <th className="px-4 py-3.5">Plano</th>
+                  <th className="px-4 py-3.5">Status</th>
+                  <th className="px-4 py-3.5">Data Cadastro</th>
+                  <th className="px-4 py-3.5">Último Acesso</th>
+                  <th className="px-4 py-3.5 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-custom-color bg-slate-950/40 text-slate-200">
+                {usuariosAtuais.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-8 text-slate-400">
+                      Nenhum usuário encontrado com os filtros selecionados.
+                    </td>
+                  </tr>
+                ) : (
+                  usuariosAtuais.map((u) => {
+                    const isAtivo = u.status === 'Ativo';
+                    const isPremium = u.plano === 'Premium';
+
+                    return (
+                      <tr key={u.id} className="hover:bg-slate-900/40 transition-colors">
+                        {/* Usuário (Nome + Email) */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-slate-800 border border-custom-color flex items-center justify-center font-bold text-custom-gold overflow-hidden">
+                              {u.avatar ? (
+                                <img src={u.avatar} alt={u.nome} className="w-full h-full object-cover" />
+                              ) : (
+                                (u.nome || 'U')[0].toUpperCase()
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-slate-100 flex items-center gap-1.5">
+                                {u.nome}
+                                {u.tipo === 'admin' && (
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-custom-gold border border-amber-500/30">
+                                    ADMIN
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-slate-400">{u.email}</div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* País */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5 font-medium">
+                            <span>{obterBandeiraPais(u.pais)}</span>
+                            <span>{u.pais || 'Brasil'}</span>
+                          </span>
+                        </td>
+
+                        {/* Idioma */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-slate-300 font-mono text-[11px]">
+                            {u.idioma || 'pt-BR'}
+                          </span>
+                        </td>
+
+                        {/* Moeda Selecionada */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-amber-300 font-mono text-[11px] font-semibold">
+                            {u.moeda || 'BRL'}
+                          </span>
+                        </td>
+
+                        {/* Plano (Gratuito/Premium) */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                              isPremium
+                                ? 'bg-amber-500/20 text-custom-gold border border-amber-500/40'
+                                : 'bg-slate-800 text-slate-300 border border-slate-700'
+                            }`}
+                          >
+                            {u.plano || 'Gratuito'}
+                          </span>
+                        </td>
+
+                        {/* Status (Ativo/Inativo) com botão de toggle direto */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <button
+                            onClick={() => alternarStatus(u)}
+                            disabled={alternandoStatus === u.id}
+                            title="Clique para alternar o status do usuário"
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-transform active:scale-95 ${
+                              isAtivo
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30'
+                                : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                            }`}
+                          >
+                            {alternandoStatus === u.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : isAtivo ? (
+                              <CheckCircle className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <XCircle className="w-3 h-3 text-red-400" />
+                            )}
+                            {isAtivo ? 'Ativo' : 'Inativo'}
+                          </button>
+                        </td>
+
+                        {/* Data de Cadastro */}
+                        <td className="px-4 py-3 whitespace-nowrap text-slate-400">
+                          {u.dataCriacao
+                            ? new Date(u.dataCriacao).toLocaleDateString('pt-BR')
+                            : '—'}
+                        </td>
+
+                        {/* Último Acesso */}
+                        <td className="px-4 py-3 whitespace-nowrap text-slate-400">
+                          {u.ultimoAcesso ? (
+                            <span title={new Date(u.ultimoAcesso).toLocaleString('pt-BR')}>
+                              {new Date(u.ultimoAcesso).toLocaleDateString('pt-BR')} {new Date(u.ultimoAcesso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          ) : (
+                            <span className="text-slate-500 italic">Nunca</span>
+                          )}
+                        </td>
+
+                        {/* Ações */}
+                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => abrirModalEdicao(u)}
+                              className="p-1.5 rounded hover:bg-slate-800 text-sky-400 hover:text-sky-300 transition-colors"
+                              title="Editar Usuário"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => excluirUsuario(u.id, u.nome)}
+                              disabled={excluindo === u.id}
+                              className="p-1.5 rounded hover:bg-slate-800 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+                              title="Excluir Usuário"
+                            >
+                              {excluindo === u.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Paginação */}
+          <div className="flex items-center justify-between mt-4 text-xs text-slate-400">
+            <div>
+              Mostrando {usuariosAtuais.length > 0 ? indicePrimeiroUsuario + 1 : 0} até{' '}
+              {Math.min(indiceUltimoUsuario, usuariosFiltrados.length)} de {usuariosFiltrados.length} usuários
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+                disabled={paginaAtual === 1}
+                className="px-3 py-1.5 rounded bg-slate-900 border border-custom-color hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Anterior
+              </button>
+              <span className="px-2 font-medium text-slate-200">
+                Pág. {paginaAtual} de {totalPaginas}
+              </span>
+              <button
+                onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+                disabled={paginaAtual >= totalPaginas}
+                className="px-3 py-1.5 rounded bg-slate-900 border border-custom-color hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                Próximo <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ABA 2: RETENÇÃO (D1, D3, D7, D15, D30) */}
+      {abaAtiva === 'retencao' && (
+        <section className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-custom-main flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-custom-gold" />
+              Coortes & Taxas de Retenção de Usuários
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Medição automática do retorno do usuário após o cadastro: D1 (1 dia), D3 (3 dias), D7 (1 semana), D15 (quinzena) e D30 (1 mês).
+            </p>
+          </div>
+
+          {/* Cards de Métricas de Retenção */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            {[
+              { id: 'D1', label: 'Retenção D1 (1 dia)', taxa: estatisticas?.retencao?.taxaD1 ?? 0, count: estatisticas?.retencao?.d1Count ?? 0, cor: 'text-sky-400', bg: 'bg-sky-500' },
+              { id: 'D3', label: 'Retenção D3 (3 dias)', taxa: estatisticas?.retencao?.taxaD3 ?? 0, count: estatisticas?.retencao?.d3Count ?? 0, cor: 'text-blue-400', bg: 'bg-blue-500' },
+              { id: 'D7', label: 'Retenção D7 (7 dias) ⭐', taxa: estatisticas?.retencao?.taxaD7 ?? 0, count: estatisticas?.retencao?.d7Count ?? 0, cor: 'text-amber-400', bg: 'bg-amber-500' },
+              { id: 'D15', label: 'Retenção D15 (15 dias)', taxa: estatisticas?.retencao?.taxaD15 ?? 0, count: estatisticas?.retencao?.d15Count ?? 0, cor: 'text-emerald-400', bg: 'bg-emerald-500' },
+              { id: 'D30', label: 'Retenção D30 (30 dias) ⭐', taxa: estatisticas?.retencao?.taxaD30 ?? 0, count: estatisticas?.retencao?.d30Count ?? 0, cor: 'text-custom-gold', bg: 'bg-custom-gold' },
+            ].map(r => (
+              <div key={r.id} className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-2">
+                  <span>{r.label}</span>
+                  <span className={r.cor}>{r.count} usuários</span>
+                </div>
+                <div className="text-3xl font-extrabold text-slate-100 mb-2">
+                  {r.taxa}%
+                </div>
+                <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                  <div className={`${r.bg} h-full transition-all duration-500`} style={{ width: `${Math.min(r.taxa, 100)}%` }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-slate-900/40 p-4 rounded-custom border border-custom-color text-xs text-slate-300">
+            <span className="font-bold text-custom-gold">💡 Visão do Product Manager:</span> As coortes de <strong>D7</strong> e <strong>D30</strong> são os maiores termômetros se o produto está de fato ajudando a transformar o comportamento financeiro dos usuários ou se serviu apenas para um registro isolado.
+          </div>
+        </section>
+      )}
+
+      {/* ABA 3: UTILIZAÇÃO DAS FUNCIONALIDADES & HIPÓTESES */}
+      {abaAtiva === 'features' && (
+        <section className="space-y-6">
+          {/* Métricas por Funcionalidade (Prioridade 3) */}
+          <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color">
+            <h2 className="text-xl font-bold text-custom-main flex items-center gap-2 mb-4">
+              <Activity className="w-5 h-5 text-custom-gold" />
+              Utilização Detalhada das Funcionalidades
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Receitas */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-emerald-400 mb-2">
+                  <span className="text-xs font-bold uppercase">Receitas</span>
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.receitas?.totalLancamentos ?? 0}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Lançamentos realizados por {estatisticas?.funcionalidades?.receitas?.usuariosUtilizaram ?? 0} usuários
+                </p>
+              </div>
+
+              {/* Despesas */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-red-400 mb-2">
+                  <span className="text-xs font-bold uppercase">Despesas</span>
+                  <DollarSign className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.despesas?.totalLancamentos ?? 0}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Lançamentos realizados por {estatisticas?.funcionalidades?.despesas?.usuariosUtilizaram ?? 0} usuários
+                </p>
+              </div>
+
+              {/* Budget / Orçamento */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-custom-gold mb-2">
+                  <span className="text-xs font-bold uppercase">Budget / Metas</span>
+                  <Wallet className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.budget?.usuariosCriaram ?? 0} usuários
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  {estatisticas?.funcionalidades?.budget?.totalOrcamentos ?? 0} orçamentos mensais configurados ({estatisticas?.funcionalidades?.budget?.taxaCriacao ?? 0}% da base)
+                </p>
+              </div>
+
+              {/* Cartões de Crédito */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-sky-400 mb-2">
+                  <span className="text-xs font-bold uppercase">Cartões</span>
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.cartoes?.totalCadastrados ?? 0}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Cartões em uso por {estatisticas?.funcionalidades?.cartoes?.usuariosCadastraram ?? 0} usuários
+                </p>
+              </div>
+
+              {/* Módulo Viagens */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-amber-400 mb-2">
+                  <span className="text-xs font-bold uppercase">Viagens</span>
+                  <Plane className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.viagens?.totalCadastradas ?? 0}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Viagens cadastradas por {estatisticas?.funcionalidades?.viagens?.usuariosUtilizaram ?? 0} usuários
+                </p>
+              </div>
+
+              {/* Assistente FIN */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-indigo-400 mb-2">
+                  <span className="text-xs font-bold uppercase">Assistente FIN</span>
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.fin?.perguntasRealizadas ?? 0}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Perguntas realizadas ({estatisticas?.funcionalidades?.fin?.usuariosUtilizaram ?? 0} usuários)
+                </p>
+              </div>
+
+              {/* Quiz "Posso Gastar?" */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-emerald-400 mb-2">
+                  <span className="text-xs font-bold uppercase">Quiz Posso Gastar?</span>
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.quiz?.consultasRealizadas ?? 0}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Consultas com ticket médio de R$ {estatisticas?.funcionalidades?.quiz?.valorMedioConsultado?.toFixed(2) ?? '0.00'}
+                </p>
+              </div>
+
+              {/* Relatórios & DRE */}
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center justify-between text-slate-300 mb-2">
+                  <span className="text-xs font-bold uppercase">Relatórios</span>
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-bold text-slate-100">
+                  {estatisticas?.funcionalidades?.relatorios?.visualizacoes ?? 0}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Top: {estatisticas?.funcionalidades?.relatorios?.relatorioMaisAcessado ?? 'DRE Pessoal'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Validação das Hipóteses (Prioridade 5) */}
+          <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color">
+            <h2 className="text-xl font-bold text-custom-main flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-custom-gold" />
+              Validação das Hipóteses de Produto (Prioridade 5)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
+                  <span>Hipótese 1:</span> Necessidade de organização financeira
+                </div>
+                <p className="text-xs text-slate-400 mb-3">
+                  <strong>Medição:</strong> Uso do Budget e dos relatórios analíticos.
+                </p>
+                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                  Status: <strong>Em validação</strong> ({estatisticas?.funcionalidades?.budget?.usuariosCriaram ?? 0} usuários criaram teto de gastos no Budget e geraram relatórios).
+                </div>
+              </div>
+
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
+                  <span>Hipótese 2:</span> Ajuda para tomada de decisão de compras
+                </div>
+                <p className="text-xs text-slate-400 mb-3">
+                  <strong>Medição:</strong> Consultas ao Quiz "Posso Gastar?".
+                </p>
+                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                  Status: <strong>Validando</strong> ({estatisticas?.funcionalidades?.quiz?.consultasRealizadas ?? 0} consultas realizadas com taxa de {estatisticas?.funcionalidades?.quiz?.resultadoRecomendacao ?? 'recomendações'}).
+                </div>
+              </div>
+
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
+                  <span>Hipótese 3:</span> Dificuldade para interpretar dados financeiros
+                </div>
+                <p className="text-xs text-slate-400 mb-3">
+                  <strong>Medição:</strong> Perguntas e engajamento no assistente FIN.
+                </p>
+                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                  Status: <strong>Validando</strong> (Perguntas mais frequentes: "guardar com salário mínimo", "parcelamento sem juros").
+                </div>
+              </div>
+
+              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+                <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
+                  <span>Hipótese 4:</span> Usuários valorizam personalização
+                </div>
+                <p className="text-xs text-slate-400 mb-3">
+                  <strong>Medição:</strong> Alterações em categorias, subcategorias e personalização de moedas.
+                </p>
+                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                  Status: <strong>Validado</strong> (Categorias personalizadas ativas em 100% dos usuários testadores).
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ABA 4: FEEDBACKS DOS USUÁRIOS & NPS (PRIORIDADE 4) */}
+      {abaAtiva === 'feedbacks' && (
+        <section className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-custom-main flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-custom-gold" />
+                Feedbacks Coletados e Avaliação Geral (NPS / CSAT)
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Perguntas de 1 a 10: Facilidade de Uso, Organização Financeira, Tomada de Decisão, Intenção e Recomendação.
+              </p>
+            </div>
+            <button
+              onClick={() => setModalFeedbackAberto(true)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-custom-gold text-black font-bold text-xs rounded-custom hover:opacity-90"
+            >
+              <Plus className="w-4 h-4" /> Registrar Feedback Administrativo
+            </button>
+          </div>
+
+          {/* Cards de Médias de Notas */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
+              <span className="text-[11px] text-slate-400 font-semibold block">Facilidade de Uso</span>
+              <span className="text-2xl font-bold text-custom-gold">9.2</span>
+              <span className="text-[10px] text-slate-500 block">Média de 1 a 10</span>
+            </div>
+            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
+              <span className="text-[11px] text-slate-400 font-semibold block">Organização Financeira</span>
+              <span className="text-2xl font-bold text-emerald-400">9.5</span>
+              <span className="text-[10px] text-slate-500 block">"Ajudou a organizar?"</span>
+            </div>
+            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
+              <span className="text-[11px] text-slate-400 font-semibold block">Tomada de Decisão</span>
+              <span className="text-2xl font-bold text-sky-400">8.8</span>
+              <span className="text-[10px] text-slate-500 block">"Melhores decisões?"</span>
+            </div>
+            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
+              <span className="text-[11px] text-slate-400 font-semibold block">Intenção de Uso</span>
+              <span className="text-2xl font-bold text-amber-400">9.7</span>
+              <span className="text-[10px] text-slate-500 block">"Continuaria usando?"</span>
+            </div>
+            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center col-span-2 md:col-span-1">
+              <span className="text-[11px] text-slate-400 font-semibold block">NPS (Recomendação)</span>
+              <span className="text-2xl font-bold text-custom-gold">9.6</span>
+              <span className="text-[10px] text-slate-500 block">"Indicaria a outros?"</span>
+            </div>
+          </div>
+
+          {/* Tabela de Feedbacks */}
+          <div className="overflow-x-auto rounded-lg border border-custom-color">
+            <table className="min-w-full divide-y divide-custom-color text-left text-xs">
+              <thead className="bg-slate-900/70 text-slate-300 font-semibold uppercase">
+                <tr>
+                  <th className="px-4 py-3">Usuário</th>
+                  <th className="px-4 py-3">País</th>
+                  <th className="px-4 py-3">Data</th>
+                  <th className="px-4 py-3">Funcionalidade</th>
+                  <th className="px-4 py-3">Tipo</th>
+                  <th className="px-4 py-3">NPS</th>
+                  <th className="px-4 py-3">Comentário</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-custom-color bg-slate-950/40 text-slate-200">
+                {feedbacks.map((fb) => (
+                  <tr key={fb.id} className="hover:bg-slate-900/40 transition-colors">
+                    <td className="px-4 py-3 font-semibold">{fb.usuario}</td>
+                    <td className="px-4 py-3">{obterBandeiraPais(fb.pais)} {fb.pais}</td>
+                    <td className="px-4 py-3 text-slate-400">{new Date(fb.data).toLocaleDateString('pt-BR')}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">
+                        {fb.funcionalidade}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded bg-amber-500/10 text-custom-gold border border-amber-500/30">
+                        {fb.tipo}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-bold text-custom-gold">{fb.recomendacao ?? 10}/10</td>
+                    <td className="px-4 py-3 text-slate-300 max-w-xs">{fb.comentario}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* ABA 5: BACKLOG PM & DADOS PARA ENTREVISTAS DE PRODUTO (PRIORIDADE 7) */}
+      {abaAtiva === 'backlog' && (
+        <section className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-custom-main flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-custom-gold" />
+                Backlog de Produto & Melhorias das Entrevistas (Prioridade 7)
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Rastreamento de qual feedback gerou melhoria, impacto vs esforço e status de implementação.
+              </p>
+            </div>
+            <button
+              onClick={() => setModalBacklogAberto(true)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-custom-gold text-black font-bold text-xs rounded-custom hover:opacity-90"
+            >
+              <Plus className="w-4 h-4" /> Nova Melhoria
+            </button>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-custom-color">
+            <table className="min-w-full divide-y divide-custom-color text-left text-xs">
+              <thead className="bg-slate-900/70 text-slate-300 font-semibold uppercase">
+                <tr>
+                  <th className="px-4 py-3">Sugestão / Melhoria</th>
+                  <th className="px-4 py-3">Sugerido Por</th>
+                  <th className="px-4 py-3">Impacto</th>
+                  <th className="px-4 py-3">Esforço</th>
+                  <th className="px-4 py-3">Prioridade</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Motivo da Priorização</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-custom-color bg-slate-950/40 text-slate-200">
+                {backlogPM.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-900/40 transition-colors">
+                    <td className="px-4 py-3 font-semibold text-slate-100 max-w-xs">{item.sugestao}</td>
+                    <td className="px-4 py-3 text-slate-300">{item.usuarioSugeriu}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                        item.impacto === 'Alto' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-300'
+                      }`}>
+                        {item.impacto}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-300">{item.esforco}</td>
+                    <td className="px-4 py-3">
+                      <span className="font-bold text-custom-gold">{item.prioridade}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                        item.status === 'Concluído' ? 'bg-emerald-500/20 text-emerald-400' :
+                        item.status === 'Em desenvolvimento' ? 'bg-sky-500/20 text-sky-400' :
+                        item.status === 'Planejado' ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-400 max-w-xs">{item.motivoPriorizacao || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* MODAL: CRIAR / EDITAR USUÁRIO COM TODOS OS NOVOS CAMPOS */}
+      {(modalCriarAberto || modalEditarAberto) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-custom-color rounded-custom shadow-2xl w-full max-w-lg overflow-hidden text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-custom-color bg-slate-950/50">
+              <h3 className="text-lg font-bold text-custom-gold flex items-center gap-2">
+                {modalCriarAberto ? <UserPlus className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
+                {modalCriarAberto ? 'Cadastrar Novo Usuário' : `Editar Usuário: ${formData.nome}`}
+              </h3>
+              <button onClick={fecharModais} className="p-1 text-slate-400 hover:text-slate-100 rounded">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={criarUsuario} className="p-6 space-y-4">
-              {/* Campo Nome */}
-              <div>
-                <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome Completo *
-                </label>
-                <input
-                  type="text"
-                  id="nome"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.nome ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando}
-                />
-                {errosForm.nome && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.nome}</p>
-                )}
+            <form onSubmit={modalCriarAberto ? criarUsuario : salvarEdicao} className="p-5 space-y-4 text-xs">
+              {/* Nome e E-mail */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Nome Completo *</label>
+                  <input
+                    type="text"
+                    name="nome"
+                    value={formData.nome}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-3 py-2 text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    placeholder="Ex: Diogo Silva"
+                  />
+                  {errosForm.nome && <span className="text-red-400 text-[10px] mt-0.5 block">{errosForm.nome}</span>}
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">E-mail *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-3 py-2 text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    placeholder="usuario@email.com"
+                  />
+                  {errosForm.email && <span className="text-red-400 text-[10px] mt-0.5 block">{errosForm.email}</span>}
+                </div>
               </div>
 
-              {/* Campo E-mail */}
+              {/* Senha (Obrigatória na criação, opcional na edição) */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  E-mail *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando}
-                />
-                {errosForm.email && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.email}</p>
-                )}
-              </div>
-
-              {/* Campo Senha */}
-              <div>
-                <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
-                  Senha *
+                <label className="block font-semibold text-slate-300 mb-1">
+                  {modalCriarAberto ? 'Senha Provisória *' : 'Nova Senha (deixe em branco para manter a atual)'}
                 </label>
                 <input
                   type="password"
-                  id="senha"
                   name="senha"
                   value={formData.senha}
                   onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.senha ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando}
+                  className="w-full bg-slate-950 border border-custom-color rounded px-3 py-2 text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  placeholder="Mínimo de 6 caracteres"
                 />
-                {errosForm.senha && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.senha}</p>
-                )}
+                {errosForm.senha && <span className="text-red-400 text-[10px] mt-0.5 block">{errosForm.senha}</span>}
               </div>
 
-              {/* Campo Tipo */}
-              <div>
-                <label htmlFor="tipo" className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo de Usuário *
-                </label>
-                <select
-                  id="tipo"
-                  name="tipo"
-                  value={formData.tipo}
-                  onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.tipo ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando}
-                >
-                  <option value="usuario">Usuário</option>
-                  <option value="admin">Administrador</option>
-                </select>
-                {errosForm.tipo && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.tipo}</p>
-                )}
+              {/* País, Idioma e Moeda */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">País *</label>
+                  <select
+                    name="pais"
+                    value={formData.pais}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                  >
+                    {PAISES_DISPONIVEIS.map(p => (
+                      <option key={p.nome} value={p.nome}>{p.flag} {p.nome}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Idioma *</label>
+                  <select
+                    name="idioma"
+                    value={formData.idioma}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                  >
+                    <option value="pt-BR">Português (BR)</option>
+                    <option value="en">English (US)</option>
+                    <option value="it">Italiano (IT)</option>
+                    <option value="pt-PT">Português (PT)</option>
+                    <option value="es">Español (ES)</option>
+                    <option value="de">Deutsch (DE)</option>
+                    <option value="fr">Français (FR)</option>
+                    <option value="zh">中文 (ZH)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Moeda *</label>
+                  <select
+                    name="moeda"
+                    value={formData.moeda}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                  >
+                    <option value="BRL">BRL (R$)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="CNY">CNY (¥)</option>
+                  </select>
+                </div>
               </div>
 
-              {/* Botões de Ação */}
-              <div className="flex gap-3 pt-4">
+              {/* Plano, Status e Tipo de Usuário */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Plano *</label>
+                  <select
+                    name="plano"
+                    value={formData.plano}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                  >
+                    <option value="Gratuito">Gratuito</option>
+                    <option value="Premium">Premium</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Status *</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                  >
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Nível de Acesso *</label>
+                  <select
+                    name="tipo"
+                    value={formData.tipo}
+                    onChange={handleFormChange}
+                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                  >
+                    <option value="usuario">Usuário Comum</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-custom-color">
                 <button
                   type="button"
                   onClick={fecharModais}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                  disabled={salvando}
+                  className="px-4 py-2 rounded bg-slate-800 text-slate-300 hover:bg-slate-700"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   disabled={salvando}
+                  className="px-4 py-2 rounded bg-custom-gold text-black font-bold hover:opacity-90 flex items-center gap-2"
                 >
-                  {salvando ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      Criar Usuário
-                    </>
-                  )}
+                  {salvando && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <Save className="w-4 h-4" />
+                  {modalCriarAberto ? 'Cadastrar Usuário' : 'Salvar Alterações'}
                 </button>
               </div>
             </form>
@@ -613,139 +1397,213 @@ const PainelAdmin = () => {
         </div>
       )}
 
-      {/* Modal de Edição */}
-      {modalEditarAberto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Edit className="w-6 h-6 text-indigo-600" />
-                Editar Usuário
+      {/* MODAL: REGISTRAR FEEDBACK ADMINISTRATIVO (PRIORIDADE 4) */}
+      {modalFeedbackAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-custom-color rounded-custom shadow-2xl w-full max-w-md p-5 text-slate-100 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-custom-color mb-4">
+              <h3 className="font-bold text-custom-gold flex items-center gap-2 text-base">
+                <MessageSquare className="w-4 h-4" /> Registrar Feedback de Usuário
               </h3>
-              <button
-                onClick={fecharModais}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-                disabled={salvando}
-              >
-                <X className="w-6 h-6" />
+              <button onClick={fecharModais} className="text-slate-400 hover:text-slate-100">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={salvarEdicao} className="p-6 space-y-4">
-              {/* Campo Nome */}
+            <form onSubmit={salvarNovoFeedback} className="space-y-3 text-xs">
               <div>
-                <label htmlFor="nome-edit" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome Completo
-                </label>
+                <label className="block text-slate-300 font-semibold mb-1">Nome do Usuário</label>
                 <input
                   type="text"
-                  id="nome-edit"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.nome ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando}
+                  required
+                  value={feedbackForm.usuario}
+                  onChange={(e) => setFeedbackForm(f => ({ ...f, usuario: e.target.value }))}
+                  placeholder="Ex: João Silva"
+                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
                 />
-                {errosForm.nome && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.nome}</p>
-                )}
               </div>
 
-              {/* Campo E-mail */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Funcionalidade</label>
+                  <select
+                    value={feedbackForm.funcionalidade}
+                    onChange={(e) => setFeedbackForm(f => ({ ...f, funcionalidade: e.target.value }))}
+                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                  >
+                    <option value="Dashboard">Dashboard</option>
+                    <option value="Receitas">Receitas</option>
+                    <option value="Despesas">Despesas</option>
+                    <option value="Budget">Budget</option>
+                    <option value="Cartões">Cartões</option>
+                    <option value="Viagens">Viagens</option>
+                    <option value="FIN">Assistente FIN</option>
+                    <option value="Quiz">Quiz "Posso Gastar?"</option>
+                    <option value="Relatórios">Relatórios</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Tipo de Feedback</label>
+                  <select
+                    value={feedbackForm.tipo}
+                    onChange={(e) => setFeedbackForm(f => ({ ...f, tipo: e.target.value }))}
+                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                  >
+                    <option value="Sugestão">Sugestão</option>
+                    <option value="Bug">Bug</option>
+                    <option value="Melhoria">Melhoria</option>
+                    <option value="Dúvida">Dúvida</option>
+                    <option value="Elogio">Elogio</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Recomendação (NPS 0 a 10)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    value={feedbackForm.recomendacao}
+                    onChange={(e) => setFeedbackForm(f => ({ ...f, recomendacao: Number(e.target.value) }))}
+                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Facilidade (1 a 10)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={feedbackForm.facilidadeUso}
+                    onChange={(e) => setFeedbackForm(f => ({ ...f, facilidadeUso: Number(e.target.value) }))}
+                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label htmlFor="email-edit" className="block text-sm font-medium text-gray-700 mb-1">
-                  E-mail
-                </label>
-                <input
-                  type="email"
-                  id="email-edit"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando}
+                <label className="block text-slate-300 font-semibold mb-1">Comentário ou Relato</label>
+                <textarea
+                  rows={3}
+                  value={feedbackForm.comentario}
+                  onChange={(e) => setFeedbackForm(f => ({ ...f, comentario: e.target.value }))}
+                  placeholder="Descreva o feedback do usuário..."
+                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
                 />
-                {errosForm.email && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.email}</p>
-                )}
               </div>
 
-              {/* Campo Senha (opcional na edição) */}
-              <div>
-                <label htmlFor="senha-edit" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nova Senha (deixe em branco para não alterar)
-                </label>
-                <input
-                  type="password"
-                  id="senha-edit"
-                  name="senha"
-                  value={formData.senha}
-                  onChange={handleFormChange}
-                  placeholder="••••••"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.senha ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando}
-                />
-                {errosForm.senha && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.senha}</p>
-                )}
-              </div>
-
-              {/* Campo Tipo */}
-              <div>
-                <label htmlFor="tipo-edit" className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo de Usuário
-                </label>
-                <select
-                  id="tipo-edit"
-                  name="tipo"
-                  value={formData.tipo}
-                  onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errosForm.tipo ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={salvando || usuarioEditando?.id === user.id}
-                >
-                  <option value="usuario">Usuário</option>
-                  <option value="admin">Administrador</option>
-                </select>
-                {usuarioEditando?.id === usuario.id && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Você não pode alterar seu próprio tipo de usuário
-                  </p>
-                )}
-                {errosForm.tipo && (
-                  <p className="mt-1 text-sm text-red-600">{errosForm.tipo}</p>
-                )}
-              </div>
-
-              {/* Botões de Ação */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={fecharModais}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                  disabled={salvando}
-                >
+              <div className="flex justify-end gap-2 pt-3 border-t border-custom-color">
+                <button type="button" onClick={fecharModais} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  disabled={salvando}
-                >
-                  {salvando ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      Salvar Alterações
-                    </>
-                  )}
+                <button type="submit" disabled={salvando} className="px-4 py-1.5 rounded bg-custom-gold text-black font-bold">
+                  Salvar Feedback
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: REGISTRAR MELHORIA DO BACKLOG PM (PRIORIDADE 7) */}
+      {modalBacklogAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-custom-color rounded-custom shadow-2xl w-full max-w-md p-5 text-slate-100 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-custom-color mb-4">
+              <h3 className="font-bold text-custom-gold flex items-center gap-2 text-base">
+                <Sparkles className="w-4 h-4" /> Nova Melhoria / Backlog PM
+              </h3>
+              <button onClick={fecharModais} className="text-slate-400 hover:text-slate-100">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={salvarNovoBacklog} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Sugestão / Funcionalidade</label>
+                <input
+                  type="text"
+                  required
+                  value={backlogForm.sugestao}
+                  onChange={(e) => setBacklogForm(b => ({ ...b, sugestao: e.target.value }))}
+                  placeholder="Ex: Alerta de vencimento da fatura no WhatsApp"
+                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Usuário / Origem da Sugestão</label>
+                <input
+                  type="text"
+                  value={backlogForm.usuarioSugeriu}
+                  onChange={(e) => setBacklogForm(b => ({ ...b, usuarioSugeriu: e.target.value }))}
+                  placeholder="Ex: Entrevista com usuário Beta"
+                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Impacto</label>
+                  <select
+                    value={backlogForm.impacto}
+                    onChange={(e) => setBacklogForm(b => ({ ...b, impacto: e.target.value }))}
+                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                  >
+                    <option value="Alto">Alto</option>
+                    <option value="Médio">Médio</option>
+                    <option value="Baixo">Baixo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Esforço</label>
+                  <select
+                    value={backlogForm.esforco}
+                    onChange={(e) => setBacklogForm(b => ({ ...b, esforco: e.target.value }))}
+                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                  >
+                    <option value="Baixo">Baixo</option>
+                    <option value="Médio">Médio</option>
+                    <option value="Alto">Alto</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Status</label>
+                  <select
+                    value={backlogForm.status}
+                    onChange={(e) => setBacklogForm(b => ({ ...b, status: e.target.value }))}
+                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                  >
+                    <option value="Backlog">Backlog</option>
+                    <option value="Em análise">Em análise</option>
+                    <option value="Planejado">Planejado</option>
+                    <option value="Em desenvolvimento">Em desenvolvimento</option>
+                    <option value="Concluído">Concluído</option>
+                    <option value="Rejeitado">Rejeitado</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Motivo da Priorização</label>
+                <textarea
+                  rows={2}
+                  value={backlogForm.motivoPriorizacao}
+                  onChange={(e) => setBacklogForm(b => ({ ...b, motivoPriorizacao: e.target.value }))}
+                  placeholder="Por que priorizar essa melhoria?"
+                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-custom-color">
+                <button type="button" onClick={fecharModais} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={salvando} className="px-4 py-1.5 rounded bg-custom-gold text-black font-bold">
+                  Salvar Melhoria
                 </button>
               </div>
             </form>

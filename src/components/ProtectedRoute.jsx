@@ -24,8 +24,8 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!autenticado) {
-    // Se não estiver autenticado, redireciona para a página de login
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    // Se não estiver autenticado (ex: ao clicar em Sair), redireciona para a tela inicial
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
 
   // Lógica para proteger a rota /admin

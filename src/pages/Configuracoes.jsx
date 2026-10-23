@@ -192,26 +192,18 @@ const Configuracoes = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 uppercase tracking-wider ml-1">Tema / Layout</label>
+                                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 uppercase tracking-wider ml-1">Tema da Aplicação</label>
                                             <select
-                                                value={layoutVariant}
+                                                value={theme}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
-                                                    setLayoutVariant(val);
-                                                    if (val === 'modern-fluid') {
-                                                        setTheme('light');
-                                                    } else {
-                                                        setTheme('dark');
-                                                    }
+                                                    setTheme(val);
+                                                    setLayoutVariant('lux-gold');
                                                 }}
-                                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer"
+                                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-700 dark:text-white focus:ring-2 focus:ring-custom-gold outline-none transition-all cursor-pointer"
                                             >
-                                                <option value="modern-fluid">Tema do Sistema (Padrão Claro)</option>
-                                                <option value="geo-brutalist">Geo Brutalist (Linhas Retas)</option>
-                                                <option value="lux-gold">✨ Golden Luxury (Ouro/Preto)</option>
-                                                <option value="neon-glass">🌌 Neon Glassmorphism (Vidro)</option>
-                                                <option value="scifi-hud">🛰️ Sci-Fi HUD Command (Hologram)</option>
-                                                <option value="cosmic-aurora">🛸 Cosmic Aurora (Espacial)</option>
+                                                <option value="dark">🌙 Preto com Dourado (Tema Escuro)</option>
+                                                <option value="light">☀️ Branco com Dourado (Tema Claro)</option>
                                             </select>
                                         </div>
                                         <button

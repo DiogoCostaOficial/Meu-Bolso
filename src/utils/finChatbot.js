@@ -1,112 +1,140 @@
+import { FIN_WISDOM_QA_ENTRIES } from './finBooksKnowledge.js';
+
 /**
  * Lógica de processamento de perguntas em linguagem natural para o FIN.
- * Responde com explicações simples, didáticas e diretas para leigos.
+ * Personalidade do FIN:
+ * - Melhor amigo do usuário ("toca aqui ✋", "promete de dedinho?").
+ * - Quebra a 4ª parede (fala de dentro do vidro da tela direto com quem está segurando o mouse/celular).
+ * - Explica tudo como se estivesse comprando balinhas, figurinhas ou sorvete na cantina com uma criança de 12 anos!
  */
 
 const KNOWLEDGE_BASE = [
+  ...FIN_WISDOM_QA_ENTRIES,
+  // Ativos vs Passivos
+  {
+    keywords: ['ativo', 'ativos', 'passivo', 'passivos', 'ficar rico', 'riqueza', 'patrimonio'],
+    matches: ['dica', 'conselho', 'investir', 'dinheiro'],
+    response: "🌱 **Chega pertinho da tela que esse segredo vale ouro!**\n" +
+              "Sabe a diferença entre quem vive sem moeda e quem tem o pote sempre cheio?\n\n" +
+              "• 🍬 **Ativo (A Máquina de Fazer Balinhas):** É tudo aquilo que **coloca** moedinhas novas no seu bolso sozinho (tipo dinheiro guardado rendendo todo mês).\n" +
+              "• 🦖 **Passivo (O Comilão de Balinhas):** É tudo aquilo que **come** suas moedinhas todo mês pra continuar existindo (dívidas, prestações caras).\n" +
+              "• **Nosso trato de melhores amigos:** Vamos colecionar mais Máquinas de Balinhas do que Comilões!"
+  },
+  // Pedido geral de dica / sabedoria
+  {
+    keywords: ['conselho', 'dica de ouro', 'sabedoria', 'me ensina', 'ensinar', 'segredo', 'dica'],
+    matches: ['fin', 'dinheiro', 'financas'],
+    response: "✋ **Toca aqui na tela, melhor amigo! Olha os 4 Segredos da Nossa Dupla:**\n" +
+              "1. 🏷️ **Cola Nome nas Balinhas:** Entrou moeda? Corre na aba *Orçamento* e diz pra onde cada uma vai antes de gastar!\n" +
+              "2. 🍭 **Almoço vs. Balinha:** Comida e luz vêm primeiro (*Necessidade*). Deu vontade de comprar besteira (*Desejo*)? Espera 3 dias!\n" +
+              "3. ⏱️ **Conta as Horas de Suor:** Veja quantas horas de trabalho lá fora custa aquela compra antes de abrir a carteira.\n" +
+              "4. 🎮 **Brinca no nosso Quiz:** Antes de gastar qualquer moeda, clica em **'Quiz: Posso Gastar?'** aqui embaixo que eu olho seu pote na hora!"
+  },
   // 1. Datas nas Despesas/Receitas
   {
     keywords: ['data', 'datas', 'dia', 'quando', 'calendario', 'vencimento', 'compra', 'lancamento'],
     matches: ['despesa', 'despesas', 'gasto', 'gastos'],
-    response: "No cadastro de despesas temos três datas:\n" +
-              "• 📅 **Data da Despesa (ou Lançamento):** É o dia em que o gasto aconteceu de fato.\n" +
-              "• ⏳ **Data de Vencimento:** É o dia limite para pagar a conta sem ter juros (ex: vencimento da conta de luz).\n" +
-              "• 💳 **Data da Compra:** Útil para saber quando você passou o cartão, mesmo que só vá pagar na fatura seguinte."
+    response: "📅 **Psiu! Ficou confuso com as 3 datas ali na tela? Eu te explico igual comprar balinha na venda:**\n" +
+              "• 🍭 **Data da Compra:** Foi o dia em que você pegou a balinha na mão e mordeu!\n" +
+              "• 📝 **Data de Lançamento:** O mês em que essa balinha entra na nossa lista de contas.\n" +
+              "• ⏰ **Data de Vencimento:** É o último dia pra pagar o dono da venda antes dele ficar bravo e cobrar balinha em dobro de multa!"
   },
   {
     keywords: ['data', 'datas', 'dia', 'quando', 'calendario', 'recebimento', 'lancamento'],
     matches: ['receita', 'receitas', 'ganho', 'ganhos', 'salario'],
-    response: "No cadastro de receitas temos a:\n" +
-              "• 📅 **Data da Receita:** É o dia em que o dinheiro entrou ou vai entrar de fato na sua conta."
+    response: "📅 **Data da Receita:** É simplesmente o dia mais feliz do mês, quando as moedinhas novas caem de verdade dentro do nosso pote! 🎉"
   },
   // 2. Status de Pagamento (Pendente vs Pago)
   {
     keywords: ['status', 'pago', 'pendente', 'pagamento', 'marcar', 'quitar'],
     matches: ['despesa', 'despesas', 'gasto', 'gastos'],
-    response: "O status serve para você controlar o que já foi liquidado e o que ainda está em aberto:\n" +
-              "• ✅ **Pago:** O dinheiro já saiu da sua carteira ou conta bancária.\n" +
-              "• ⏳ **Pendente:** É uma conta que você sabe que vai vencer ou que já venceu, mas que você ainda não pagou."
+    response: "🚦 **Olha aqui pra mim: Pago vs. Pendente é igual dever de casa!**\n" +
+              "• ✅ **Pago (Ufa, já entreguei!):** As moedinhas já saíram do seu bolso e você não deve mais nada daquela conta.\n" +
+              "• ⏳ **Pendente (Tá anotado na agenda!):** Você já me avisou que essa conta existe pra gente separar as balinhas dela no pote, mas ainda vai pagar!"
   },
   // 3. Somar no orçamento e relatórios
   {
     keywords: ['somar', 'orcamento', 'relatorio', 'relatorios', 'aparecer', 'soma', 'dre'],
     matches: ['despesa', 'despesas', 'checkbox', 'caixinha'],
-    response: "A caixinha **\"Somar ao Orçamento e Relatórios\"** define onde o gasto aparece:\n" +
-              "• **Marcado (Padrão):** O valor diminui do seu orçamento limite do mês e entra nos gráficos normais.\n" +
-              "• **Desmarcado (Apenas DRE):** O gasto não consome o seu limite de orçamento mensal planejado, mas ainda é contabilizado na DRE (resumo de lucro/prejuízo real do mês)."
+    response: "📦 **Viu aquela caixinha \"Somar ao Orçamento e Relatórios\"? Ó o que ela faz:**\n" +
+              "• **Marcada (Normal):** Toda vez que você gasta, eu tiro aquela quantidade de balinhas do seu pote do *Orçamento*.\n" +
+              "• **Desmarcada:** Eu não mexo no pote do seu *Orçamento*, mas ainda conto lá no Placar Final do mês (o DRE)."
   },
   // 4. Parcelamento
   {
     keywords: ['parcela', 'parcelado', 'parcelar', 'vezes', 'parcelas', 'dividir'],
     matches: ['despesa', 'despesas', 'gasto', 'gastos'],
-    response: "Se você comprou algo parcelado (ex: uma geladeira em 10x):\n" +
-              "1. Marque a caixinha **\"Parcelar despesa\"**.\n" +
-              "2. Informe o **Valor Total** da compra no campo Valor.\n" +
-              "3. Digite o **Número de Parcelas**.\n" +
-              "O FIN vai dividir o valor e lançar automaticamente uma despesa para cada mês seguinte, te poupando de cadastrar uma por uma!"
+    response: "🍕 **Vai parcelar? Deixa que seu melhor amigo aqui dentro da tela faz o trabalho pesado!**\n" +
+              "Imagina que você comprou um pacote gigante de figurinhas dividido em 5 meses:\n" +
+              "1. Marca a caixinha **\"Parcelar despesa\"**.\n" +
+              "2. Digita o **Preço Inteiro** do pacote.\n" +
+              "3. Escolhe em quantos meses dividiu.\n" +
+              "Pronto! Eu corto em pedacinhos iguais e já deixo anotado nos próximos meses pra você não esquecer!"
   },
   // 5. Categoria e Subcategoria
   {
     keywords: ['categoria', 'categorias', 'subcategoria', 'subcategorias', 'grupo', 'tipo'],
     matches: [],
-    response: "As categorias servem para organizar seus gastos de forma simples:\n" +
-              "• 📂 **Categoria:** É o grupo principal (ex: *Despesas Fixas*, *Lazer*, *Educação*).\n" +
-              "• 🏷️ **Subcategoria:** É o item específico dentro desse grupo (ex: dentro de *Despesas Fixas*, temos *Moradia*, *Mercado* ou *Transporte*).\n" +
-              "Isso te ajuda a enxergar com precisão em qual área da sua vida você está gastando mais."
+    response: "🗂️ **Categorias e Subcategorias são igual organizar sua mochila:**\n" +
+              "• 📂 **Categoria (O Pote Grande):** Ex: *Lazer*, *Despesas Fixas*, *Educação*.\n" +
+              "• 🏷️ **Subcategoria (O Saquinho dentro do pote):** Dentro do pote de *Lazer*, tem o saquinho do *Cinema*, do *Sorvete* e do *Videogame*.\n" +
+              "Assim eu e você sabemos rapidinho qual saquinho tá comendo mais moedas!"
   },
   // 6. Diferença DRE vs Orçamento vs Dashboard
   {
     keywords: ['dre', 'placar', 'lucro', 'prejuizo'],
     matches: [],
-    response: "O **DRE** (Demonstrativo do Resultado do Exercício) é o placar do jogo financeiro. Ele pega tudo que você ganhou (Receitas) e subtrai tudo que você gastou (Despesas) para dizer se o saldo final do mês foi positivo (**Lucro**) ou negativo (**Prejuízo**)."
+    response: "🏆 **Não deixa a sigla DRE te assustar, amigo!**\n" +
+              "Entre nós dois, o DRE é só o **Placar Final do Recreio**: eu conto todas as balinhas que você ganhou no mês e tiro todas as que você comeu. Se sobrou balinha no bolso, deu **Lucro (Vitória Verde!)**. Se faltou, deu **Prejuízo (Alerta Vermelho!)**."
   },
   {
     keywords: ['orcamento', 'planejar', 'limite', 'definir'],
     matches: [],
-    response: "O **Orçamento** é o seu planejamento. Nele você diz: *\"Este mês pretendo gastar no máximo R$ 500 com mercado e R$ 200 com lazer\"*. O sistema te avisa se você estiver chegando perto do teto definido."
+    response: "🏷️ **O Orçamento é a nossa Fábrica de Etiquetas!**\n" +
+              "É lá que a gente **dá nome pro dinheiro** antes de você sair gastando aí fora! A gente combina quantas balinhas cabem em cada pote e, se você chegar perto de esvaziar o pote, eu bato aqui no vidro da tela pra te avisar!"
   },
   {
     keywords: ['dashboard', 'resumo', 'tela', 'inicial'],
     matches: [],
-    response: "O **Dashboard** é a tela inicial do sistema. Ele funciona como o velocímetro de um carro, mostrando de forma resumida o saldo atual, o total de ganhos, de gastos e gráficos visuais rápidos do mês atual."
+    response: "🚀 **O Dashboard é a janela do nosso esconderijo!**\n" +
+              "Logo que você entra aqui pra me ver, ele mostra quantas balinhas entraram, quantas saíram e quantas ainda estão salvas no seu bolso hoje!"
   },
   // 7. Cartões de crédito
   {
     keywords: ['cartao', 'cartoes', 'credito', 'fatura', 'limite'],
     matches: [],
-    response: "A tela de **Cartões** ajuda a simular o limite e o fechamento da fatura do seu cartão. Lembre-se: o limite do cartão não é salário extra, é apenas uma facilidade de pagamento que você terá que pagar no dia do vencimento da fatura."
+    response: "💳 **Olha nos meus olhinhos aqui na tela: Cartão de Crédito NÃO é balinha grátis!**\n" +
+              "É só o dono da cantina anotando tudo no caderninho pra te cobrar de uma vez só no dia da fatura! Só passe esse plástico lá fora se as moedinhas já estiverem separadas com nome no nosso Orçamento, combinado?"
   },
   // 8. Gestão de Orçamento
   {
     keywords: ['gestao', 'gerir', 'economizar', 'dicas', 'planejar', 'sobrar', 'limite'],
     matches: ['orcamento', 'orcamentos'],
-    response: "Para fazer uma boa **Gestão de Orçamento**:\n" +
-              "1. No início do mês, defina limites realistas para cada categoria na tela de **Orçamento**.\n" +
-              "2. Acompanhe a barra de progresso: se a barra estiver perto do vermelho, reduza os gastos daquela categoria.\n" +
-              "3. Foque na regra básica: **Gaste menos do que ganha**! Se sobrar dinheiro, transfira o excedente para investimentos ou crie uma reserva de emergência."
+    response: "🎯 **Nosso Plano Secreto de Melhores Amigos em 3 passos:**\n" +
+              "1. **Dia de dar nome:** Caiu moeda no bolso? Corre em *Orçamento* e cola etiqueta em tudo!\n" +
+              "2. **Brinca no Quiz antes de gastar:** Deu vontade de comprar algo? Clica em **'🎮 Quiz: Posso Gastar?'** aqui embaixo pra eu ver se cabe no pote!\n" +
+              "3. **Primeira balinha é sua:** Sempre guarde um pedacinho no pote dos seus sonhos antes de gastar o resto!"
   },
   // 9. Como usar o DRE
   {
     keywords: ['como usar', 'usar', 'analisar', 'verificao', 'entender'],
     matches: ['dre', 'placar', 'lucro', 'prejuizo'],
-    response: "Para usar o **DRE** de forma eficiente:\n" +
-              "• Acesse a tela no final de cada mês.\n" +
-              "• Se a última linha (Resultado) estiver **verde**, você teve **Lucro** (parabéns!).\n" +
-              "• Se estiver **vermelha**, você teve **Prejuízo** (gastou mais do que recebeu).\n" +
-              "• O DRE serve justamente para você comparar o desempenho de meses diferentes e descobrir se a sua saúde financeira está melhorando ou piorando."
+    response: "🎮 **Como olhar o Placar (DRE) comigo no fim do mês:**\n" +
+              "• Olha a última linha lá embaixo: ficou **verdinha**? Toca aqui ✋! Sobrou balinha no pote!\n" +
+              "• Ficou **vermelha**? Algum comilão de moedas passou do limite! Aí a gente olha qual linha cresceu demais e fecha a torneira no mês seguinte!"
   },
   // 10. Fluxo de Caixa
   {
     keywords: ['fluxo de caixa', 'fluxo', 'caixa', 'entradas e saidas', 'movimentacoes'],
     matches: ['dinheiro', 'saldo'],
-    response: "O **Fluxo de Caixa** é o acompanhamento diário do dinheiro que entra e sai:\n" +
-              "• **Entradas (Receitas):** Todo valor recebido (salário, bônus, Pix).\n" +
-              "• **Saídas (Despesas):** Todo valor pago (contas, lanches, faturas).\n" +
-              "• Ter um fluxo de caixa saudável significa que as suas entradas acontecem *antes* das suas saídas, garantindo que você nunca fique sem saldo para pagar as contas no dia do vencimento."
+    response: "🍬 **Fluxo de Caixa é o movimento do nosso pote de balas:**\n" +
+              "• **Mão colocando bala no pote (Receitas):** Tudo que entra.\n" +
+              "• **Mão tirando bala do pote (Despesas):** Tudo que sai.\n" +
+              "O segredo é nunca tentar tirar 5 balinhas na segunda-feira se você só vai ganhar balinha nova na sexta!"
   }
 ];
 
-const FALLBACK_RESPONSE = "Hum, não entendi muito bem. Você pode perguntar sobre 'o que são as datas', 'como parcelar uma despesa', 'para que serve o status pendente/pago' ou 'o que são categorias' e eu te explico de forma bem simples!";
+const FALLBACK_RESPONSE = "ih, melhor amigo, cocei minha cabecinha aqui dentro da tela e não entendi! 😅 Que tal clicar no botão dourado **'🎮 Quiz: Posso Gastar?'** aqui embaixo antes de fazer uma compra, ou me perguntar coisas como **'O que é dar nome ao dinheiro?'** ou **'Qual a diferença entre necessidade e desejo?'**!";
 
 export const askFinAboutSystem = (question) => {
   if (!question || typeof question !== 'string') {

@@ -41,13 +41,17 @@ const registrarAtividadeAdmin = (usuarioId, ip, tipo) => {
   }
 };
 
+const normalizarEmail = (email) => String(email || '').trim().toLowerCase();
+
 // Registrar novo usuário
 const registrar = async (req, res) => {
   try {
     const { nome, email, senha } = req.body;
+    const emailNorm = normalizarEmail(email);
+    const nomeLimpo = String(nome || '').trim();
 
     // Validações
-    if (!nome || !email || !senha) {
+    if (!nomeLimpo || !emailNorm || !senha) {
       return res.status(400).json({
         success: false,
         message: 'Nome, e-mail e senha são obrigatórios'
@@ -61,27 +65,54 @@ const registrar = async (req, res) => {
       });
     }
 
-    // Verifica se e-mail já existe
+    // Verifica se e-mail já existe (case-insensitive)
     const usuarios = await db.getUsuarios();
-    const usuarioExistente = usuarios.find(u => u.email === email);
+    const usuarioExistente = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
+
+    // Cria hash da senha e gera OTP de 5 minutos
+    const senhaHash = await hashSenha(senha);
+    const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutos
 
     if (usuarioExistente) {
-      return res.status(400).json({
-        success: false,
-        message: 'E-mail já cadastrado'
+      if (usuarioExistente.verificado) {
+        return res.status(400).json({
+          success: false,
+          message: 'E-mail já cadastrado'
+        });
+      }
+
+      // Conta existente ainda não verificada: atualiza dados e envia novo OTP
+      usuarioExistente.nome = nomeLimpo;
+      usuarioExistente.email = emailNorm;
+      usuarioExistente.senha = senhaHash;
+      usuarioExistente.otpCodigo = otpCodigo;
+      usuarioExistente.otpExpira = otpExpira;
+
+      const atualizado = await db.atualizarUsuario(usuarioExistente);
+      if (!atualizado) {
+        return res.status(500).json({
+          success: false,
+          message: 'Não foi possível atualizar o cadastro pendente no banco de dados.'
+        });
+      }
+
+      const emailRes = await enviarCodigoOTP(emailNorm, nomeLimpo, otpCodigo);
+      const isDevSimulado = emailRes?.simulado && process.env.NODE_ENV !== 'production';
+
+      return res.status(200).json({
+        success: true,
+        message: 'Novo código OTP enviado para o seu e-mail.',
+        email: emailNorm,
+        ...(isDevSimulado ? { otpSimulado: otpCodigo } : {})
       });
     }
 
-    // Cria hash da senha
-    const senhaHash = await hashSenha(senha);
-
     // Cria novo usuário
-    const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpira = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // 2 minutos
     const novoUsuario = {
       id: `user-${Date.now()}`,
-      nome,
-      email,
+      nome: nomeLimpo,
+      email: emailNorm,
       senha: senhaHash,
       tipo: 'usuario',
       ativo: true,
@@ -93,16 +124,24 @@ const registrar = async (req, res) => {
       ultimoAcesso: null
     };
 
-    // Salva usuário no banco
-    await db.adicionarUsuario(novoUsuario);
+    // Salva usuário no banco e valida persistência antes de enviar OTP
+    const salvo = await db.adicionarUsuario(novoUsuario);
+    if (!salvo) {
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao salvar cadastro no banco de dados. Tente novamente.'
+      });
+    }
 
     // Envia OTP
-    await enviarCodigoOTP(email, nome, otpCodigo);
+    const emailRes = await enviarCodigoOTP(emailNorm, nomeLimpo, otpCodigo);
+    const isDevSimulado = emailRes?.simulado && process.env.NODE_ENV !== 'production';
 
     res.status(201).json({
       success: true,
       message: 'Cadastro realizado. Verifique seu e-mail para o código OTP.',
-      email
+      email: emailNorm,
+      ...(isDevSimulado ? { otpSimulado: otpCodigo } : {})
     });
 
   } catch (error) {
@@ -195,7 +234,8 @@ const login = async (req, res) => {
 
 
     // Login normal por email
-    if (!email || !senha) {
+    const emailNorm = normalizarEmail(email);
+    if (!emailNorm || !senha) {
       return res.status(400).json({
         success: false,
         message: 'E-mail e senha são obrigatórios'
@@ -203,7 +243,7 @@ const login = async (req, res) => {
     }
 
     const usuarios = await db.getUsuarios();
-    const usuario = usuarios.find(u => u.email === email);
+    const usuario = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
 
     if (!usuario) {
       return res.status(401).json({
@@ -220,11 +260,17 @@ const login = async (req, res) => {
       });
     }
 
-    // Bloqueia se não verificado (exceto admin)
+    // Bloqueia se não verificado (exceto admin) e envia novo OTP de 5 minutos
     if (!usuario.verificado && usuario.tipo !== 'admin') {
+      const novoOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      usuario.otpCodigo = novoOtp;
+      usuario.otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+      await db.atualizarUsuario(usuario);
+      await enviarCodigoOTP(usuario.email, usuario.nome, novoOtp);
+
       return res.status(403).json({
         success: false,
-        message: 'Conta não verificada. Valide o código OTP enviado ao seu e-mail.'
+        message: 'Conta não verificada. Enviamos um novo código OTP ao seu e-mail.'
       });
     }
 
@@ -282,25 +328,27 @@ const login = async (req, res) => {
   }
 };
 
-// Validar OTP
+// Validar OTP (serve tanto para ativação de cadastro quanto para Login Rápido via OTP)
 const validarOTP = async (req, res) => {
   try {
     const { email, codigo } = req.body;
-    if (!email || !codigo) {
+    const emailNorm = normalizarEmail(email);
+    const codigoLimpo = String(codigo || '').trim();
+
+    if (!emailNorm || !codigoLimpo) {
       return res.status(400).json({ success: false, message: 'E-mail e código são obrigatórios' });
     }
 
     const usuarios = await db.getUsuarios();
-    const usuario = usuarios.find(u => u.email === email);
+    const usuario = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
     if (!usuario) {
       return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
     }
 
-    if (usuario.verificado) {
-      return res.status(200).json({ success: true, message: 'Conta já verificada' });
-    }
-
     if (!usuario.otpCodigo || !usuario.otpExpira) {
+      if (usuario.verificado) {
+        return res.status(400).json({ success: false, message: 'Nenhum código pendente. Faça login ou solicite um novo código.' });
+      }
       return res.status(400).json({ success: false, message: 'Código OTP não gerado' });
     }
 
@@ -309,7 +357,7 @@ const validarOTP = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Código OTP expirado' });
     }
 
-    if (usuario.otpCodigo !== codigo) {
+    if (String(usuario.otpCodigo).trim() !== codigoLimpo) {
       return res.status(400).json({ success: false, message: 'Código OTP inválido' });
     }
 
@@ -317,12 +365,28 @@ const validarOTP = async (req, res) => {
     usuario.primeiroAcesso = false;
     usuario.otpCodigo = null;
     usuario.otpExpira = null;
+    usuario.ultimoAcesso = new Date().toISOString();
     await db.atualizarUsuario(usuario);
 
-    const token = gerarToken(usuario);
+    const payloadToken = {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      tipo: usuario.tipo,
+      primeiroAcesso: usuario.primeiroAcesso
+    };
+    const token = gerarToken(payloadToken);
     return res.json({
-      success: true, message: 'Conta verificada com sucesso', token, user: {
-        id: usuario.id, nome: usuario.nome, email: usuario.email, tipo: usuario.tipo, primeiroAcesso: usuario.primeiroAcesso
+      success: true,
+      message: 'Autenticação concluída com sucesso',
+      token,
+      user: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        tipo: usuario.tipo,
+        foto: usuario.foto || usuario.avatar || null,
+        primeiroAcesso: usuario.primeiroAcesso
       }
     });
   } catch (error) {
@@ -335,30 +399,114 @@ const validarOTP = async (req, res) => {
 const reenviarOTP = async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) {
+    const emailNorm = normalizarEmail(email);
+    if (!emailNorm) {
       return res.status(400).json({ success: false, message: 'E-mail é obrigatório' });
     }
 
     const usuarios = await db.getUsuarios();
-    const usuario = usuarios.find(u => u.email === email);
+    const usuario = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
     if (!usuario) {
       return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
     }
 
-    if (usuario.verificado) {
-      return res.status(200).json({ success: true, message: 'Conta já verificada' });
-    }
-
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
     usuario.otpCodigo = codigo;
-    usuario.otpExpira = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // 2 minutos
+    usuario.otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutos
     await db.atualizarUsuario(usuario);
 
-    await enviarCodigoOTP(email, usuario.nome, codigo);
-    return res.json({ success: true, message: 'Novo código enviado' });
+    const emailRes = await enviarCodigoOTP(usuario.email, usuario.nome, codigo);
+    const isDevSimulado = emailRes?.simulado && process.env.NODE_ENV !== 'production';
+    return res.json({
+      success: true,
+      message: 'Novo código enviado',
+      ...(isDevSimulado ? { otpSimulado: codigo } : {})
+    });
   } catch (error) {
     console.error('Erro ao reenviar OTP:', error);
     return res.status(500).json({ success: false, message: 'Erro ao reenviar OTP' });
+  }
+};
+
+// Acesso Rápido via OTP (Outlook / Microsoft / E-mail Rápido)
+const outlookLoginOTP = async (req, res) => {
+  try {
+    const { email, nome } = req.body;
+    const emailNorm = normalizarEmail(email);
+
+    if (!emailNorm || !/\S+@\S+\.\S+/.test(emailNorm)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Informe um e-mail válido do Outlook/Hotmail/Microsoft'
+      });
+    }
+
+    const usuarios = await db.getUsuarios();
+    let usuario = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
+
+    const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutos
+
+    if (usuario) {
+      if (usuario.ativo === false) {
+        return res.status(403).json({
+          success: false,
+          message: 'Usuário inativo. Entre em contato com o administrador.'
+        });
+      }
+
+      usuario.otpCodigo = otpCodigo;
+      usuario.otpExpira = otpExpira;
+      const atualizado = await db.atualizarUsuario(usuario);
+      if (!atualizado) {
+        return res.status(500).json({
+          success: false,
+          message: 'Erro ao gerar código de acesso rápido.'
+        });
+      }
+    } else {
+      const nomePadrao = String(nome || '').trim() || emailNorm.split('@')[0];
+      const senhaAleatoria = await hashSenha(Math.random().toString(36).slice(-10) + Date.now());
+
+      usuario = {
+        id: `user-${Date.now()}`,
+        nome: nomePadrao,
+        email: emailNorm,
+        senha: senhaAleatoria,
+        tipo: 'usuario',
+        ativo: true,
+        primeiroAcesso: false,
+        verificado: false,
+        otpCodigo,
+        otpExpira,
+        dataCriacao: new Date().toISOString(),
+        ultimoAcesso: null
+      };
+
+      const salvo = await db.adicionarUsuario(usuario);
+      if (!salvo) {
+        return res.status(500).json({
+          success: false,
+          message: 'Erro ao criar conta rápida no banco de dados.'
+        });
+      }
+    }
+
+    const emailRes = await enviarCodigoOTP(emailNorm, usuario.nome, otpCodigo);
+    const isDevSimulado = emailRes?.simulado && process.env.NODE_ENV !== 'production';
+
+    return res.status(200).json({
+      success: true,
+      message: 'Código de acesso enviado para seu e-mail!',
+      email: emailNorm,
+      ...(isDevSimulado ? { otpSimulado: otpCodigo } : {})
+    });
+  } catch (error) {
+    console.error('Erro no acesso rápido Outlook OTP:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao processar acesso rápido com Outlook'
+    });
   }
 };
 
@@ -439,8 +587,9 @@ const alterarSenha = async (req, res) => {
 const solicitarRecuperacaoSenha = async (req, res) => {
   try {
     const { email } = req.body;
+    const emailNorm = normalizarEmail(email);
 
-    if (!email) {
+    if (!emailNorm) {
       return res.status(400).json({
         success: false,
         message: 'E-mail é obrigatório'
@@ -448,7 +597,7 @@ const solicitarRecuperacaoSenha = async (req, res) => {
     }
 
     const usuarios = await db.getUsuarios();
-    const usuario = usuarios.find(u => u.email === email);
+    const usuario = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
 
     if (!usuario) {
       // Por segurança, não informamos se o e-mail existe ou não
@@ -469,8 +618,8 @@ const solicitarRecuperacaoSenha = async (req, res) => {
     await db.atualizarUsuario(usuario);
 
     // Envia e-mail
-    console.log(`🔑 RECUPERAÇÃO DE SENHA - CÓDIGO OTP: ${otpCodigo} para ${email}`);
-    await enviarCodigoOTP(email, usuario.nome, otpCodigo);
+    console.log(`🔑 RECUPERAÇÃO DE SENHA - CÓDIGO OTP: ${otpCodigo} para ${usuario.email}`);
+    await enviarCodigoOTP(usuario.email, usuario.nome, otpCodigo);
 
     res.json({
       success: true,
@@ -490,8 +639,10 @@ const solicitarRecuperacaoSenha = async (req, res) => {
 const redefinirSenha = async (req, res) => {
   try {
     const { email, codigo, novaSenha } = req.body;
+    const emailNorm = normalizarEmail(email);
+    const codigoLimpo = String(codigo || '').trim();
 
-    if (!email || !codigo || !novaSenha) {
+    if (!emailNorm || !codigoLimpo || !novaSenha) {
       return res.status(400).json({
         success: false,
         message: 'Todos os campos são obrigatórios'
@@ -506,7 +657,7 @@ const redefinirSenha = async (req, res) => {
     }
 
     const usuarios = await db.getUsuarios();
-    const usuario = usuarios.find(u => u.email === email);
+    const usuario = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
 
     if (!usuario) {
       return res.status(404).json({
@@ -533,7 +684,7 @@ const redefinirSenha = async (req, res) => {
       });
     }
 
-    if (usuario.otpCodigo !== codigo) {
+    if (String(usuario.otpCodigo).trim() !== codigoLimpo) {
       return res.status(400).json({
         success: false,
         message: 'Código inválido'
@@ -569,7 +720,6 @@ const redefinirSenha = async (req, res) => {
 };
 
 // Login com Google
-// Login com Google
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client('505242660728-umlemlt3e590grpjjc82uarg7l76spte.apps.googleusercontent.com');
 
@@ -592,12 +742,12 @@ const googleLogin = async (req, res) => {
     const payload = ticket.getPayload();
 
     const googleId = payload.sub;
-    const email = payload.email;
+    const email = normalizarEmail(payload.email);
     const nome = payload.name;
     const foto = payload.picture;
 
     const usuarios = await db.getUsuarios();
-    let usuario = usuarios.find(u => u.email === email);
+    let usuario = usuarios.find(u => normalizarEmail(u.email) === email);
 
     if (usuario) {
       // Usuário já existe: Atualiza dados se necessário e loga
@@ -669,6 +819,7 @@ module.exports = {
   registrar,
   login,
   googleLogin,
+  outlookLoginOTP,
   alterarSenha,
   validarOTP,
   reenviarOTP,

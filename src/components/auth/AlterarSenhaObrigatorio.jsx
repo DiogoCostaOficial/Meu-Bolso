@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Loader2, AlertTriangle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import LanguageSelector from '../LanguageSelector';
 
 const AlterarSenhaObrigatorio = () => {
   const navigate = useNavigate();
@@ -122,7 +123,10 @@ const AlterarSenhaObrigatorio = () => {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-blue-50 flex items-center justify-center p-6 relative">
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
+      </div>
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">

@@ -8,6 +8,7 @@ const { verificarToken } = require('../middleware/auth');
 router.post('/registrar', authController.registrar);
 router.post('/login', authController.login);
 router.post('/google', authController.googleLogin);
+router.post('/outlook-otp', authController.outlookLoginOTP);
 router.post('/validar-otp', authController.validarOTP);
 router.post('/reenviar-otp', authController.reenviarOTP);
 router.post('/solicitar-recuperacao', authController.solicitarRecuperacaoSenha);

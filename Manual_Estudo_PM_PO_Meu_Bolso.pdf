@@ -1,0 +1,3238 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 9534
+>>
+stream
+0.5670000000000001 w
+0 G
+0.04 0.06 0.11 rg
+0. 841.8899999999999864 595.2799999999999727 -76.5354330708661479 re
+f
+0.83 0.69 0.22 rg
+0. 768.7561417322833677 595.2799999999999727 -3.4015748031496065 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+34.0157480314960665 817.7955118110236299 Td
+(APOSTILA MESTRA DE ESTUDO E APRESENTAÇÃO DE CASE • PRODUCT MANAGER \(PM\) & PRODUCT OWNER \(PO\)) Tj
+ET
+BT
+/F2 13.5 Tf
+15.5249999999999986 TL
+1. g
+34.0157480314960665 796.5356692913385359 Td
+(CAPÍTULO 1: COMO PENSAR E FALAR COMO PM E PO USANDO O "MEU BOLSO") Tj
+ET
+BT
+/F1 8.5 Tf
+9.7749999999999986 TL
+0.796 0.835 0.882 rg
+34.0157480314960665 778.9608661417322537 Td
+(Guia completo para estudar, dominar cada conceito e apresentar o projeto com segurança total em entrevistas) Tj
+ET
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.12 0.25 0.69 rg
+0.78 G
+0. w
+0.12 0.25 0.69 rg
+34.0157480314960665 751.1813385826770855 527.2485039370078539 -20.3499999999999979 re
+f
+BT
+/F2 9 Tf
+10.3499999999999996 TL
+1. g
+39.0157480314960665 738.5313385826771082 Td
+(COMO USAR ESTA APOSTILA PARA ESTUDAR E APRESENTAR SEU CASE) Tj
+ET
+0. G
+0.5670000000000001 w
+0.97 0.98 0.99 rg
+0.78 G
+0.2834645669291339 w
+0.97 0.98 0.99 rg
+34.0157480314960665 730.8313385826771764 527.2485039370078539 -88.2675196850393746 re
+B
+BT
+/F1 8.5 Tf
+9.7749999999999986 TL
+0.118 0.161 0.231 rg
+43.9370078740157552 713.6850787401574507 Td
+(Você construiu no "Meu Bolso" soluções reais e profundas para problemas reais das pessoas. O objetivo desta apostila é conectar) Tj
+T* (CADA CAMPO, CADA INTERAÇÃO DE TELA E CADA ITERAÇÃO QUE FIZEMOS ao conceito exato de Gestão de Produto \(PM/PO\).) Tj
+T* () Tj
+T* (Ao estudar este material, você não vai precisar decorar frases prontas: você vai entender a LÓGICA por trás de cada termo técnico,) Tj
+T* (porque cada termo está ligado a uma ideia que saiu da sua própria cabeça \(como os múltiplos cartões, o Custo de Vida automático, o) Tj
+T* (DRE empresarial, o grupo de amigos na Itália/EUA, o FIN com 23 livros e vídeos do YouTube, o ajuste de fonte e o alerta no) Tj
+T* (WhatsApp\).) Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+34.0157480314960665 628.3905905511810488 90.708661417322844 -30.240000000000002 re
+f
+BT
+/F2 8.8 Tf
+10.1199999999999992 TL
+0.831 0.686 0.216 rg
+39.0157480314960665 615.9105905511811443 Td
+(Dimensão) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+124.7244094488189035 628.3905905511810488 218.2677165354330953 -30.240000000000002 re
+f
+BT
+/F2 8.8 Tf
+10.1199999999999992 TL
+0.831 0.686 0.216 rg
+129.7244094488189035 615.9105905511811443 Td
+(Product Manager \(PM\) — O Estrategista) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+342.9921259842520271 628.3905905511810488 218.2677165354330953 -30.240000000000002 re
+f
+BT
+/F2 8.8 Tf
+10.1199999999999992 TL
+0.831 0.686 0.216 rg
+347.9921259842519703 615.9105905511811443 Td
+(Product Owner \(PO\) — O Executor e Guardião do) Tj
+T* (Backlog) Tj
+ET
+0. G
+0.5670000000000001 w
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 598.1505905511810397 90.708661417322844 -74.7217322834645756 re
+B
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 582.1097244094487451 Td
+(Perguntas que) Tj
+T* (responde) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+124.7244094488189035 598.1505905511810397 218.2677165354330953 -74.7217322834645756 re
+B
+BT
+/F1 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+133.7952755905511992 582.1097244094487451 Td
+(• POR QUÊ vamos construir isso?) Tj
+T* (• PARA QUEM estamos construindo \(qual público sofre) Tj
+T* (essa dor\)?) Tj
+T* (• O QUÊ o produto precisa oferecer para vencer os) Tj
+T* (concorrentes?) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+342.9921259842520271 598.1505905511810397 218.2677165354330953 -74.7217322834645756 re
+B
+BT
+/F1 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+352.0629921259842945 582.1097244094487451 Td
+(• COMO essa funcionalidade deve se comportar na) Tj
+T* (tela?) Tj
+T* (• QUAL entra primeiro na fila \(Backlog\) e quais são as) Tj
+T* (dependências?) Tj
+T* (• O que foi programado cumpre todos os Critérios de) Tj
+T* (Aceite?) Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 523.4288582677164641 90.708661417322844 -55.861732283464562 re
+B
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 507.3879921259842263 Td
+(Olhar principal) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+124.7244094488189035 523.4288582677164641 218.2677165354330953 -55.861732283464562 re
+B
+BT
+/F1 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+133.7952755905511992 507.3879921259842263 Td
+(Olha para fora: Mercado, Clientes \(Personas\),) Tj
+T* (Concorrentes \(Benchmarking\), Métricas de Negócio) Tj
+T* (\(North Star, TAM, Retenção\) e Visão de Longo Prazo.) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+342.9921259842520271 523.4288582677164641 218.2677165354330953 -55.861732283464562 re
+B
+BT
+/F1 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+352.0629921259842945 507.3879921259842263 Td
+(Olha para dentro e para a entrega: Detalhamento das) Tj
+T* (regras de negócio, escrita de User Stories, refinamento) Tj
+T* (do Backlog, testes de aceitação \(Homologação\) e) Tj
+T* (Sprints.) Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 467.5671259842519589 90.708661417322844 -103.0117322834645535 re
+B
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 451.5262598425197211 Td
+(Exemplos reais) Tj
+T* (onde VOCÊ agiu) Tj
+T* (assim no Meu) Tj
+T* (Bolso) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+124.7244094488189035 467.5671259842519589 218.2677165354330953 -103.0117322834645535 re
+B
+BT
+/F1 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+133.7952755905511992 451.5262598425197211 Td
+(1\) Quando definiu que o foco são pessoas de baixa) Tj
+T* (renda excluídas por planilhas;) Tj
+T* (2\) Quando percebeu que baixa renda usa WhatsApp e) Tj
+T* (não usa e-mail;) Tj
+T* (3\) Quando ouviu sua irmã \(Brasil\) e amigos \(Itália/EUA\)) Tj
+T* (para criar Viagens, Moedas e 8 Idiomas;) Tj
+T* (4\) Quando idealizou o FIN como "melhor amigo" com) Tj
+T* (vídeos do YouTube no idioma local.) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+342.9921259842520271 467.5671259842519589 218.2677165354330953 -103.0117322834645535 re
+B
+BT
+/F1 8.2 Tf
+9.4299999999999979 TL
+0.118 0.161 0.231 rg
+352.0629921259842945 451.5262598425197211 Td
+(1\) Quando exigiu que a despesa fosse vinculada ao) Tj
+T* (cartão para somar a fatura total;) Tj
+T* (2\) Quando mapeou que o alerta do WhatsApp exige) Tj
+T* (primeiro criar a Data de Vencimento no cartão e o) Tj
+T* (País/WhatsApp no cadastro;) Tj
+T* (3\) Quando testou o cadastro com Gmail, achou o bug) Tj
+T* (do OTP e pediu os botões Gmail/Outlook;) Tj
+T* (4\) Quando reprovou a 1ª tela de login poluída e) Tj
+T* (aprovou o Split-Screen limpo.) Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.06 0.73 0.51 rg
+0.78 G
+0. w
+0.06 0.73 0.51 rg
+34.0157480314960665 350.3821653543307093 527.2485039370078539 -20.120000000000001 re
+f
+BT
+/F2 8.8 Tf
+10.1199999999999992 TL
+1. g
+39.0157480314960665 337.9021653543306911 Td
+(OS 4 DADOS OFICIAIS DE MERCADO DO SEU CASE \(PARA TER NA PONTA DA LÍNGUA NA ENTREVISTA\)) Tj
+ET
+0. G
+0.5670000000000001 w
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+34.0157480314960665 330.2621653543307048 527.2485039370078539 -204.4417322834645461 re
+B
+BT
+/F1 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 314.3062992125984465 Td
+(1\) PEIC / CNC \(Pesquisa de Endividamento e Inadimplência do Consumidor — Confederação Nacional do Comércio\):) Tj
+T* (   • O dado: Cerca de 78% das famílias brasileiras possuem dívidas, e o CARTÃO DE CRÉDITO é o vilão em mais de 85% das famílias) Tj
+T* (endividadas.) Tj
+T* (   • Como você usa na entrevista: "Usei os dados da PEIC/CNC para provar por que ataquei primeiro a consolidação de múltiplos cartões e) Tj
+T* (parcelamentos no MVP.") Tj
+T* () Tj
+T* (2\) Banco Central do Brasil \(BCB\) & Índice de Saúde Financeira do Brasileiro \(I-SFB FEBRABAN\):) Tj
+T* (   • O dado: O brasileiro adulto possui múltiplos relacionamentos bancários \(vários bancos digitais\) e mais de 60% sofrem com estresse) Tj
+T* (financeiro no fim do mês.) Tj
+T* (   • Como você usa na entrevista: "Os relatórios do Banco Central e da FEBRABAN confirmam a dor que observei: a pessoa de baixa renda) Tj
+T* (tem 2 ou 3 cartões de bancos digitais com limites baixos, olha cada fatura isolada achando que está controlada e estoura a renda quando) Tj
+T* (soma todas.") Tj
+T* () Tj
+T* (3\) IBGE \(PNAD Contínua — População Economicamente Ativa\):) Tj
+T* (   • O dado: Mais de 108 milhões de pessoas economicamente ativas no Brasil \(nosso TAM — Mercado Total Endereçável inicial, expandido) Tj
+T* (para a América do Sul e exterior\).) Tj
+T* () Tj
+T* (4\) Hábito Digital na Baixa Renda \(Uso de WhatsApp vs. E-mail\):) Tj
+T* (   • O fato: Pessoas de baixa renda quase não utilizam e-mail na rotina diária, concentrando toda a comunicação no WhatsApp — o que) Tj
+T* (fundamentou sua decisão estratégica de canal \(Channel-Market Fit\) para enviar lembretes de vencimento de fatura via WhatsApp.) Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 11980
+>>
+stream
+0.5670000000000001 w
+0. G
+0.04 0.06 0.11 rg
+0. 841.8899999999999864 595.2799999999999727 -76.5354330708661479 re
+f
+0.83 0.69 0.22 rg
+0. 768.7561417322833677 595.2799999999999727 -3.4015748031496065 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+34.0157480314960665 817.7955118110236299 Td
+(CAPÍTULO 2 \(PARTE 1\): MAPEAMENTO COMPLETO DO PROJETO "MEU BOLSO") Tj
+ET
+BT
+/F2 13.5 Tf
+15.5249999999999986 TL
+1. g
+34.0157480314960665 796.5356692913385359 Td
+(ONDE CADA INTERAÇÃO DO SISTEMA CORRESPONDE À TEORIA DE PM / PO) Tj
+ET
+BT
+/F1 8.5 Tf
+9.7749999999999986 TL
+0.796 0.835 0.882 rg
+34.0157480314960665 778.9608661417322537 Td
+(Itens 1 a 6: Do Discovery na Baixa Renda e Consolidação de Cartões até o Grupo Beta \(Brasil, Itália e EUA\)) Tj
+ET
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+34.0157480314960665 751.1813385826770855 107.7165354330708738 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+39.0157480314960665 739.1263385826771355 Td
+(O que existe no Meu) Tj
+T* (Bolso) Tj
+T* (\(A Funcionalidade Real\)) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+141.7322834645669332 751.1813385826770855 107.7165354330708738 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+146.7322834645669332 739.1263385826771355 Td
+(Nome Técnico em PM /) Tj
+T* (PO) Tj
+T* (\(Conceitos Associados\)) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+249.4488188976378069 751.1813385826770855 150.236220472440948 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+254.4488188976378069 739.1263385826771355 Td
+(A Lógica de Produto) Tj
+T* (\(Por que você fez isso?\)) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+399.6850393700787549 751.1813385826770855 161.5748031496063106 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+404.6850393700787549 739.1263385826771355 Td
+(Na Ponta da Língua) Tj
+T* (\(Como explicar ao Entrevistador\)) Tj
+ET
+0. G
+0.5670000000000001 w
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 712.5463385826772083 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+41.9527559055118147 697.9793307086613368 Td
+(1. Foco em Pessoas de) Tj
+T* (Baixa Renda sem Base) Tj
+T* (Financeira) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+141.7322834645669332 712.5463385826772083 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.251 0.686 rg
+149.6692913385826955 697.9793307086613368 Td
+(• Product Discovery) Tj
+T* (• Inclusão Financeira) Tj
+T* (• Acessibilidade) Tj
+T* (Cognitiva) Tj
+T* (• Problem-Solution Fit) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+249.4488188976378069 712.5463385826772083 150.236220472440948 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+257.3858267716535693 697.9793307086613368 Td
+(Você identificou que o problema não) Tj
+T* (era falta de ferramentas no mercado,) Tj
+T* (mas que as ferramentas existentes) Tj
+T* (\(Excel e apps tradicionais\) exigem) Tj
+T* (conhecimento prévio que pessoas) Tj
+T* (mais humildes não têm.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+399.6850393700787549 712.5463385826772083 161.5748031496063106 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+407.6220472440945741 697.9793307086613368 Td
+("No Discovery, percebi que o público de) Tj
+T* (baixa renda é excluído por planilhas) Tj
+T* (complexas e apps cheios de jargões.) Tj
+T* (Desenhei o Meu Bolso focado em) Tj
+T* (acessibilidade cognitiva: entregar controle) Tj
+T* (financeiro para quem nunca estudou) Tj
+T* (finanças.") Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 633.8823228346456062 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+41.9527559055118147 619.3153149606298484 Td
+(2. Campo de Cartões) Tj
+T* (Vinculado às Despesas) Tj
+T* (+ Fatura Consolidada em) Tj
+T* (1 Tela) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+141.7322834645669332 633.8823228346456062 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.251 0.686 rg
+149.6692913385826955 619.3153149606298484 Td
+(• Single Pane of Glass) Tj
+T* (\(Visão Unificada\)) Tj
+T* (• Ataque à Causa Raiz) Tj
+T* (\(Root Cause Analysis\)) Tj
+T* (• Diferenciação) Tj
+T* (Competitiva) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+249.4488188976378069 633.8823228346456062 150.236220472440948 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+257.3858267716535693 619.3153149606298484 Td
+(Pessoas de baixa renda têm 2 ou 3) Tj
+T* (cartões de bancos digitais. Cada app) Tj
+T* (de banco mostra só a própria fatura.) Tj
+T* (Apps como Mobills cobram \(paywall\)) Tj
+T* (para cadastrar vários cartões. Você) Tj
+T* (vinculou a despesa ao cartão e somou) Tj
+T* (tudo em 1 tela.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+399.6850393700787549 633.8823228346456062 161.5748031496063106 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+407.6220472440945741 619.3153149606298484 Td
+("Ataquei a causa raiz dos 85% de) Tj
+T* (endividamento por cartão \(PEIC/CNC\):) Tj
+T* (como o usuário tem vários bancos digitais) Tj
+T* (e perde a noção do todo, criei o vínculo) Tj
+T* (direto entre despesa e cartão,) Tj
+T* (consolidando todas as faturas em uma) Tj
+T* (única tela.") Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 555.2183070866141179 107.7165354330708738 -69.6940157480314895 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+41.9527559055118147 540.6512992125983601 Td
+(3. Cálculo 100%) Tj
+T* (Automático do Custo de) Tj
+T* (Vida Real) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+141.7322834645669332 555.2183070866141179 107.7165354330708738 -69.6940157480314895 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.251 0.686 rg
+149.6692913385826955 540.6512992125983601 Td
+(• Redução de Carga) Tj
+T* (Cognitiva \(Cognitive) Tj
+T* (Load\)) Tj
+T* (• Time-to-Value \(TTV —) Tj
+T* (Tempo até o Valor\)) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+249.4488188976378069 555.2183070866141179 150.236220472440948 -69.6940157480314895 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+257.3858267716535693 540.6512992125983601 Td
+(Saber apenas "quanto entrou" e) Tj
+T* ("quanto saiu" ainda obriga o usuário a) Tj
+T* (pegar uma calculadora para descobrir) Tj
+T* (quanto custa manter sua vida. Você) Tj
+T* (automatizou essa conta para entregar) Tj
+T* (a resposta mastigada em 0 segundos.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+399.6850393700787549 555.2183070866141179 161.5748031496063106 -69.6940157480314895 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+407.6220472440945741 540.6512992125983601 Td
+("Por obsessão pelo cliente, eliminei a) Tj
+T* (carga cognitiva de fazer contas por fora. O) Tj
+T* (sistema calcula automaticamente o Custo) Tj
+T* (de Vida Real em tempo real, reduzindo o) Tj
+T* (Time-to-Value \(tempo para o usuário) Tj
+T* (enxergar valor\) a zero.") Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 485.5242913385826569 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+41.9527559055118147 470.9572834645668422 Td
+(4. Relatório DRE Pessoal) Tj
+T* (\(Estrutura Empresarial) Tj
+T* (na Vida Pessoal\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+141.7322834645669332 485.5242913385826569 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.251 0.686 rg
+149.6692913385826955 470.9572834645668422 Td
+(• Product-Led Education) Tj
+T* (\(Educação pelo Produto\)) Tj
+T* (• Elevação de) Tj
+T* (Maturidade do Usuário) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+249.4488188976378069 485.5242913385826569 150.236220472440948 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+257.3858267716535693 470.9572834645668422 Td
+(O DRE \(Demonstrativo do Resultado) Tj
+T* (do Exercício\) é usado por empresas.) Tj
+T* (Você trouxe essa estrutura de forma) Tj
+T* (simples e automática para que o) Tj
+T* (usuário aprenda a ver sua casa como) Tj
+T* (uma empresa que precisa fechar no) Tj
+T* (lucro.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+399.6850393700787549 485.5242913385826569 161.5748031496063106 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+407.6220472440945741 470.9572834645668422 Td
+("Apliquei Product-Led Education ao trazer) Tj
+T* (o conceito corporativo de DRE adaptado) Tj
+T* (como DRE Pessoal automático. Mesmo) Tj
+T* (sem saber contabilidade, o usuário) Tj
+T* (adquire uma noção de estrutura) Tj
+T* (empresarial na própria casa.") Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 406.8602755905511685 107.7165354330708738 -69.6940157480314895 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+41.9527559055118147 392.2932677165353539 Td
+(5. Edição de Parcelas) Tj
+T* (Direto na Tabela \(De 5) Tj
+T* (etapas para 1 clique\)) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+141.7322834645669332 406.8602755905511685 107.7165354330708738 -69.6940157480314895 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.251 0.686 rg
+149.6692913385826955 392.2932677165353539 Td
+(• Otimização de UX) Tj
+T* (• Redução de Fricção) Tj
+T* (Operacional) Tj
+T* (• Métrica com Baseline) Tj
+T* (\(80% menos cliques\)) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+249.4488188976378069 406.8602755905511685 150.236220472440948 -69.6940157480314895 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+257.3858267716535693 392.2932677165353539 Td
+(Na versão inicial \(baseline v1.0\),) Tj
+T* (corrigir uma parcela exigia 5 passos) Tj
+T* (\(abrir menu, excluir, abrir formulário,) Tj
+T* (preencher tudo e salvar\). Você) Tj
+T* (simplificou para edição inline \(clicar) Tj
+T* (direto no número na tabela e mudar\).) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+399.6850393700787549 406.8602755905511685 161.5748031496063106 -69.6940157480314895 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+407.6220472440945741 392.2932677165353539 Td
+("Mensurei a fricção operacional) Tj
+T* (comparando o baseline da v1.0 com a) Tj
+T* (v2.0: através da edição inline de) Tj
+T* (parcelamentos direto na tabela, reduzi a) Tj
+T* (jornada de correção de 5 etapas para) Tj
+T* (apenas 1 clique \(redução exata de 80%\).") Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 337.1662598425196506 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+41.9527559055118147 322.599251968503836 Td
+(6. Grupo Beta de 5) Tj
+T* (Usuários Reais \(Brasil,) Tj
+T* (Itália e EUA\) -> Viagens) Tj
+T* (e Moedas) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+141.7322834645669332 337.1662598425196506 107.7165354330708738 -78.6640157480314883 re
+f
+BT
+/F2 7.8 Tf
+8.9699999999999989 TL
+0.118 0.251 0.686 rg
+149.6692913385826955 322.599251968503836 Td
+(• Beta Testing / Early) Tj
+T* (Adopters) Tj
+T* (• Validação Qualitativa) Tj
+T* (• User-Driven Roadmap) Tj
+T* (\(Evolução guiada pelo) Tj
+T* (usuário\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+249.4488188976378069 337.1662598425196506 150.236220472440948 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+257.3858267716535693 322.599251968503836 Td
+(Você colocou a v1.0 para 5 pessoas) Tj
+T* (reais usarem. Sua irmã \(Brasil\) deu a) Tj
+T* (ideia do campo de Viagens. Seus) Tj
+T* (amigos na Itália e nos EUA deram a) Tj
+T* (ideia de converter para outras moedas,) Tj
+T* (o que levou você a criar também os 8) Tj
+T* (idiomas.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+399.6850393700787549 337.1662598425196506 161.5748031496063106 -78.6640157480314883 re
+f
+BT
+/F1 7.8 Tf
+8.9699999999999989 TL
+0.118 0.161 0.231 rg
+407.6220472440945741 322.599251968503836 Td
+("Validei a v1.0 com um grupo focal de 5) Tj
+T* (beta testers no Brasil, Itália e EUA.) Tj
+T* (Escutar esses usuários gerou 3 pilares da) Tj
+T* (v2.0: o Módulo de Viagens \(feedback) Tj
+T* (Brasil\), o câmbio multimoedas e os 8) Tj
+T* (idiomas \(feedback Itália e EUA\).") Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 12398
+>>
+stream
+0.5670000000000001 w
+0. G
+0.04 0.06 0.11 rg
+0. 841.8899999999999864 595.2799999999999727 -76.5354330708661479 re
+f
+0.83 0.69 0.22 rg
+0. 768.7561417322833677 595.2799999999999727 -3.4015748031496065 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+34.0157480314960665 817.7955118110236299 Td
+(CAPÍTULO 2 \(PARTE 2\): INTERAÇÕES, ITERAÇÕES E BACKLOG DO "MEU BOLSO") Tj
+ET
+BT
+/F2 13.5 Tf
+15.5249999999999986 TL
+1. g
+34.0157480314960665 796.5356692913385359 Td
+(ONDE CADA AJUSTE QUE FIZEMOS CORRESPONDE À TEORIA DE PM / PO) Tj
+ET
+BT
+/F1 8.5 Tf
+9.7749999999999986 TL
+0.796 0.835 0.882 rg
+34.0157480314960665 778.9608661417322537 Td
+(Itens 7 a 12: Do Assistente FIN, Bug do OTP e Redesign do Login até os Vídeos do YouTube e Alertas no WhatsApp) Tj
+ET
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+34.0157480314960665 751.1813385826770855 107.7165354330708738 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+39.0157480314960665 739.1263385826771355 Td
+(O que fizemos /) Tj
+T* (planejamos) Tj
+T* (\(Interação ou Iteração\)) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+141.7322834645669332 751.1813385826770855 107.7165354330708738 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+146.7322834645669332 739.1263385826771355 Td
+(Nome Técnico em PM /) Tj
+T* (PO) Tj
+T* (\(Conceitos Associados\)) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+249.4488188976378069 751.1813385826770855 150.236220472440948 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+254.4488188976378069 739.1263385826771355 Td
+(A Lógica de Produto) Tj
+T* (\(Por que você fez isso?\)) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+399.6850393700787549 751.1813385826770855 161.5748031496063106 -38.634999999999998 re
+f
+BT
+/F2 8.3 Tf
+9.5449999999999999 TL
+0.831 0.686 0.216 rg
+404.6850393700787549 739.1263385826771355 Td
+(Na Ponta da Língua) Tj
+T* (\(Como explicar ao Entrevistador\)) Tj
+ET
+0. G
+0.5670000000000001 w
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 712.5463385826772083 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+41.6692913385826813 698.3477952755905562 Td
+(7. Assistente FIN) Tj
+T* (\("Melhor Amigo"\) + 23) Tj
+T* (Livros + Quiz "Posso) Tj
+T* (Gastar?") Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+141.7322834645669332 712.5463385826772083 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.251 0.686 rg
+149.3858267716535693 698.3477952755905562 Td
+(• Economia) Tj
+T* (Comportamental) Tj
+T* (• Humanização de UX) Tj
+T* (• Micro-momento de) Tj
+T* (Decisão) Tj
+T* (• Guardrails de IA &) Tj
+T* (LGPD) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+249.4488188976378069 712.5463385826772083 150.236220472440948 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+257.102362204724443 698.3477952755905562 Td
+(Pessoas humildes não têm acesso a) Tj
+T* (livros caros e sentem vergonha de) Tj
+T* (chatbots técnicos. Você transformou o) Tj
+T* (FIN em melhor amigo, colocou 23 livros) Tj
+T* (na mente dele e criou um quiz de 3) Tj
+T* (perguntas \(< 15s\) para frear compras) Tj
+T* (por impulso.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+399.6850393700787549 712.5463385826772083 161.5748031496063106 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+407.338582677165391 698.3477952755905562 Td
+("Apliquei economia comportamental) Tj
+T* (criando o FIN como um melhor amigo) Tj
+T* (embasado em 23 livros clássicos e no quiz) Tj
+T* (Posso Gastar?, que atua no) Tj
+T* (micro-momento da compra em menos de) Tj
+T* (15 segundos, com guardrails de segurança) Tj
+T* (e LGPD.") Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 635.2542519685039224 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+41.6692913385826813 621.0557086614172704 Td
+(8. Teste de Cadastro) Tj
+T* (Gmail -> Correção do) Tj
+T* (OTP + Botões Gmail e) Tj
+T* (Outlook) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+141.7322834645669332 635.2542519685039224 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.251 0.686 rg
+149.3858267716535693 621.0557086614172704 Td
+(• Dogfooding \(Testar na) Tj
+T* (Pele\)) Tj
+T* (• Otimização de) Tj
+T* (Onboarding) Tj
+T* (• Redução de Fricção) Tj
+T* (• Prevenção de Drop-off) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+249.4488188976378069 635.2542519685039224 150.236220472440948 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+257.102362204724443 621.0557086614172704 Td
+(Você mesmo tentou cadastrar um) Tj
+T* (Gmail novo, descobriu que o código) Tj
+T* (OTP dava "usuário não encontrado" e) Tj
+T* (percebeu que sair da tela para abrir o) Tj
+T* (e-mail dava trabalho. Corrigimos o fluxo) Tj
+T* (e criamos atalhos diretos para Gmail e) Tj
+T* (Outlook.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+399.6850393700787549 635.2542519685039224 161.5748031496063106 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+407.338582677165391 621.0557086614172704 Td
+("Praticando dogfooding no fluxo de) Tj
+T* (onboarding, identifiquei um bloqueio no) Tj
+T* (OTP para novos usuários. Separei a regra) Tj
+T* (de ativação do login recorrente e criei) Tj
+T* (botões de 1 clique para abrir) Tj
+T* (Gmail/Outlook, zerando o drop-off nessa) Tj
+T* (etapa.") Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 557.9621653543306365 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+41.6692913385826813 543.7636220472440982 Td
+(9. Descarte do 1º Login) Tj
+T* (Poluído -> Novo Login) Tj
+T* (Split-Screen com Slides) Tj
+T* (+ Logout para Novidades) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+141.7322834645669332 557.9621653543306365 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.251 0.686 rg
+149.3858267716535693 543.7636220472440982 Td
+(• Iteração Rápida \(Ciclo) Tj
+T* (Build-Measure-Learn\)) Tj
+T* (• Desapego de Produto) Tj
+T* (• CRO \(Conversão\)) Tj
+T* (• Release Notes) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+249.4488188976378069 557.9621653543306365 150.236220472440948 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+257.102362204724443 543.7636220472440982 Td
+(Na 1ª tentativa da tela de login,) Tj
+T* (colocamos fotos divididas com blocos) Tj
+T* (de texto na frente. Você viu que ficou) Tj
+T* (feio e poluído, buscou uma referência) Tj
+T* (corporativa limpa e iteramos para o) Tj
+T* (Split-Screen com slides \(solteiro, casal,) Tj
+T* (família, viagens\).) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+399.6850393700787549 557.9621653543306365 161.5748031496063106 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+407.338582677165391 543.7636220472440982 Td
+("Demonstrei capacidade de iteração rápida) Tj
+T* (e desapego: ao notar poluição visual no) Tj
+T* (primeiro protótipo de login, descartei os) Tj
+T* (blocos sobrepostos e implementei um) Tj
+T* (layout Split-Screen limpo conectado aos) Tj
+T* (sonhos das personas, além de levar o) Tj
+T* (logout para a vitrine de Release Notes.") Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 480.6700787401574644 107.7165354330708738 -68.437086614173225 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+41.6692913385826813 466.471535433070926 Td
+(10. Seletor de 8 Idiomas) Tj
+T* (em Todas as Telas) Tj
+T* (\(Destaque PT-BR, EN e) Tj
+T* (ES\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+141.7322834645669332 480.6700787401574644 107.7165354330708738 -68.437086614173225 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.251 0.686 rg
+149.3858267716535693 466.471535433070926 Td
+(• Internacionalização) Tj
+T* (\(i18n\)) Tj
+T* (• Expansão de TAM) Tj
+T* (\(Mercado Endereçável\)) Tj
+T* (• Estratégia Go-to-Market) Tj
+T* (Regional) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+249.4488188976378069 480.6700787401574644 150.236220472440948 -68.437086614173225 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+257.102362204724443 466.471535433070926 Td
+(Para atender tanto a América do Sul) Tj
+T* (quanto seus usuários na Itália e EUA \(e) Tj
+T* (outros mercados\), colocamos 8 idiomas) Tj
+T* (desde a página inicial, destacando em) Tj
+T* (1 clique PT-BR, Inglês e Espanhol pela) Tj
+T* (nossa posição geográfica.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+399.6850393700787549 480.6700787401574644 161.5748031496063106 -68.437086614173225 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+407.338582677165391 466.471535433070926 Td
+("Liderei a internacionalização \(i18n\) em 8) Tj
+T* (idiomas em todas as rotas do produto,) Tj
+T* (aplicando uma estratégia regional de UX) Tj
+T* (que destaca em 1 clique os 3 idiomas foco) Tj
+T* (da América do Sul \(PT-BR, ES e EN\) e) Tj
+T* (agrupa os demais.") Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 412.2329921259842536 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+41.6692913385826813 398.0344488188977152 Td
+(11. Backlog do FIN:) Tj
+T* (Fonte \(A+/A-\), Idioma) Tj
+T* (Sincronizado e Vídeos do) Tj
+T* (YouTube por Idioma) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+141.7322834645669332 412.2329921259842536 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.251 0.686 rg
+149.3858267716535693 398.0344488188977152 Td
+(• Acessibilidade Visual) Tj
+T* (\(WCAG\)) Tj
+T* (• Diferença entre i18n) Tj
+T* (\(Tradução\) e L10n) Tj
+T* (\(Localização Cultural\)) Tj
+T* (• Aprendizagem) Tj
+T* (Multimodal) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+249.4488188976378069 412.2329921259842536 150.236220472440948 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+257.102362204724443 398.0344488188977152 Td
+(Ao olhar a tela do FIN, você viu que a) Tj
+T* (letra era pequena para muitas pessoas) Tj
+T* (\(criando o ajuste A+/A- com piso) Tj
+T* (mínimo\) e decidiu que o FIN deve falar) Tj
+T* (no idioma ativo e indicar vídeos do) Tj
+T* (YouTube de canais nativos daquele) Tj
+T* (idioma \(BR, IT, etc.\).) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+399.6850393700787549 412.2329921259842536 161.5748031496063106 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+407.338582677165391 398.0344488188977152 Td
+("Evoluí o backlog do FIN unindo) Tj
+T* (acessibilidade visual \(ajuste de fonte) Tj
+T* (A+/A-\) e Localização Cultural \(L10n\): além) Tj
+T* (de falar no idioma selecionado, o FIN) Tj
+T* (indica vídeos do YouTube de canais) Tj
+T* (nativos do país do usuário, facilitando a) Tj
+T* (compreensão por vídeo.") Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 334.9409055118110246 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+41.6692913385826813 320.7423622047244862 Td
+(12. Backlog: Data de) Tj
+T* (Vencimento no Cartão +) Tj
+T* (País/WhatsApp no) Tj
+T* (Cadastro -> Alerta no) Tj
+T* (WhatsApp) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+141.7322834645669332 334.9409055118110246 107.7165354330708738 -77.292086614173229 re
+f
+BT
+/F2 7.7 Tf
+8.8549999999999986 TL
+0.118 0.251 0.686 rg
+149.3858267716535693 320.7423622047244862 Td
+(• Channel-Market Fit) Tj
+T* (\(Adequação de Canal\)) Tj
+T* (• Mapeamento de) Tj
+T* (Dependências) Tj
+T* (\(Dependency Mapping\)) Tj
+T* (• Retenção Ativa) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+249.4488188976378069 334.9409055118110246 150.236220472440948 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+257.102362204724443 320.7423622047244862 Td
+(Você percebeu que pessoas de baixa) Tj
+T* (renda não usam e-mail, só WhatsApp.) Tj
+T* (E, como PO, mapeou que para mandar) Tj
+T* (alerta de vencimento no WhatsApp é) Tj
+T* (preciso primeiro ter a Data de) Tj
+T* (Vencimento no cartão e o) Tj
+T* (País/WhatsApp no cadastro.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+399.6850393700787549 334.9409055118110246 161.5748031496063106 -77.292086614173229 re
+f
+BT
+/F1 7.7 Tf
+8.8549999999999986 TL
+0.118 0.161 0.231 rg
+407.338582677165391 320.7423622047244862 Td
+("Apliquei Channel-Market Fit ao escolher o) Tj
+T* (WhatsApp em vez do e-mail para alertas) Tj
+T* (de fatura na baixa renda. Como PO,) Tj
+T* (mapeei as dependências técnicas: priorizei) Tj
+T* (primeiro o campo de vencimento nos) Tj
+T* (cartões e o País/WhatsApp no cadastro.") Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+endstream
+endobj
+9 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 10 0 R
+>>
+endobj
+10 0 obj
+<<
+/Length 10572
+>>
+stream
+0.5670000000000001 w
+0. G
+0.04 0.06 0.11 rg
+0. 841.8899999999999864 595.2799999999999727 -76.5354330708661479 re
+f
+0.83 0.69 0.22 rg
+0. 768.7561417322833677 595.2799999999999727 -3.4015748031496065 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+34.0157480314960665 817.7955118110236299 Td
+(CAPÍTULO 3: ANATOMIA DAS ETAPAS 1 A 5 DO SEU CASE) Tj
+ET
+BT
+/F2 13.5 Tf
+15.5249999999999986 TL
+1. g
+34.0157480314960665 796.5356692913385359 Td
+(O QUE CADA CAMPO AVALIA E OS PONTOS-CHAVE DE CADA ETAPA) Tj
+ET
+BT
+/F1 8.5 Tf
+9.7749999999999986 TL
+0.796 0.835 0.882 rg
+34.0157480314960665 778.9608661417322537 Td
+(Mapa mental em texto para você dominar a estrutura de todas as etapas sem precisar decorar) Tj
+ET
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+34.0157480314960665 751.1813385826770855 96.3779527559055254 -29.5500000000000007 re
+f
+BT
+/F2 8.5 Tf
+9.7749999999999986 TL
+0.831 0.686 0.216 rg
+39.0157480314960665 738.9563385826771764 Td
+(Etapa e Campos) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+130.393700787401599 751.1813385826770855 130.393700787401599 -29.5500000000000007 re
+f
+BT
+/F2 8.5 Tf
+9.7749999999999986 TL
+0.831 0.686 0.216 rg
+135.3937007874015706 738.9563385826771764 Td
+(O que o Entrevistador / IA) Tj
+T* (Avalia Aqui?) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+260.7874015748031979 751.1813385826770855 300.472440944881896 -29.5500000000000007 re
+f
+BT
+/F2 8.5 Tf
+9.7749999999999986 TL
+0.831 0.686 0.216 rg
+265.7874015748031411 738.9563385826771764 Td
+(Resumo dos Pontos-Chave que Colocamos \(Para Lembrar Rápido\)) Tj
+ET
+0. G
+0.5670000000000001 w
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 721.6313385826771309 96.3779527559055254 -98.7728740157480445 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+42.5196850393700814 706.4124015748031979 Td
+(ETAPA 1) Tj
+T* (Dados Gerais) Tj
+T* (\(Campos 1.1, 1.2 e) Tj
+T* (1.3\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+130.393700787401599 721.6313385826771309 130.393700787401599 -98.7728740157480445 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.251 0.686 rg
+138.8976377952756138 706.4124015748031979 Td
+(Avalia se você sabe resumir) Tj
+T* (um produto sob a ótica de) Tj
+T* (NEGÓCIO e VALOR \(e não) Tj
+T* (apenas código técnico\),) Tj
+T* (posicionando seu papel e o) Tj
+T* (segmento correto.) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+260.7874015748031979 721.6313385826771309 300.472440944881896 -98.7728740157480445 re
+B
+BT
+/F1 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+269.2913385826772128 706.4124015748031979 Td
+(• Título \(1.1\): Mostra ciclo completo \("Do Discovery ao Go-to-Market"\) + proposta) Tj
+T* (de valor \(Inclusão Financeira, Custo de Vida, DRE e Educação\).) Tj
+T* (• Descrição \(1.2\): Divide-se em 3 atos: 1\) A dor real \(abandono de planilhas, falta) Tj
+T* (de Custo de Vida e múltiplos cartões\); 2\) Os 4 pilares da solução \(Cartões) Tj
+T* (consolidados, Custo de Vida/DRE automáticos, Viagens/Moedas do grupo beta e) Tj
+T* (FIN com 23 livros/YouTube\); 3\) Sua liderança como PM/PO \(do MVP ao backlog) Tj
+T* (do WhatsApp\).) Tj
+T* (• Metadados \(1.3\): Segmento FinTech / B2C SaaS \(produto para consumidor) Tj
+T* (final\) e ferramentas de PM/PO.) Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 622.8584645669291149 96.3779527559055254 -107.857874015748024 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+42.5196850393700814 607.6395275590550682 Td
+(ETAPA 2) Tj
+T* (Abordagem Centrada) Tj
+T* (no Cliente) Tj
+T* (\(Campos 2.1 e 2.2\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+130.393700787401599 622.8584645669291149 130.393700787401599 -107.857874015748024 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.251 0.686 rg
+138.8976377952756138 607.6395275590550682 Td
+(Avalia "Customer Obsession") Tj
+T* (\(Obsessão pelo Cliente\): se) Tj
+T* (você conhece profundamente) Tj
+T* (quem sofre o problema, prova) Tj
+T* (com dados oficiais, compara) Tj
+T* (com concorrentes e ouve) Tj
+T* (usuários reais.) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+260.7874015748031979 622.8584645669291149 300.472440944881896 -107.857874015748024 re
+B
+BT
+/F1 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+269.2913385826772128 607.6395275590550682 Td
+(• Campo 2.1 \(Público e Problema\): Público de baixa renda + 3 dados oficiais) Tj
+T* (\(78% endividados e 85% cartão na PEIC/CNC; múltiplos bancos digitais no BCB) Tj
+T* (e >60% estresse no I-SFB FEBRABAN\) + Benchmarking contra 3 alternativas) Tj
+T* (\(Apps de bancos que só mostram fatura isolada; Excel que exige fórmulas;) Tj
+T* (Mobills/Organizze que têm paywall e não dão Custo de Vida nem DRE\).) Tj
+T* (• Campo 2.2 \(Obsessão pelo Cliente\): 4 provas concretas: 1\) Consolidação de) Tj
+T* (cartões + Custo de Vida automático; 2\) Grupo Beta real de 5 usuários \(irmã no) Tj
+T* (Brasil -> Viagens; amigos Itália/EUA -> Moedas e 8 idiomas\); 3\) FIN com 23) Tj
+T* (livros, Quiz, fonte A+/A- e vídeos do YouTube por idioma; 4\) Escolha do) Tj
+T* (WhatsApp em vez de e-mail para alertas de vencimento.) Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 515.0005905511810624 96.3779527559055254 -98.7728740157480445 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+42.5196850393700814 499.7816535433070726 Td
+(ETAPA 3) Tj
+T* (Problema e) Tj
+T* (Prioridades) Tj
+T* (\(Campos 3.1 e 3.2\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+130.393700787401599 515.0005905511810624 130.393700787401599 -98.7728740157480445 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.251 0.686 rg
+138.8976377952756138 499.7816535433070726 Td
+(Avalia "Priorização e Senso) Tj
+T* (de Dono": como você fatia um) Tj
+T* (problema gigante em entregas) Tj
+T* (menores \(Ondas/Sprints\)) Tj
+T* (usando frameworks e) Tj
+T* (mapeando dependências.) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+260.7874015748031979 515.0005905511810624 300.472440944881896 -98.7728740157480445 re
+B
+BT
+/F1 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+269.2913385826772128 499.7816535433070726 Td
+(• Campo 3.1 \(Desafio e Sequenciamento\): Mercado \(TAM\) de 108 milhões de) Tj
+T* (ativos \(IBGE\) fatiado em 4 Ondas: Onda 1 \(MVP: Cartões consolidados, Custo) Tj
+T* (de Vida e DRE\); Onda 2 \(Feedbacks do Grupo Beta: Viagens, Moedas e FIN\);) Tj
+T* (Onda 3 \(Conversão v2.0: 8 idiomas, Login Split-Screen e OTP Gmail/Outlook\);) Tj
+T* (Onda 4 \(Backlog v2.1: Fonte/Idioma/YouTube no FIN e Vencimento/WhatsApp\).) Tj
+T* (• Campo 3.2 \(Bom Julgamento e Frameworks\): Uso do MoSCoW, Impacto vs.) Tj
+T* (Esforço e Mapeamento de Dependências \(explicando que o alerta no WhatsApp) Tj
+T* (depende de criar antes a data de vencimento no cartão e o País/WhatsApp no) Tj
+T* (cadastro, além do trade-off de não exigir conexão bancária automática no Dia 1\).) Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 416.2277165354330464 96.3779527559055254 -98.7728740157480445 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+42.5196850393700814 401.0087795275590565 Td
+(ETAPA 4) Tj
+T* (Execução e) Tj
+T* (Experimentação) Tj
+T* (\(Campos 4.1 e 4.2\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+130.393700787401599 416.2277165354330464 130.393700787401599 -98.7728740157480445 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.251 0.686 rg
+138.8976377952756138 401.0087795275590565 Td
+(Avalia "Iteração e) Tj
+T* (Simplicidade": como você) Tj
+T* (testa o produto na prática,) Tj
+T* (aprende com feedbacks ou) Tj
+T* (falhas e transforma processos) Tj
+T* (complexos em telas simples.) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+260.7874015748031979 416.2277165354330464 300.472440944881896 -98.7728740157480445 re
+B
+BT
+/F1 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+269.2913385826772128 401.0087795275590565 Td
+(• Campo 4.1 \(Construção e Iterações\): Mostra 3 ciclos reais de iteração: 1\)) Tj
+T* (Cartões em tela única + evolução para alerta no WhatsApp; 2\) Iteração com os 5) Tj
+T* (beta testers \(Brasil, Itália, EUA\); 3\) Iteração no FIN \(fonte e vídeos\), correção do) Tj
+T* (bug do OTP para contas novas e troca do login poluído pelo Split-Screen limpo.) Tj
+T* (• Campo 4.2 \(Decisões Difíceis e Simplificação\): Mostra como você escondeu a) Tj
+T* (complexidade contábil nos bastidores: 1\) Somar múltiplos cartões, Custo de Vida) Tj
+T* (e DRE automaticamente; 2\) Ir até o WhatsApp do usuário e usar vídeos do) Tj
+T* (YouTube + fonte ajustável; 3\) Reduzir edição de parcelas de 5 etapas para 1) Tj
+T* (clique.) Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 317.4548425196849735 96.3779527559055254 -116.942874015748032 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+42.5196850393700814 302.2359055118109836 Td
+(ETAPA 5) Tj
+T* (Expected Outcomes) Tj
+T* (\(Campos 5.1 e 5.2\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+130.393700787401599 317.4548425196849735 130.393700787401599 -116.942874015748032 re
+B
+BT
+/F2 7.9 Tf
+9.0849999999999991 TL
+0.118 0.251 0.686 rg
+138.8976377952756138 302.2359055118109836 Td
+(Avalia "Orientação a) Tj
+T* (Resultados \(KPIs\) e) Tj
+T* (Aprendizado Contínuo":) Tj
+T* (números auditáveis \(Antes vs.) Tj
+T* (Depois\) e maturidade) Tj
+T* (intelectual para aprender com) Tj
+T* (o usuário.) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+260.7874015748031979 317.4548425196849735 300.472440944881896 -116.942874015748032 re
+B
+BT
+/F1 7.9 Tf
+9.0849999999999991 TL
+0.118 0.161 0.231 rg
+269.2913385826772128 302.2359055118109836 Td
+(• Campo 5.1 \(Métricas Concretas\): Compara o baseline \(v1.0/manual\) com a) Tj
+T* (v2.0: 1\) Cálculos manuais reduzidos em 100% \(faturas + Custo de Vida + DRE) Tj
+T* (em 0 segundos\); 2\) Edição de parcelas reduzida em 80% \(de 5 etapas para 1) Tj
+T* (clique / < 5s\); 3\) Decisão de compra no Quiz em < 15s \(3 perguntas + 23 livros +) Tj
+T* (LGPD\); 4\) Onboarding OTP em < 30s e 100% das demandas dos 5 beta testers) Tj
+T* (entregues \(8 idiomas = +800%\); 5\) North Star Metric e coortes preparadas para) Tj
+T* (produção.) Tj
+T* (• Campo 5.2 \(Aprendizados\): Os 3 grandes aprendizados: 1\) A armadilha dos) Tj
+T* (múltiplos bancos digitais e o uso exclusivo do WhatsApp na baixa renda; 2\) A) Tj
+T* (diferença entre traduzir textos e localizar cultura \(vídeos do YouTube por país e) Tj
+T* (fonte ajustável\); 3\) O valor do dogfooding \(testar na pele\).) Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+endstream
+endobj
+11 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 12 0 R
+>>
+endobj
+12 0 obj
+<<
+/Length 19906
+>>
+stream
+0.5670000000000001 w
+0. G
+0.04 0.06 0.11 rg
+0. 841.8899999999999864 595.2799999999999727 -76.5354330708661479 re
+f
+0.83 0.69 0.22 rg
+0. 768.7561417322833677 595.2799999999999727 -3.4015748031496065 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+34.0157480314960665 817.7955118110236299 Td
+(CAPÍTULO 4: DICIONÁRIO COMPLETO DE SIGLAS E CONCEITOS PM / PO) Tj
+ET
+BT
+/F2 13.5 Tf
+15.5249999999999986 TL
+1. g
+34.0157480314960665 796.5356692913385359 Td
+(TODOS OS 20 TERMOS TÉCNICOS DO CASE EXPLICADOS DE FORMA SIMPLES) Tj
+ET
+BT
+/F1 8.5 Tf
+9.7749999999999986 TL
+0.796 0.835 0.882 rg
+34.0157480314960665 778.9608661417322537 Td
+(Consulte sempre que quiser revisar o significado exato de uma sigla e onde ela aparece no Meu Bolso) Tj
+ET
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+34.0157480314960665 751.1813385826770855 124.7244094488189035 -19.4299999999999962 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+39.0157480314960665 739.2113385826771719 Td
+(Sigla / Conceito de PM e PO) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+158.7401574803149629 751.1813385826770855 181.4173228346456881 -19.4299999999999962 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+163.7401574803149629 739.2113385826771719 Td
+(O que significa de forma simples?) Tj
+ET
+0.06 0.09 0.16 rg
+0.78 G
+0. w
+0.06 0.09 0.16 rg
+340.157480314960651 751.1813385826770855 221.102362204724443 -19.4299999999999962 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+345.157480314960651 739.2113385826771719 Td
+(Exemplo exato no seu projeto Meu Bolso) Tj
+ET
+0. G
+0.5670000000000001 w
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 731.7513385826771355 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 720.2172440944881373 Td
+(1. Product Discovery) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 731.7513385826771355 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 720.2172440944881373 Td
+(Etapa de investigação para entender profundamente) Tj
+T* (a dor do cliente antes de programar.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 731.7513385826771355 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 720.2172440944881373 Td
+(Perceber que a baixa renda tem vários cartões digitais, não usa) Tj
+T* (e-mail e não sabe calcular seu Custo de Vida.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 704.2431496062991982 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 692.7090551181102001 Td
+(2. Benchmarking & Paywall) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 704.2431496062991982 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 692.7090551181102001 Td
+(Benchmarking = analisar concorrentes. Paywall =) Tj
+T* (bloqueio pago em aplicativos.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 704.2431496062991982 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 692.7090551181102001 Td
+(Comparar com Excel \(difícil\) e Mobills/Organizze \(que colocam) Tj
+T* (paywall para cadastrar múltiplos cartões\).) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 676.734960629921261 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 665.2008661417322628 Td
+(3. Persona & Público-Alvo) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 676.734960629921261 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 665.2008661417322628 Td
+(Representação dos perfis reais de usuários que) Tj
+T* (utilizam o produto.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 676.734960629921261 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 665.2008661417322628 Td
+(1\) Trabalhador de baixa renda/iniciante; 2\) Solteiro; 3\)) Tj
+T* (Casal/Família; 4\) Viajante/Usuário no exterior.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 649.22677165354321 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 637.6926771653543256 Td
+(4. Carga Cognitiva \(Cognitive) Tj
+T* (Load\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 649.22677165354321 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 637.6926771653543256 Td
+(Quantidade de esforço mental necessária para) Tj
+T* (entender uma informação ou usar uma tela.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 649.22677165354321 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 637.6926771653543256 Td
+(Você zerou a carga cognitiva ao entregar a soma dos cartões, o) Tj
+T* (Custo de Vida e o DRE já calculados.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 621.7185826771652728 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 610.1844881889763883 Td
+(5. Time-to-Value \(TTV\)) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 621.7185826771652728 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 610.1844881889763883 Td
+(Tempo que o usuário leva desde que entra no app) Tj
+T* (até sentir o primeiro benefício real.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 621.7185826771652728 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 610.1844881889763883 Td
+(Reduzido para 0 segundos no cálculo automático do Custo de) Tj
+T* (Vida e menos de 15 segundos no Quiz do FIN.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 594.2103937007873355 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 582.676299212598451 Td
+(6. Product-Led Education) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 594.2103937007873355 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 582.676299212598451 Td
+(Quando o próprio uso da ferramenta educa o) Tj
+T* (usuário naturalmente, sem parecer uma aula chata.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 594.2103937007873355 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 582.676299212598451 Td
+(O DRE Pessoal ensinando visão empresarial e o FIN ensinando) Tj
+T* (23 livros como um melhor amigo.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 566.7022047244093983 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 555.1681102362204001 Td
+(7. Beta Testers / Early Adopters) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 566.7022047244093983 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 555.1681102362204001 Td
+(Grupo inicial de primeiros usuários reais que testam) Tj
+T* (a 1ª versão e dão feedbacks.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 566.7022047244093983 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 555.1681102362204001 Td
+(Seus 5 usuários reais na v1.0 \(sua irmã no Brasil e seus amigos) Tj
+T* (morando na Itália e nos EUA\).) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 539.194015748031461 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 527.6599212598425765 Td
+(8. MVP \(Minimum Viable) Tj
+T* (Product\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 539.194015748031461 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 527.6599212598425765 Td
+(Produto Mínimo Viável: primeira versão enxuta que) Tj
+T* (já resolve a dor principal do cliente.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 539.194015748031461 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 527.6599212598425765 Td
+(A Onda 1 do Meu Bolso: fluxo de caixa, consolidação de) Tj
+T* (cartões, Custo de Vida Real e DRE.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 511.6858267716535238 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 500.1517322834645825 Td
+(9. Backlog & User Story) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 511.6858267716535238 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 500.1517322834645825 Td
+(Backlog = fila priorizada de entregas. User Story =) Tj
+T* (requisito contado na visão do usuário.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 511.6858267716535238 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 500.1517322834645825 Td
+(Nossa lista da v2.1 \(US-01 a US-06: vencimento do cartão,) Tj
+T* (País/WhatsApp, alerta WhatsApp e melhorias do FIN\).) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 484.1776377952755865 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 472.6435433070866452 Td
+(10. Critérios de Aceite \(AC /) Tj
+T* (DoD\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 484.1776377952755865 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 472.6435433070866452 Td
+(Regras claras que definem quando uma) Tj
+T* (funcionalidade está pronta e correta.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 484.1776377952755865 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 472.6435433070866452 Td
+(Ex: na US-04, o botão de fonte deve permitir aumentar e) Tj
+T* (diminuir, mas travar no tamanho atual como mínimo.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 456.6694488188975924 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 445.1353543307086511 Td
+(11. Framework MoSCoW) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 456.6694488188975924 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 445.1353543307086511 Td
+(Método de priorização: Must \(Obrigatório\), Should) Tj
+T* (\(Importante\), Could \(Desejável\), Won't \(Depois\).) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 456.6694488188975924 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 445.1353543307086511 Td
+(Usado para priorizar o que entrava no MVP, na v2.0 e agora na) Tj
+T* (sprint v2.1.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 429.1612598425196552 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 417.6271653543307139 Td
+(12. Mapeamento de) Tj
+T* (Dependências) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 429.1612598425196552 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 417.6271653543307139 Td
+(Identificar o que precisa ser construído ANTES para) Tj
+T* (que outra função possa existir.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 429.1612598425196552 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 417.6271653543307139 Td
+(Perceber que o Alerta no WhatsApp depende de criar antes a) Tj
+T* (Data de Vencimento no cartão e o WhatsApp no cadastro.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 401.6530708661417179 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 390.1189763779527766 Td
+(13. Trade-off \(Escolha /) Tj
+T* (Renúncia\)) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 401.6530708661417179 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 390.1189763779527766 Td
+(Decisão estratégica onde você abre mão de algo) Tj
+T* (agora para ganhar velocidade ou confiança.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 401.6530708661417179 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 390.1189763779527766 Td
+(Não exigir conexão bancária automática no Dia 1 \(que assusta a) Tj
+T* (baixa renda\) e focar em vínculo simples de cartões.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 374.1448818897637807 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 362.6107874015748394 Td
+(14. Dogfooding) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 374.1448818897637807 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 362.6107874015748394 Td
+(Quando o próprio PM/PO usa o produto) Tj
+T* (intensamente como se fosse um cliente real.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 374.1448818897637807 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 362.6107874015748394 Td
+(Quando você testou criar uma conta nova com Gmail e) Tj
+T* (descobriu o erro de validação do código OTP.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 346.6366929133857866 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 335.1025984251968453 Td
+(15. Onboarding, Fricção &) Tj
+T* (Drop-off) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 346.6366929133857866 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 335.1025984251968453 Td
+(Onboarding = cadastro inicial. Fricção = dificuldade.) Tj
+T* (Drop-off = desistência do usuário.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 346.6366929133857866 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 335.1025984251968453 Td
+(Colocar Login Google e botões diretos para Gmail e Outlook no) Tj
+T* (OTP eliminou a fricção e o drop-off.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 319.1285039370078493 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 307.5944094488189648 Td
+(16. Iteração) Tj
+T* (\(Build-Measure-Learn\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 319.1285039370078493 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 307.5944094488189648 Td
+(Construir uma versão, medir/avaliar o resultado e) Tj
+T* (ajustar rápido até ficar excelente.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 319.1285039370078493 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 307.5944094488189648 Td
+(Descartar a 1ª tela de login que estava poluída e iterar para o) Tj
+T* (layout Split-Screen limpo com slides.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 291.6203149606299121 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 280.0862204724409139 Td
+(17. CRO \(Conversion Rate) Tj
+T* (Optimization\)) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 291.6203149606299121 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 280.0862204724409139 Td
+(Otimização da Taxa de Conversão: melhorar telas) Tj
+T* (para que mais visitantes criem conta.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 291.6203149606299121 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 280.0862204724409139 Td
+(O novo layout Split-Screen mostrando a transformação) Tj
+T* (financeira \(solteiro, casal, família, viagens\) no Login e Cadastro.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 264.1121259842519748 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 252.5780314960629767 Td
+(18. i18n vs. L10n \(Tradução vs.) Tj
+T* (Localização\)) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 264.1121259842519748 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 252.5780314960629767 Td
+(i18n = suportar vários idiomas. L10n = adaptar o) Tj
+T* (conteúdo à cultura de cada país.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 264.1121259842519748 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 252.5780314960629767 Td
+(i18n = 8 idiomas no app e no FIN. L10n = o FIN indicar vídeos) Tj
+T* (do YouTube de canais brasileiros em PT-BR e italianos em IT.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+34.0157480314960665 236.6039370078740092 124.7244094488189035 -27.508188976377955 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 225.0698425196850394 Td
+(19. Channel-Market Fit) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+158.7401574803149629 236.6039370078740092 181.4173228346456881 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 225.0698425196850394 Td
+(Escolher o canal de comunicação que o seu) Tj
+T* (público-alvo realmente usa no dia a dia.) Tj
+ET
+0.96 g
+0.78 G
+0. w
+0.96 g
+340.157480314960651 236.6039370078740092 221.102362204724443 -27.508188976377955 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 225.0698425196850394 Td
+(Trocar lembretes por e-mail por alertas automáticos no) Tj
+T* (WhatsApp, pois a baixa renda só usa WhatsApp.) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+34.0157480314960665 209.0957480314960719 124.7244094488189035 -36.0181889763779566 re
+f
+BT
+/F2 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+39.2598425196850442 197.5616535433071022 Td
+(20. Baseline, KPI, North Star &) Tj
+T* (Coortes) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+158.7401574803149629 209.0957480314960719 181.4173228346456881 -36.0181889763779566 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+163.984251968503969 197.5616535433071022 Td
+(Baseline = medição inicial \(antes\). KPI = indicador.) Tj
+T* (North Star = métrica principal de sucesso. Coorte =) Tj
+T* (retenção ao longo do tempo \(D7/D30/D60\).) Tj
+ET
+1. g
+0.78 G
+0. w
+1. g
+340.157480314960651 209.0957480314960719 221.102362204724443 -36.0181889763779566 re
+f
+BT
+/F1 7.4 Tf
+8.5099999999999998 TL
+0.118 0.161 0.231 rg
+345.4015748031496287 197.5616535433071022 Td
+(Baseline v1.0 \(5 cliques na parcela; 1 idioma\) vs. KPIs v2.0 \(1) Tj
+T* (clique = -80%; 8 idiomas\). North Star: % de usuários fechando o) Tj
+T* (mês no verde e sem atrasar faturas.) Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+endstream
+endobj
+13 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 14 0 R
+>>
+endobj
+14 0 obj
+<<
+/Length 8659
+>>
+stream
+0.5670000000000001 w
+0. G
+0.04 0.06 0.11 rg
+0. 841.8899999999999864 595.2799999999999727 -76.5354330708661479 re
+f
+0.83 0.69 0.22 rg
+0. 768.7561417322833677 595.2799999999999727 -3.4015748031496065 re
+f
+BT
+/F2 8.2 Tf
+9.4299999999999979 TL
+0.831 0.686 0.216 rg
+34.0157480314960665 817.7955118110236299 Td
+(CAPÍTULO 5: ROTEIRO DE APRESENTAÇÃO PARA O ENTREVISTADOR) Tj
+ET
+BT
+/F2 13.5 Tf
+15.5249999999999986 TL
+1. g
+34.0157480314960665 796.5356692913385359 Td
+(COMO APRESENTAR O CASE "MEU BOLSO" PASSO A PASSO EM UMA ENTREVISTA) Tj
+ET
+BT
+/F1 8.5 Tf
+9.7749999999999986 TL
+0.796 0.835 0.882 rg
+34.0157480314960665 778.9608661417322537 Td
+(Use este roteiro de 5 minutos quando o recrutador pedir: "Me apresente o seu case de produto") Tj
+ET
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+0.12 0.25 0.69 rg
+0.78 G
+0. w
+0.12 0.25 0.69 rg
+34.0157480314960665 751.1813385826770855 119.0551181102362364 -30.240000000000002 re
+f
+BT
+/F2 8.8 Tf
+10.1199999999999992 TL
+1. g
+39.0157480314960665 738.701338582677181 Td
+(Etapa da Sua) Tj
+T* (Apresentação \(5 Minutos\)) Tj
+ET
+0.12 0.25 0.69 rg
+0.78 G
+0. w
+0.12 0.25 0.69 rg
+153.0708661417322958 751.1813385826770855 408.1889763779528266 -30.240000000000002 re
+f
+BT
+/F2 8.8 Tf
+10.1199999999999992 TL
+1. g
+158.0708661417322958 738.701338582677181 Td
+(O que falar para o Entrevistador \(Storytelling Completo na Ponta da Língua\)) Tj
+ET
+0. G
+0.5670000000000001 w
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 720.9413385826770764 119.0551181102362364 -111.2917322834645546 re
+B
+BT
+/F2 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 704.9854724409448181 Td
+(ATO 1 \(Minuto 1\)) Tj
+T* (O Problema Real e o) Tj
+T* (Público) Tj
+T* (\(Discovery & Dados\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+153.0708661417322958 720.9413385826770764 408.1889763779528266 -111.2917322834645546 re
+B
+BT
+/F1 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+162.1417322834645915 704.9854724409448181 Td
+("Eu gostaria de apresentar o case do Meu Bolso, uma plataforma Web e Android de gestão e educação) Tj
+T* (financeira onde atuei como PM e PO do zero até a versão 2.0.) Tj
+T* () Tj
+T* (O projeto nasceu para resolver uma dor social grave: segundo a PEIC/CNC, 78% das famílias brasileiras) Tj
+T* (estão endividadas, e 85% dessas dívidas vêm do cartão de crédito. Olhando para as pessoas de baixa) Tj
+T* (renda, percebi dois problemas práticos: primeiro, elas têm 2 ou 3 cartões de bancos digitais diferentes com) Tj
+T* (limites baixos; como cada banco só mostra sua própria fatura, a pessoa perde a noção do total somado.) Tj
+T* (Segundo, nem as planilhas \(que exigem saber fórmulas\) nem os apps tradicionais como Mobills e Organizze) Tj
+T* (\(que têm paywall e só listam gastos passados\) mostram automaticamente qual é o Custo de Vida Real dessa) Tj
+T* (pessoa.") Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 609.6496062992125644 119.0551181102362364 -92.6617322834645591 re
+B
+BT
+/F2 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 593.6937401574803062 Td
+(ATO 2 \(Minuto 2\)) Tj
+T* (A Solução e a Visão de) Tj
+T* (Produto) Tj
+T* (\(MVP, Custo de Vida e) Tj
+T* (DRE\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+153.0708661417322958 609.6496062992125644 408.1889763779528266 -92.6617322834645591 re
+B
+BT
+/F1 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+162.1417322834645915 593.6937401574803062 Td
+("Para resolver isso sem exigir nenhum esforço de cálculo do usuário, priorizei no MVP três entregas centrais:) Tj
+T* (1\) Criei um módulo de Cartões vinculado diretamente às despesas, que consolida em uma única tela tanto a) Tj
+T* (fatura de cada banco quanto a soma total de todos os cartões;) Tj
+T* (2\) Automatizei em 100% o cálculo do Custo de Vida Real em tempo real \(reduzindo a carga cognitiva a) Tj
+T* (zero\);) Tj
+T* (3\) E trouxe um diferencial educativo: adaptei o conceito empresarial de DRE \(Demonstrativo do Resultado do) Tj
+T* (Exercício\) para um DRE Pessoal automático, dando ao usuário humilde uma pontinha de visão empresarial) Tj
+T* (para gerenciar sua casa.") Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 516.9878740157480479 119.0551181102362364 -101.9767322834645569 re
+B
+BT
+/F2 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 501.0320078740157328 Td
+(ATO 3 \(Minuto 3\)) Tj
+T* (Escuta de Usuários Reais) Tj
+T* (\(Grupo Beta Brasil, Itália e) Tj
+T* (EUA\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+153.0708661417322958 516.9878740157480479 408.1889763779528266 -101.9767322834645569 re
+B
+BT
+/F1 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+162.1417322834645915 501.0320078740157328 Td
+("Com a v1.0 rodando, coloquei o produto na mão de um grupo focal inicial de 5 beta testers em três países) Tj
+T* (\(Brasil, Itália e Estados Unidos\) para colher feedbacks reais:) Tj
+T* (• Do feedback no Brasil \(minha irmã\), nasceu o Módulo Exclusivo de Viagens, para separar sonhos e férias) Tj
+T* (das contas da casa;) Tj
+T* (• Do feedback dos usuários que moram na Itália e nos EUA, nasceu a necessidade de converter valores para) Tj
+T* (outras moedas. Como PM, transformei esse pedido em uma arquitetura escalável: implementei câmbio) Tj
+T* (multimoedas em tempo real e expandi o sistema para 8 idiomas nativos, destacando em 1 clique) Tj
+T* (Português-BR, Espanhol e Inglês pela nossa atuação na América do Sul, além de Italiano e outros 4) Tj
+T* (idiomas.") Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 415.0111417322834768 119.0551181102362364 -101.9767322834645569 re
+B
+BT
+/F2 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 399.0552755905512186 Td
+(ATO 4 \(Minuto 4\)) Tj
+T* (Educação com IA \(FIN\) e) Tj
+T* (Iterações na Prática) Tj
+T* (\(Dogfooding & UX\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+153.0708661417322958 415.0111417322834768 408.1889763779528266 -101.9767322834645569 re
+B
+BT
+/F1 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+162.1417322834645915 399.0552755905512186 Td
+("Para mudar o hábito de consumo, criei o assistente FIN com a persona de um melhor amigo acolhedor,) Tj
+T* (abastecido com 23 livros de finanças e com o quiz Posso Gastar?, que ajuda a decidir uma compra em 3) Tj
+T* (perguntas \(< 15 segundos\), seguindo guardrails de segurança e LGPD.) Tj
+T* () Tj
+T* (Durante os testes da v2.0, pratiquei dogfooding e fiz iterações importantes: identifiquei e corrigi uma trava na) Tj
+T* (validação OTP para novos cadastros do Gmail, adicionando botões diretos para abrir o Gmail e o Outlook \(<) Tj
+T* (30s no onboarding\); reduzi a edição de parcelas na tabela de 5 etapas para 1 clique \(-80% de passos\); e) Tj
+T* (descartei uma primeira versão poluída da tela de login, iterando para um layout Split-Screen limpo com slides) Tj
+T* (de momentos reais de vida.") Tj
+ET
+0.95 0.96 0.98 rg
+0.78 G
+0.2834645669291339 w
+0.95 0.96 0.98 rg
+34.0157480314960665 313.0344094488189057 119.0551181102362364 -120.6067322834645523 re
+B
+BT
+/F2 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+43.0866141732283481 297.0785433070866475 Td
+(ATO 5 \(Minuto 5\)) Tj
+T* (Backlog Priorizado \(v2.1\)) Tj
+T* (e Próximos Passos) Tj
+T* (\(WhatsApp, L10n e) Tj
+T* (Métricas\)) Tj
+ET
+1. g
+0.78 G
+0.2834645669291339 w
+1. g
+153.0708661417322958 313.0344094488189057 408.1889763779528266 -120.6067322834645523 re
+B
+BT
+/F1 8.1 Tf
+9.3149999999999995 TL
+0.118 0.161 0.231 rg
+162.1417322834645915 297.0785433070866475 Td
+("Por fim, exercitando a gestão contínua do backlog para a sprint v2.1, identifiquei que pessoas de baixa) Tj
+T* (renda quase não usam e-mail no dia a dia — elas usam exclusivamente o WhatsApp. Por isso, mapeei as) Tj
+T* (dependências técnicas e priorizei incluir a Data de Vencimento da Fatura nos cartões e o País + WhatsApp) Tj
+T* (no cadastro para disparar alertas automáticos de vencimento direto no WhatsApp, evitando juros por atraso.) Tj
+T* (Também priorizei no FIN o controle de tamanho de fonte \(A+/A-\), a sincronização de idioma e a indicação de) Tj
+T* (vídeos no YouTube localizados conforme o idioma selecionado \(ex: canais brasileiros em PT-BR, italianos em) Tj
+T* (Italiano\).) Tj
+T* () Tj
+T* (Assim que subirmos essa release para produção, já temos planejada a nova rodada de entrevistas com 10 a) Tj
+T* (15 usuários reais para medir nosso funil de ativação, coortes de retenção e nossa North Star Metric: a) Tj
+T* (porcentagem de usuários que passam a fechar o mês no verde e sem faturas atrasadas.") Tj
+ET
+0. G
+0.5670000000000001 w
+0.78 G
+0. w
+0. G
+0.5670000000000001 w
+0. G
+0.5670000000000001 w
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R ]
+/Count 6
+>>
+endobj
+15 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+21 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+22 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+23 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+24 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+25 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+26 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+27 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+28 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 15 0 R
+/F2 16 0 R
+/F3 17 0 R
+/F4 18 0 R
+/F5 19 0 R
+/F6 20 0 R
+/F7 21 0 R
+/F8 22 0 R
+/F9 23 0 R
+/F10 24 0 R
+/F11 25 0 R
+/F12 26 0 R
+/F13 27 0 R
+/F14 28 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+29 0 obj
+<<
+/Producer (jsPDF 3.0.3)
+/CreationDate (D:20261019220311-03'00')
+>>
+endobj
+30 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 31
+0000000000 65535 f 
+0000074210 00000 n 
+0000076064 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000009738 00000 n 
+0000009875 00000 n 
+0000021908 00000 n 
+0000022045 00000 n 
+0000034496 00000 n 
+0000034634 00000 n 
+0000045260 00000 n 
+0000045399 00000 n 
+0000065359 00000 n 
+0000065498 00000 n 
+0000074299 00000 n 
+0000074425 00000 n 
+0000074556 00000 n 
+0000074690 00000 n 
+0000074828 00000 n 
+0000074952 00000 n 
+0000075081 00000 n 
+0000075213 00000 n 
+0000075349 00000 n 
+0000075477 00000 n 
+0000075604 00000 n 
+0000075733 00000 n 
+0000075866 00000 n 
+0000075968 00000 n 
+0000076317 00000 n 
+0000076403 00000 n 
+trailer
+<<
+/Size 31
+/Root 30 0 R
+/Info 29 0 R
+/ID [ <EB89B76CEEC7F3C63BB4E6FB4D1303D4> <EB89B76CEEC7F3C63BB4E6FB4D1303D4> ]
+>>
+startxref
+76507
+%%EOF

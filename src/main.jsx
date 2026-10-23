@@ -7,6 +7,7 @@ import { ThemeProvider } from './components/theme-provider';
 import { Toaster } from './components/ui/sonner';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { LayoutVariantProvider } from './contexts/LayoutVariantContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import AppNovo from './AppNovo';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
@@ -18,18 +19,21 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       <GoogleOAuthProvider clientId="505242660728-umlemlt3e590grpjjc82uarg7l76spte.apps.googleusercontent.com">
         <BrowserRouter>
-          <AuthProvider>
-            <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-              <CurrencyProvider>
-                <LayoutVariantProvider>
-                  <AppNovo />
-                  <Toaster />
-                </LayoutVariantProvider>
-              </CurrencyProvider>
-            </ThemeProvider>
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                <CurrencyProvider>
+                  <LayoutVariantProvider>
+                    <AppNovo />
+                    <Toaster />
+                  </LayoutVariantProvider>
+                </CurrencyProvider>
+              </ThemeProvider>
+            </AuthProvider>
+          </LanguageProvider>
         </BrowserRouter>
       </GoogleOAuthProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );
+

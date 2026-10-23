@@ -161,6 +161,69 @@ export const adminService = {
     }
   },
 
+  async criarUsuario(dados) {
+    try {
+      const response = await api.post('/admin/usuarios', dados);
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async alternarStatusUsuario(id, status) {
+    try {
+      const response = await api.patch(`/admin/usuarios/${id}/status`, { status });
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async obterFeedbacks() {
+    try {
+      const response = await api.get('/admin/feedbacks');
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async adicionarFeedback(dados) {
+    try {
+      const response = await api.post('/admin/feedbacks', dados);
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async obterBacklogPM() {
+    try {
+      const response = await api.get('/admin/backlog');
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async adicionarBacklogPM(dados) {
+    try {
+      const response = await api.post('/admin/backlog', dados);
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  async atualizarBacklogPM(id, dados) {
+    try {
+      const response = await api.put(`/admin/backlog/${id}`, dados);
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
   async buscarUsuario(id) {
     try {
       const response = await api.get(`/admin/usuarios/${id}`);

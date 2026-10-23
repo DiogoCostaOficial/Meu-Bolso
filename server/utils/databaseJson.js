@@ -59,7 +59,46 @@ const inicializarDB = async () => {
 
 const getUsuarios = async () => {
     const data = await readData();
-    return (data.usuarios || []).map(u => ({ ...u, ativo: true }));
+    return (data.usuarios || []).map(u => ({
+        ...u,
+        pais: u.pais || 'Brasil',
+        idioma: u.idioma || 'pt-BR',
+        moeda: u.moeda || 'BRL',
+        plano: u.plano || 'Gratuito',
+        status: u.status || (u.ativo !== false ? 'Ativo' : 'Inativo'),
+        ativo: u.ativo !== false && u.status !== 'Inativo'
+    }));
+};
+
+const getFeedbacks = async () => {
+    const data = await readData();
+    return data.feedbacks || [];
+};
+
+const salvarFeedback = async (feedback) => {
+    const data = await readData();
+    if (!data.feedbacks) data.feedbacks = [];
+    data.feedbacks.unshift(feedback);
+    await writeData(data);
+    return feedback;
+};
+
+const getBacklogPM = async () => {
+    const data = await readData();
+    return data.backlogPM || [];
+};
+
+const salvarBacklogPM = async (item) => {
+    const data = await readData();
+    if (!data.backlogPM) data.backlogPM = [];
+    const index = data.backlogPM.findIndex(b => b.id === item.id);
+    if (index >= 0) {
+        data.backlogPM[index] = { ...data.backlogPM[index], ...item };
+    } else {
+        data.backlogPM.push(item);
+    }
+    await writeData(data);
+    return item;
 };
 
 const adicionarUsuario = async (usuario) => {
@@ -313,5 +352,9 @@ module.exports = {
     salvarDadosUsuario,
     adicionarTransacao,
     atualizarTransacao,
-    deletarTransacao
+    deletarTransacao,
+    getFeedbacks,
+    salvarFeedback,
+    getBacklogPM,
+    salvarBacklogPM
 };

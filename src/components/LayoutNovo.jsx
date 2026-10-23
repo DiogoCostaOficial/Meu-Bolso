@@ -6,6 +6,8 @@ import { useEdu } from '../contexts/EduContext';
 import EduMascot from './EduMascot';
 import VideoPopup from './VideoPopup';
 import CurrencyUpdateAnnouncer from './CurrencyUpdateAnnouncer';
+import LanguageSelector from './LanguageSelector';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   LayoutDashboard,
   Wallet,
@@ -37,13 +39,17 @@ const LayoutNovo = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { theme, setTheme } = useTheme();
   const { isDocked, undockMascot } = useEdu();
+  const { t } = useLanguage();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/', { replace: true });
   };
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+  // Exibir Restauração/Restore APENAS em modo de Homologação (Local/Dev)
+  const isHomologacao = import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
 
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -55,7 +61,7 @@ const LayoutNovo = ({ children }) => {
     { path: '/relatorios', icon: PieChart, label: 'Relatórios' },
     { path: '/dre', icon: FileBarChart, label: 'DRE' },
     { path: '/backup', icon: Database, label: 'Backup' },
-    { path: '/restauracao', icon: RefreshCw, label: 'Restauração' },
+    ...(isHomologacao ? [{ path: '/restauracao', icon: RefreshCw, label: 'Restauração' }] : []),
     { path: '/configuracoes', icon: Settings, label: 'Configurações' },
   ];
 
@@ -73,7 +79,7 @@ const LayoutNovo = ({ children }) => {
       <Link
         to={item.path}
         onClick={onClick}
-        title={isSidebarCollapsed ? item.label : undefined}
+        title={isSidebarCollapsed ? t(item.label) : undefined}
         className={`flex items-center rounded-custom transition-custom ${
           isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'
         } ${isActive
@@ -82,7 +88,7 @@ const LayoutNovo = ({ children }) => {
           }`}
       >
         <Icon className="w-5 h-5 flex-shrink-0" />
-        {!isSidebarCollapsed && <span className="font-medium">{item.label}</span>}
+        {!isSidebarCollapsed && <span className="font-medium">{t(item.label)}</span>}
       </Link>
     );
   };
@@ -99,7 +105,7 @@ const LayoutNovo = ({ children }) => {
               <>
                 <div>
                   <h1 className="text-2xl font-bold text-custom-gold tracking-tight">Meu Bolso</h1>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Gestão Financeira Inteligente</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{t('Gestão Financeira Inteligente')}</p>
                 </div>
                 <button 
                   onClick={() => setIsSidebarCollapsed(true)} 
@@ -147,7 +153,7 @@ const LayoutNovo = ({ children }) => {
             <button
               type="button"
               onClick={() => undockMascot()}
-              title={isSidebarCollapsed ? "Ajuda FIN (Clique para ativar)" : undefined}
+              title={isSidebarCollapsed ? t("Ajuda FIN") : undefined}
               className={`flex items-center w-full rounded-custom transition-custom ${
                 isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'
               } text-gray-600 dark:text-slate-400 hover:bg-custom-gold/15 hover:text-custom-gold dark:hover:text-custom-gold cursor-pointer group`}
@@ -158,11 +164,11 @@ const LayoutNovo = ({ children }) => {
               {!isSidebarCollapsed && (
                 <div className="flex items-center justify-between flex-1 min-w-0">
                   <span className="font-medium text-sm text-custom-main group-hover:text-custom-gold transition-colors">
-                    Ajuda FIN
+                    {t('Ajuda FIN')}
                   </span>
                   {isDocked && (
                     <span className="text-[10px] bg-custom-gold/20 text-custom-gold font-bold px-1.5 py-0.5 rounded-full border border-custom-gold/30 animate-pulse">
-                      Ativar
+                      {t('Ativar')}
                     </span>
                   )}
                 </div>
@@ -171,33 +177,41 @@ const LayoutNovo = ({ children }) => {
           </nav>
 
           <div className="p-4 border-t border-custom-color space-y-2">
+            <div className={isSidebarCollapsed ? 'flex justify-center' : 'w-full'}>
+              <LanguageSelector
+                variant={isSidebarCollapsed ? 'compact' : 'sidebar'}
+                align="left"
+                showQuickFeatured={false}
+                className={isSidebarCollapsed ? '' : 'w-full'}
+              />
+            </div>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              title={isSidebarCollapsed ? `Tema: ${theme === "dark" ? "Escuro" : "Claro"}` : undefined}
+              title={isSidebarCollapsed ? (theme === "dark" ? "Mudar para Branco com Dourado" : "Mudar para Preto com Dourado") : undefined}
               className={`flex items-center w-full text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white rounded-custom transition-custom ${
                 isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'
               }`}
             >
               {theme === "dark" ? (
-                <Sun className="w-5 h-5" />
+                <Sun className="w-5 h-5 text-amber-500" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <Moon className="w-5 h-5 text-amber-400" />
               )}
               {!isSidebarCollapsed && (
                 <span className="font-medium text-[13px] truncate">
-                  {theme === "dark" ? "Tema Claro" : "Tema Escuro"}
+                  {t(theme === "dark" ? "Branco com Dourado" : "Preto com Dourado")}
                 </span>
               )}
             </button>
             <button
               onClick={handleLogout}
-              title={isSidebarCollapsed ? "Sair" : undefined}
+              title={isSidebarCollapsed ? t("Sair") : undefined}
               className={`flex items-center w-full text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-custom transition-custom ${
                 isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'
               }`}
             >
               <LogOut className="w-5 h-5" />
-              {!isSidebarCollapsed && <span className="font-medium">Sair</span>}
+              {!isSidebarCollapsed && <span className="font-medium">{t("Sair")}</span>}
             </button>
           </div>
         </aside>
@@ -218,13 +232,16 @@ const LayoutNovo = ({ children }) => {
               </button>
               <h1 className="text-xl font-bold text-custom-gold">Meu Bolso</h1>
             </div>
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-custom transition-custom"
-              aria-label="Alternar tema"
-            >
-              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            <div className="flex items-center gap-2">
+              <LanguageSelector variant="compact" align="right" showQuickFeatured={false} />
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-custom transition-custom"
+                aria-label="Alternar tema"
+              >
+                {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -289,11 +306,11 @@ const LayoutNovo = ({ children }) => {
               </div>
               <div className="flex items-center justify-between flex-1 min-w-0">
                 <span className="font-medium text-sm text-custom-main group-hover:text-custom-gold transition-colors">
-                  Ajuda FIN
+                  {t("Ajuda FIN")}
                 </span>
                 {isDocked && (
                   <span className="text-[10px] bg-custom-gold/20 text-custom-gold font-bold px-1.5 py-0.5 rounded-full border border-custom-gold/30 animate-pulse">
-                    Ativar
+                    {t("Ativar")}
                   </span>
                 )}
               </div>
@@ -302,19 +319,20 @@ const LayoutNovo = ({ children }) => {
 
           {/* Rodapé do menu mobile */}
           <div className="p-4 border-t border-custom-color space-y-2">
+            <LanguageSelector variant="sidebar" align="left" showQuickFeatured={false} className="w-full" />
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="flex items-center gap-3 px-4 py-3 w-full text-left text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white rounded-custom transition-custom"
             >
-              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              <span className="font-medium">Tema {theme === "dark" ? "Claro" : "Escuro"}</span>
+              {theme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-amber-400" />}
+              <span className="font-medium">{t(theme === "dark" ? "Branco com Dourado" : "Preto com Dourado")}</span>
             </button>
             <button
               onClick={() => { handleLogout(); closeMobileMenu(); }}
               className="flex items-center gap-3 px-4 py-3 w-full text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-custom transition-custom"
             >
               <LogOut className="w-5 h-5" />
-              <span className="font-medium">Sair</span>
+              <span className="font-medium">{t("Sair")}</span>
             </button>
           </div>
         </aside>
@@ -328,6 +346,10 @@ const LayoutNovo = ({ children }) => {
           }}
         >
           <div className="p-4 md:p-8">
+            {/* Barra superior global de idioma em todas as telas internas */}
+            <div className="hidden md:flex items-center justify-end mb-4">
+              <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
+            </div>
             {children}
           </div>
         </main>

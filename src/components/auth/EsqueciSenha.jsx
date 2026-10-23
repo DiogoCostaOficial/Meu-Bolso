@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Mail, ArrowLeft, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import LanguageSelector from '../LanguageSelector';
 
 const EsqueciSenha = () => {
     const navigate = useNavigate();
@@ -45,7 +46,10 @@ const EsqueciSenha = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 px-4 transition-colors duration-300">
+        <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 px-4 transition-colors duration-300 relative">
+            <div className="absolute top-4 right-4 z-20">
+                <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
+            </div>
             <div className="max-w-md w-full">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-800 transition-colors">
                     <div className="text-center mb-8">

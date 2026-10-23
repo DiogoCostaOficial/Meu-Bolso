@@ -1,14 +1,14 @@
 /**
- * Componente de Interface de Restauração do Sistema
+ * Componente de Interface de Restauração do Sistema & Versionamento GitHub
  * 
- * Interface completa para gerenciamento de pontos de restauração com:
- * - Visualização de pontos disponíveis
- * - Pré-visualização do que será restaurado
- * - Confirmação antes da restauração
- * - Monitoramento de integridade
+ * Exclusivo para o Ambiente de Homologação:
+ * - Histórico de versões e commits do GitHub (DiogoCostaOficial/Meu-Bolso)
+ * - Criação direta de novos pontos de restauração na tela (sem prompts nativos)
+ * - Restauração segura de snapshots locais do sistema
+ * - Monitoramento de integridade e estatísticas dos checkpoints
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Clock, 
   RotateCcw, 
@@ -24,394 +24,748 @@ import {
   Calendar,
   User,
   Database,
-  Activity
+  Activity,
+  GitCommit,
+  GitBranch,
+  ExternalLink,
+  RefreshCw,
+  Search,
+  PlusCircle,
+  FileCheck,
+  CheckCircle2,
+  AlertTriangle,
+  Code2,
+  Layers
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { systemRestore } from '../lib/systemRestore';
 
+const GITHUB_REPO = 'DiogoCostaOficial/Meu-Bolso';
+const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=30`;
+
 const SystemRestore = () => {
+  // Estados dos Pontos de Restauração Locais
   const [restorePoints, setRestorePoints] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [restoring, setRestoring] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [statusType, setStatusType] = useState('info'); // success, error, warning, info
+  const [restoreTargetModal, setRestoreTargetModal] = useState(null);
+  const [confirmText, setConfirmText] = useState('');
 
-  // Inicializar sistema de restauração
+  // Estados de Criação de Ponto na Tela
+  const [newPointDescription, setNewPointDescription] = useState('');
+  const [creatingPoint, setCreatingPoint] = useState(false);
+
+  // Estados do GitHub
+  const [gitCommits, setGitCommits] = useState([]);
+  const [loadingGit, setLoadingGit] = useState(false);
+  const [gitError, setGitError] = useState(null);
+  const [gitSearch, setGitSearch] = useState('');
+
+  // Controle de Abas
+  const [activeTab, setActiveTab] = useState('github'); // 'github' | 'locais'
+
+  // Inicialização
   useEffect(() => {
-    initializeSystemRestore();
+    inicializarSistema();
+    carregarCommitsGitHub();
   }, []);
 
   /**
-   * Inicializa o sistema de restauração
+   * Inicializa o gerenciador local de pontos
    */
-  const initializeSystemRestore = async () => {
+  const inicializarSistema = async () => {
     try {
       setLoading(true);
-      setStatusMessage('Inicializando sistema de restauração...');
-      setStatusType('info');
-
-      // Inicializar o sistema
       await systemRestore.initialize();
-
-      // Carregar dados iniciais
-      await loadRestoreData();
-
-      setStatusMessage('Sistema de restauração inicializado com sucesso');
-      setStatusType('success');
-
+      await carregarDadosLocais();
     } catch (error) {
-      console.error('Erro ao inicializar sistema de restauração:', error);
-      setStatusMessage(`Erro ao inicializar: ${error.message}`);
-      setStatusType('error');
+      console.error('Erro ao inicializar restauração:', error);
+      toast.error('Erro ao inicializar restauração: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * Carrega dados de pontos de restauração e estatísticas
+   * Carrega os dados locais salvos
    */
-  const loadRestoreData = async () => {
+  const carregarDadosLocais = async () => {
     try {
       const points = systemRestore.getAvailableRestorePoints();
       const stats = systemRestore.getRestoreStatistics();
-      
-      setRestorePoints(points);
+      setRestorePoints(points || []);
       setStatistics(stats);
-      
-      console.log(`📊 ${points.length} pontos de restauração carregados`);
-      console.log(`📈 Estatísticas:`, stats);
-
     } catch (error) {
-      console.error('Erro ao carregar dados de restauração:', error);
-      setStatusMessage(`Erro ao carregar dados: ${error.message}`);
-      setStatusType('error');
+      console.error('Erro ao carregar dados:', error);
     }
   };
 
   /**
-   * Cria um novo ponto de restauração
+   * Busca versões/commits recentes no GitHub
    */
-  const handleCreateRestorePoint = async () => {
+  const carregarCommitsGitHub = async () => {
     try {
-      setLoading(true);
-      setStatusMessage('Criando ponto de restauração...');
-      setStatusType('info');
+      setLoadingGit(true);
+      setGitError(null);
+      const res = await fetch(GITHUB_API_URL, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+        }
+      });
 
-      const description = prompt('Digite uma descrição para este ponto de restauração:', 
-        `Backup manual - ${new Date().toLocaleString()}`);
-
-      if (!description) {
-        setStatusMessage('Criação cancelada');
-        setStatusType('warning');
-        return;
+      if (!res.ok) {
+        if (res.status === 403) {
+          throw new Error('Limite de requisições anônimas da API do GitHub atingido. Tente novamente em alguns minutos.');
+        }
+        throw new Error(`Erro ao conectar com GitHub (${res.status})`);
       }
 
-      const point = await systemRestore.createRestorePoint(description);
-      
-      await loadRestoreData();
-      
-      setStatusMessage(`Ponto de restauração criado: ${point.id}`);
-      setStatusType('success');
-
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setGitCommits(data);
+      } else {
+        setGitCommits([]);
+      }
     } catch (error) {
-      console.error('Erro ao criar ponto de restauração:', error);
-      setStatusMessage(`Erro ao criar ponto: ${error.message}`);
-      setStatusType('error');
+      console.warn('Aviso ao consultar GitHub:', error.message);
+      setGitError(error.message);
+    } finally {
+      setLoadingGit(false);
+    }
+  };
+
+  /**
+   * Cria novo ponto de restauração direto na tela
+   */
+  const handleCriarPonto = async (e) => {
+    e?.preventDefault();
+    const desc = newPointDescription.trim();
+    if (!desc) {
+      toast.warning('Informe uma descrição ou nome para o ponto de restauração.');
+      return;
+    }
+
+    try {
+      setCreatingPoint(true);
+      const point = await systemRestore.createRestorePoint(desc);
+      await carregarDadosLocais();
+      setNewPointDescription('');
+      toast.success(`Ponto de restauração "${desc}" criado com sucesso!`);
+    } catch (error) {
+      console.error('Erro ao criar ponto:', error);
+      toast.error('Falha ao criar ponto de restauração: ' + error.message);
+    } finally {
+      setCreatingPoint(false);
+    }
+  };
+
+  /**
+   * Cria um ponto de restauração vinculado a uma versão específica do GitHub
+   */
+  const handleVincularVersaoGitHub = async (commit) => {
+    const hash = commit.sha.substring(0, 7);
+    const mensagem = commit.commit.message.split('\n')[0];
+    const desc = `[GitHub: ${hash}] ${mensagem}`;
+
+    try {
+      setLoading(true);
+      await systemRestore.createRestorePoint(desc);
+      await carregarDadosLocais();
+      toast.success(`Ponto de restauração gerado a partir da versão ${hash}!`);
+      setActiveTab('locais');
+    } catch (error) {
+      console.error('Erro ao criar ponto do GitHub:', error);
+      toast.error('Erro ao registrar ponto: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   /**
-   * Mostra pré-visualização do ponto de restauração
+   * Inicia o fluxo de restauração abrindo modal seguro
    */
-  const handlePreviewPoint = (point) => {
-    setSelectedPoint(point);
-    setShowPreview(true);
+  const handleAbrirModalRestaurar = (point) => {
+    setRestoreTargetModal(point);
+    setConfirmText('');
   };
 
   /**
-   * Executa restauração do sistema
+   * Executa a restauração definitiva
    */
-  const handleRestorePoint = async (point) => {
+  const handleConfirmarRestauracao = async () => {
+    if (!restoreTargetModal) return;
+    if (confirmText.trim().toUpperCase() !== 'RESTAURAR') {
+      toast.error('Digite exatamente a palavra "RESTAURAR" para prosseguir.');
+      return;
+    }
+
     try {
-      // Confirmação múltipla para segurança
-      const confirm1 = window.confirm(
-        `Tem certeza que deseja restaurar o sistema para o ponto de ${new Date(point.timestamp).toLocaleString()}?\n\n` +
-        `Isso substituirá todos os dados atuais!`
-      );
-
-      if (!confirm1) {
-        setStatusMessage('Restauração cancelada');
-        setStatusType('warning');
-        return;
-      }
-
-      const confirm2 = window.prompt(
-        'Para confirmar a restauração, digite "RESTAURAR" (sem aspas):'
-      );
-
-      if (confirm2 !== 'RESTAURAR') {
-        setStatusMessage('Restauração cancelada - confirmação incorreta');
-        setStatusType('warning');
-        return;
-      }
-
       setRestoring(true);
-      setStatusMessage('Restaurando sistema... Por favor, aguarde.');
-      setStatusType('info');
-
-      // Executar restauração
-      const result = await systemRestore.restoreFromPoint(point.id, {
+      await systemRestore.restoreFromPoint(restoreTargetModal.id, {
         createBackupBeforeRestore: true
       });
-
-      setStatusMessage(`Sistema restaurado com sucesso!`);
-      setStatusType('success');
-
-      // Recarregar dados após restauração
-      await loadRestoreData();
-
-      // Opcional: recarregar página para aplicar mudanças
+      await carregarDadosLocais();
+      toast.success('Sistema restaurado com sucesso para o estado selecionado!');
+      setRestoreTargetModal(null);
+      setConfirmText('');
+      
       setTimeout(() => {
-        if (window.confirm('Restauração concluída. Deseja recarregar a página para aplicar todas as mudanças?')) {
+        if (window.confirm('Restauração concluída! Deseja recarregar a aplicação para aplicar todas as mudanças nos formulários?')) {
           window.location.reload();
         }
-      }, 2000);
-
+      }, 1000);
     } catch (error) {
-      console.error('Erro durante restauração:', error);
-      setStatusMessage(`Erro na restauração: ${error.message}`);
-      setStatusType('error');
+      console.error('Erro ao restaurar:', error);
+      toast.error('Falha na restauração: ' + error.message);
     } finally {
       setRestoring(false);
-      setShowPreview(false);
-      setSelectedPoint(null);
     }
   };
 
   /**
-   * Remove ponto de restauração
+   * Exclui um ponto de restauração local
    */
-  const handleDeletePoint = async (point) => {
+  const handleExcluirPonto = async (point) => {
+    if (!window.confirm(`Tem certeza que deseja remover o ponto "${point.description}"?`)) {
+      return;
+    }
     try {
-      const confirm = window.confirm(
-        `Tem certeza que deseja remover o ponto de ${new Date(point.timestamp).toLocaleString()}?\n\n` +
-        `Esta ação não pode ser desfeita!`
-      );
-
-      if (!confirm) {
-        return;
-      }
-
       await systemRestore.removeRestorePoint(point.id);
-      await loadRestoreData();
-      
-      setStatusMessage('Ponto de restauração removido');
-      setStatusType('success');
-
+      await carregarDadosLocais();
+      toast.success('Ponto de restauração removido.');
     } catch (error) {
       console.error('Erro ao remover ponto:', error);
-      setStatusMessage(`Erro ao remover ponto: ${error.message}`);
-      setStatusType('error');
+      toast.error('Erro ao remover: ' + error.message);
     }
   };
 
   /**
-   * Verifica integridade dos pontos
+   * Verifica a integridade dos snapshots
    */
-  const handleVerifyIntegrity = async () => {
+  const handleVerificarIntegridade = async () => {
     try {
-      setStatusMessage('Verificando integridade dos pontos...');
-      setStatusType('info');
-
+      toast.info('Verificando integridade dos arquivos e snapshots...');
       const result = await systemRestore.verifyAllRestorePoints();
-      await loadRestoreData();
-
-      setStatusMessage(`Verificação concluída: ${result.validCount} válidos, ${result.invalidCount} corrompidos`);
-      setStatusType(result.invalidCount > 0 ? 'warning' : 'success');
-
+      await carregarDadosLocais();
+      if (result.invalidCount > 0) {
+        toast.warning(`Verificação concluída: ${result.validCount} válidos e ${result.invalidCount} inconsistentes.`);
+      } else {
+        toast.success(`Todos os ${result.validCount} pontos estão íntegros e operacionais!`);
+      }
     } catch (error) {
-      console.error('Erro na verificação:', error);
-      setStatusMessage(`Erro na verificação: ${error.message}`);
-      setStatusType('error');
+      toast.error('Erro na verificação: ' + error.message);
     }
   };
 
-  /**
-   * Componente de status
-   */
-  const StatusBar = () => {
-    if (!statusMessage) return null;
-
-    const bgColors = {
-      success: 'bg-green-50 border-green-200 text-green-800',
-      error: 'bg-red-50 border-red-200 text-red-800',
-      warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-      info: 'bg-blue-50 border-blue-200 text-blue-800'
-    };
-
-    const Icons = {
-      success: CheckCircle,
-      error: XCircle,
-      warning: AlertCircle,
-      info: Settings
-    };
-
-    const Icon = Icons[statusType] || Settings;
-    const bg = bgColors[statusType] || bgColors.info;
-
-    return (
-      <div className={`border ${bg} rounded-md p-3 flex items-center gap-2 mb-4`}>
-        <Icon className="w-5 h-5 flex-shrink-0" />
-        <span className="font-medium">{statusMessage}</span>
-        {loading && <Activity className="w-4 h-4 animate-spin ml-auto" />}
-      </div>
+  // Filtragem dos commits do GitHub
+  const commitsFiltrados = useMemo(() => {
+    if (!gitSearch.trim()) return gitCommits;
+    const termo = gitSearch.toLowerCase();
+    return gitCommits.filter(c => 
+      c.commit.message.toLowerCase().includes(termo) ||
+      c.sha.toLowerCase().includes(termo) ||
+      c.commit.author.name.toLowerCase().includes(termo)
     );
-  };
+  }, [gitCommits, gitSearch]);
 
-  /**
-   * Componente de estatísticas
-   */
-  const StatisticsPanel = () => {
-    if (!statistics) return null;
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-blue-600" />
-          Estatísticas do Sistema de Restauração
-        </h3>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{statistics.total}</div>
-            <div className="text-sm text-gray-600">Total de Pontos</div>
+  return (
+    <div className="space-y-6">
+      {/* Banner de Ambiente de Homologação */}
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-amber-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
+            <Shield className="w-5 h-5" />
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{statistics.valid}</div>
-            <div className="text-sm text-gray-600">Válidos</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{statistics.corrupted}</div>
-            <div className="text-sm text-gray-600">Corrompidos</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{statistics.totalSizeFormatted}</div>
-            <div className="text-sm text-gray-600">Tamanho Total</div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm tracking-wide uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                Ambiente de Homologação
+              </span>
+              <span className="text-xs text-amber-300/80">Exclusivo Local/Desenvolvimento</span>
+            </div>
+            <p className="text-xs text-gray-300 mt-1">
+              Esta tela de Restauração e Versionamento do GitHub fica oculta automaticamente em produção.
+            </p>
           </div>
         </div>
 
-        {statistics.oldestPoint && (
-          <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600">
-            <div>Mais antigo: {new Date(statistics.oldestPoint).toLocaleString()}</div>
-            <div>Mais recente: {new Date(statistics.newestPoint).toLocaleString()}</div>
+        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+          <button
+            onClick={handleVerificarIntegridade}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-colors flex items-center gap-1.5"
+            title="Checar integridade dos snapshots"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+            Checar Integridade
+          </button>
+        </div>
+      </div>
+
+      {/* Cabeçalho da Página */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+            <RotateCcw className="w-8 h-8 text-amber-400" />
+            Restauração & Versionamento
+          </h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Escolha uma versão do GitHub ou um snapshot local para restaurar seu ambiente com segurança.
+          </p>
+        </div>
+
+        {/* Resumo Rápido */}
+        {statistics && (
+          <div className="flex items-center gap-3 bg-gray-900/60 border border-gray-800 rounded-xl px-4 py-2 text-xs">
+            <div>
+              <span className="text-gray-400">Pontos Locais:</span>{' '}
+              <span className="font-semibold text-white">{statistics.total}</span>
+            </div>
+            <span className="text-gray-700">•</span>
+            <div>
+              <span className="text-gray-400">Válidos:</span>{' '}
+              <span className="font-semibold text-green-400">{statistics.valid}</span>
+            </div>
+            <span className="text-gray-700">•</span>
+            <div>
+              <span className="text-gray-400">Tamanho:</span>{' '}
+              <span className="font-semibold text-amber-400">{statistics.totalSizeFormatted}</span>
+            </div>
           </div>
         )}
       </div>
-    );
-  };
 
-  /**
-   * Componente de pré-visualização
-   */
-  const PreviewModal = () => {
-    if (!showPreview || !selectedPoint) return null;
+      {/* CARD: CRIAR NOVO PONTO DE RESTAURAÇÃO NA TELA */}
+      <div className="bg-gradient-to-r from-gray-900 via-gray-900 to-gray-850 border border-amber-500/20 rounded-2xl p-5 shadow-lg">
+        <div className="flex items-center gap-2 mb-3 text-amber-400 font-semibold text-sm">
+          <PlusCircle className="w-4 h-4" />
+          <span>Criar Novo Ponto de Restauração</span>
+        </div>
+        
+        <form onSubmit={handleCriarPonto} className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={newPointDescription}
+              onChange={(e) => setNewPointDescription(e.target.value)}
+              placeholder="Digite um nome ou motivo do ponto (Ex: Antes da integração de viagens, Checkpoint v2.4, etc.)"
+              className="w-full bg-gray-950/80 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400 transition-colors"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={creatingPoint || !newPointDescription.trim()}
+            className="px-5 py-2.5 rounded-xl bg-custom-gold text-black font-semibold text-sm hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 flex-shrink-0 shadow-md shadow-amber-500/10"
+          >
+            {creatingPoint ? (
+              <>
+                <Activity className="w-4 h-4 animate-spin" />
+                Gravando Checkpoint...
+              </>
+            ) : (
+              <>
+                <Clock className="w-4 h-4" />
+                Salvar Ponto de Restauração
+              </>
+            )}
+          </button>
+        </form>
+      </div>
 
-    const { preview } = selectedPoint;
+      {/* ABAS: GITHUB VS PONTOS LOCAIS */}
+      <div className="flex border-b border-gray-800">
+        <button
+          onClick={() => setActiveTab('github')}
+          className={`flex items-center gap-2 py-3 px-5 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'github'
+              ? 'border-amber-400 text-amber-400 font-semibold'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          <GitBranch className="w-4 h-4" />
+          <span>Versões no GitHub</span>
+          <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300">
+            {gitCommits.length}
+          </span>
+        </button>
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Shield className="w-6 h-6 text-blue-600" />
-                Pré-visualização da Restauração
+        <button
+          onClick={() => setActiveTab('locais')}
+          className={`flex items-center gap-2 py-3 px-5 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'locais'
+              ? 'border-amber-400 text-amber-400 font-semibold'
+              : 'border-transparent text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          <Database className="w-4 h-4" />
+          <span>Snapshots Locais</span>
+          <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300">
+            {restorePoints.length}
+          </span>
+        </button>
+      </div>
+
+      {/* ABA 1: VERSÕES NO GITHUB */}
+      {activeTab === 'github' && (
+        <div className="space-y-4">
+          {/* Barra de Ações do GitHub */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="relative w-full md:w-80">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <input
+                type="text"
+                value={gitSearch}
+                onChange={(e) => setGitSearch(e.target.value)}
+                placeholder="Buscar por mensagem, autor ou hash..."
+                className="w-full pl-9 pr-4 py-2 bg-gray-900 border border-gray-800 rounded-xl text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+              <a
+                href={`https://github.com/${GITHUB_REPO}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-2 text-xs rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-300 flex items-center gap-1.5 transition-colors"
+              >
+                <Code2 className="w-3.5 h-3.5 text-gray-400" />
+                <span>Abrir Repositório</span>
+                <ExternalLink className="w-3 h-3 text-gray-500" />
+              </a>
+
+              <button
+                onClick={carregarCommitsGitHub}
+                disabled={loadingGit}
+                className="px-3 py-2 text-xs rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-300 flex items-center gap-1.5 transition-colors"
+                title="Recarregar histórico"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${loadingGit ? 'animate-spin' : ''}`} />
+                <span>Recarregar</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Erro da API do GitHub se houver */}
+          {gitError && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-xs text-red-300 flex items-center gap-3">
+              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <span>{gitError}</span>
+            </div>
+          )}
+
+          {/* Lista de Commits */}
+          {loadingGit && gitCommits.length === 0 ? (
+            <div className="p-12 text-center text-gray-400">
+              <Activity className="w-8 h-8 animate-spin mx-auto text-amber-400 mb-2" />
+              <p className="text-sm">Buscando versões diretamente do GitHub...</p>
+            </div>
+          ) : commitsFiltrados.length === 0 ? (
+            <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-10 text-center text-gray-400">
+              <GitCommit className="w-10 h-10 mx-auto text-gray-600 mb-3" />
+              <p className="text-sm font-medium text-gray-300">Nenhum commit encontrado no repositório.</p>
+              <p className="text-xs text-gray-500 mt-1">Verifique sua conexão ou se a busca filtrou todos os registros.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {commitsFiltrados.map((item, index) => {
+                const shortSha = item.sha.substring(0, 7);
+                const [primeiraLinha, ...resto] = item.commit.message.split('\n');
+                const dataCommit = new Date(item.commit.author.date);
+                const isLatest = index === 0 && !gitSearch;
+
+                return (
+                  <div
+                    key={item.sha}
+                    className={`bg-gray-900/60 border rounded-2xl p-4 transition-all hover:border-amber-500/40 ${
+                      isLatest ? 'border-amber-500/50 bg-amber-500/5' : 'border-gray-800'
+                    }`}
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      {/* Detalhes do Commit */}
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-xs px-2 py-0.5 rounded bg-gray-800 text-amber-400 border border-gray-700 font-bold">
+                            #{shortSha}
+                          </span>
+
+                          {isLatest && (
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+                              Versão Atual / Head
+                            </span>
+                          )}
+
+                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-gray-500" />
+                            {dataCommit.toLocaleDateString('pt-BR')} às {dataCommit.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+
+                        <h3 className="text-base font-semibold text-white tracking-tight">
+                          {primeiraLinha}
+                        </h3>
+
+                        {resto.filter(Boolean).length > 0 && (
+                          <p className="text-xs text-gray-400 line-clamp-2">
+                            {resto.filter(Boolean).join(' ')}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-2 text-xs text-gray-400 pt-1">
+                          {item.author?.avatar_url ? (
+                            <img
+                              src={item.author.avatar_url}
+                              alt={item.commit.author.name}
+                              className="w-4 h-4 rounded-full"
+                            />
+                          ) : (
+                            <User className="w-3.5 h-3.5 text-gray-500" />
+                          )}
+                          <span>{item.commit.author.name}</span>
+                        </div>
+                      </div>
+
+                      {/* Ações da Versão */}
+                      <div className="flex items-center gap-2 flex-shrink-0 self-start md:self-center">
+                        <a
+                          href={item.html_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-2 text-xs rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 flex items-center gap-1.5 transition-colors"
+                          title="Inspecionar alterações no GitHub"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
+                          <span>Ver Diff</span>
+                        </a>
+
+                        <button
+                          onClick={() => handleVincularVersaoGitHub(item)}
+                          className="px-4 py-2 text-xs font-semibold rounded-xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1.5 transition-colors"
+                          title="Gravar um ponto de restauração local referente a esta versão"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Criar Ponto desta Versão</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ABA 2: PONTOS LOCAIS (SNAPSHOTS) */}
+      {activeTab === 'locais' && (
+        <div className="space-y-4">
+          {restorePoints.length === 0 ? (
+            <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-12 text-center text-gray-400">
+              <Shield className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <h3 className="text-base font-semibold text-gray-200 mb-1">Nenhum snapshot local registrado</h3>
+              <p className="text-xs text-gray-500 max-w-md mx-auto mb-4">
+                Você pode criar um novo ponto de restauração no formulário acima ou selecionar qualquer versão do GitHub na aba ao lado.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {restorePoints.map((point) => (
+                <div
+                  key={point.id}
+                  className="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 hover:border-gray-700 transition-all"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    {/* Infos do Ponto */}
+                    <div className="flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-white text-base">
+                          {point.description}
+                        </span>
+                        {point.status === 'valid' || !point.status ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+                            Íntegro
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+                            Atenção
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-400">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-gray-500" />
+                          <span>{new Date(point.timestamp).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-gray-500" />
+                          <span>{new Date(point.timestamp).toLocaleTimeString('pt-BR')}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-gray-500" />
+                          <span className="truncate max-w-[140px]">{point.userEmail}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-gray-500" />
+                          <span>{((point.size || 0) / 1024).toFixed(1)} KB</span>
+                        </div>
+                      </div>
+
+                      {/* Métricas dos dados arquivados */}
+                      {point.preview && (
+                        <div className="flex flex-wrap gap-3 text-xs text-gray-400 bg-gray-950/40 px-3 py-1.5 rounded-lg border border-gray-800/80">
+                          <span>💰 <strong>{point.preview.receitas || 0}</strong> receitas</span>
+                          <span>📉 <strong>{point.preview.despesas || 0}</strong> despesas</span>
+                          <span>🎯 <strong>{point.preview.orcamento || 0}</strong> orçamentos</span>
+                          <span>⚙️ <strong>{point.preview.storageKeys || 0}</strong> registros</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botões de Ação */}
+                    <div className="flex items-center gap-2 self-start md:self-center">
+                      <button
+                        onClick={() => {
+                          setSelectedPoint(point);
+                          setShowPreview(true);
+                        }}
+                        className="px-3 py-2 text-xs rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition-colors flex items-center gap-1.5"
+                        title="Ver detalhes"
+                      >
+                        <BarChart3 className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Detalhes</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleAbrirModalRestaurar(point)}
+                        className="px-4 py-2 text-xs font-semibold rounded-xl bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/40 transition-colors flex items-center gap-1.5"
+                        title="Restaurar o sistema para este estado"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-green-400" />
+                        <span>Restaurar</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleExcluirPonto(point)}
+                        className="p-2 text-xs rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors"
+                        title="Excluir ponto"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL DE PRÉ-VISUALIZAÇÃO */}
+      {showPreview && selectedPoint && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl max-w-xl w-full max-h-[85vh] overflow-y-auto p-6 space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-gray-800">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Shield className="w-5 h-5 text-amber-400" />
+                Pré-visualização do Ponto de Restauração
               </h2>
               <button
                 onClick={() => setShowPreview(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-white"
               >
                 <XCircle className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-2">Informações do Ponto</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Data/Hora:</span>
-                    <div className="font-medium">{new Date(selectedPoint.timestamp).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Usuário:</span>
-                    <div className="font-medium">{selectedPoint.userEmail}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Descrição:</span>
-                    <div className="font-medium">{selectedPoint.description}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Tamanho:</span>
-                    <div className="font-medium">{((selectedPoint.size || 0) / 1024).toFixed(2)} KB</div>
-                  </div>
+            <div className="space-y-3 text-xs">
+              <div className="bg-gray-950/60 rounded-xl p-3 border border-gray-800 space-y-2">
+                <div>
+                  <span className="text-gray-400">Nome:</span>
+                  <div className="font-semibold text-white text-sm">{selectedPoint.description}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-gray-300">
+                  <div>Data: {new Date(selectedPoint.timestamp).toLocaleString('pt-BR')}</div>
+                  <div>Tamanho: {((selectedPoint.size || 0) / 1024).toFixed(2)} KB</div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-800 mb-2">Dados que serão Restaurados</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-blue-600" />
-                    <span>{preview.receitas} receitas</span>
+              {selectedPoint.preview && (
+                <div className="bg-gray-950/60 rounded-xl p-3 border border-gray-800">
+                  <h4 className="font-semibold text-amber-400 mb-2">Dados a serem restaurados</h4>
+                  <div className="grid grid-cols-2 gap-2 text-gray-300">
+                    <div>• {selectedPoint.preview.receitas || 0} receitas</div>
+                    <div>• {selectedPoint.preview.despesas || 0} despesas</div>
+                    <div>• {selectedPoint.preview.orcamento || 0} orçamentos</div>
+                    <div>• {selectedPoint.preview.configKeys || 0} chaves de configuração</div>
+                    <div>• {selectedPoint.preview.storageKeys || 0} registros gerais</div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-blue-600" />
-                    <span>{preview.despesas} despesas</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-blue-600" />
-                    <span>{preview.orcamento} configurações de orçamento</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-blue-600" />
-                    <span>{preview.configKeys} configurações do sistema</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-blue-600" />
-                    <span>{preview.storageKeys} itens no armazenamento</span>
-                  </div>
-                  {preview.categorias > 0 && (
-                    <div className="flex items-center gap-2">
-                      <Database className="w-4 h-4 text-blue-600" />
-                      <span>{preview.categorias} categorias</span>
-                    </div>
-                  )}
                 </div>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-yellow-800">
-                  <AlertCircle className="w-5 h-5" />
-                  <span className="font-medium">Aviso Importante</span>
-                </div>
-                <p className="text-yellow-700 text-sm mt-2">
-                  A restauração substituirá completamente os dados atuais. 
-                  Certifique-se de que deseja prosseguir com esta operação.
-                </p>
-              </div>
+              )}
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 pt-3 border-t border-gray-800">
               <button
-                onClick={() => handleRestorePoint(selectedPoint)}
-                disabled={restoring}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                onClick={() => {
+                  setShowPreview(false);
+                  handleAbrirModalRestaurar(selectedPoint);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-custom-gold text-black font-semibold text-xs hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Prosseguir para Restauração
+              </button>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE RESTAURAÇÃO */}
+      {restoreTargetModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-amber-500/40 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-amber-400">
+              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+              <h3 className="text-lg font-bold text-white">Confirmação de Restauração</h3>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed">
+              Você está prestes a restaurar o sistema para o ponto:
+            </p>
+            <div className="p-3 bg-gray-950 rounded-xl border border-gray-800 text-xs font-semibold text-white">
+              {restoreTargetModal.description}
+            </div>
+
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-300 space-y-1">
+              <p className="font-semibold text-red-400">Atenção:</p>
+              <p>Os dados atuais do sistema serão substituídos pelo estado salvo neste checkpoint.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-400 block">
+                Para confirmar, digite <strong className="text-amber-400">RESTAURAR</strong> no campo abaixo:
+              </label>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="RESTAURAR"
+                className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2 text-sm text-center font-bold tracking-widest text-amber-400 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={handleConfirmarRestauracao}
+                disabled={restoring || confirmText.trim().toUpperCase() !== 'RESTAURAR'}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2"
               >
                 {restoring ? (
                   <>
@@ -426,179 +780,16 @@ const SystemRestore = () => {
                 )}
               </button>
               <button
-                onClick={() => setShowPreview(false)}
+                onClick={() => setRestoreTargetModal(null)}
                 disabled={restoring}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                className="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs transition-colors"
               >
                 Cancelar
               </button>
             </div>
           </div>
         </div>
-      </div>
-    );
-  };
-
-  /**
-   * Componente de lista de pontos de restauração
-   */
-  const RestorePointsList = () => {
-    if (restorePoints.length === 0) {
-      return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum ponto de restauração</h3>
-          <p className="text-gray-600 mb-4">
-            Crie seu primeiro ponto de restauração para proteger seus dados.
-          </p>
-          <button
-            onClick={handleCreateRestorePoint}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2 mx-auto"
-          >
-            <Clock className="w-4 h-4" />
-            Criar Ponto de Restauração
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-4">
-        {restorePoints.map((point) => (
-          <div key={point.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <h4 className="font-medium text-gray-900">{point.description}</h4>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{new Date(point.timestamp).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{new Date(point.timestamp).toLocaleTimeString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
-                    <span>{point.userEmail}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Database className="w-4 h-4" />
-                    <span>{((point.size || 0) / 1024).toFixed(1)} KB</span>
-                  </div>
-                </div>
-
-                <div className="text-xs text-gray-500">
-                  <div className="flex gap-4">
-                    <span>📊 {point.preview.receitas} receitas</span>
-                    <span>💰 {point.preview.despesas} despesas</span>
-                    <span>⚙️ {point.preview.configKeys} configs</span>
-                    <span>💾 {point.preview.storageKeys} itens</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 ml-4">
-                <button
-                  onClick={() => handlePreviewPoint(point)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
-                  title="Visualizar detalhes"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleRestorePoint(point)}
-                  className="p-2 text-green-600 hover:bg-green-50 rounded-md"
-                  title="Restaurar sistema"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDeletePoint(point)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-md"
-                  title="Remover ponto"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Shield className="w-8 h-8 text-blue-600" />
-            Restauração do Sistema
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Gerencie pontos de restauração e proteja seus dados contra perdas.
-          </p>
-        </div>
-        
-        <div className="flex gap-3">
-          <button
-            onClick={handleCreateRestorePoint}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
-          >
-            <Clock className="w-4 h-4" />
-            Criar Ponto
-          </button>
-          <button
-            onClick={handleVerifyIntegrity}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Verificar Integridade
-          </button>
-        </div>
-      </div>
-
-      {/* Status Bar */}
-      <StatusBar />
-
-      {/* Estatísticas */}
-      <StatisticsPanel />
-
-      {/* Pontos de Restauração */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Database className="w-5 h-5 text-purple-600" />
-          Pontos de Restauração Disponíveis
-        </h2>
-        
-        <RestorePointsList />
-      </div>
-
-      {/* Modal de Pré-visualização */}
-      <PreviewModal />
-
-      {/* Informações de Segurança */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <Shield className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-medium text-blue-800 mb-2">Informações de Segurança</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Os pontos de restauração incluem todos os seus dados financeiros e configurações</li>
-              <li>• A restauração substituirá completamente os dados atuais</li>
-              <li>• Sempre um backup é criado automaticamente antes da restauração</li>
-              <li>• Os pontos são verificados automaticamente quanto à integridade</li>
-              <li>• Mantemos até {systemRestore.maxRestorePoints || 3} pontos no histórico</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

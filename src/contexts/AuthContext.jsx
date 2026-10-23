@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Erro ao criar conta');
       }
 
-      return { success: true, email: data.email };
+      return { success: true, email: data.email, otpSimulado: data.otpSimulado || null };
     } catch (error) {
       console.error('Erro no cadastro:', error);
       return {
@@ -233,7 +233,7 @@ export const AuthProvider = ({ children }) => {
       if (!response.ok || !data.success) {
         throw new Error(data.message || 'Erro ao reenviar OTP');
       }
-      return { success: true };
+      return { success: true, otpSimulado: data.otpSimulado || null };
     } catch (error) {
       return { success: false, message: error.message };
     }
@@ -279,6 +279,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginOutlookOTP = async (email, nome = '') => {
+    try {
+      const API_URL = import.meta.env.PROD
+        ? '/api'
+        : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+      const response = await fetch(`${API_URL}/auth/outlook-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, nome })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Erro ao solicitar código do Outlook');
+      }
+      return {
+        success: true,
+        email: data.email,
+        message: data.message,
+        otpSimulado: data.otpSimulado || null
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Erro ao conectar com servidor'
+      };
+    }
+  };
+
   const updateUser = (userData) => {
     setUser(prev => ({ ...prev, ...userData }));
     const currentUser = JSON.parse(localStorage.getItem('usuario') || '{}');
@@ -300,6 +328,7 @@ export const AuthProvider = ({ children }) => {
     requestPasswordReset,
     resetPassword,
     loginGoogle,
+    loginOutlookOTP,
   };
 
   return (

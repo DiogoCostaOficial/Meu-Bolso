@@ -19,6 +19,67 @@ const inicializarDB = async () => {
                 console.log('🐘 Conectado ao Supabase Postgres - Verificando migrações de schema...');
                 try {
                     await client.query(`
+                        CREATE TABLE IF NOT EXISTS users (
+                            id TEXT PRIMARY KEY,
+                            nome TEXT,
+                            email TEXT UNIQUE,
+                            senha TEXT,
+                            tipo TEXT DEFAULT 'usuario',
+                            avatar TEXT,
+                            verificado BOOLEAN DEFAULT false,
+                            primeiro_acesso BOOLEAN DEFAULT false,
+                            otp_codigo TEXT,
+                            otp_expiracao TIMESTAMP WITH TIME ZONE,
+                            reset_token TEXT,
+                            reset_token_expiracao TIMESTAMP WITH TIME ZONE,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                            ultimo_acesso TIMESTAMP WITH TIME ZONE
+                        );
+
+                        ALTER TABLE users
+                        ADD COLUMN IF NOT EXISTS avatar TEXT,
+                        ADD COLUMN IF NOT EXISTS verificado BOOLEAN DEFAULT false,
+                        ADD COLUMN IF NOT EXISTS primeiro_acesso BOOLEAN DEFAULT false,
+                        ADD COLUMN IF NOT EXISTS otp_codigo TEXT,
+                        ADD COLUMN IF NOT EXISTS otp_expiracao TIMESTAMP WITH TIME ZONE,
+                        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                        ADD COLUMN IF NOT EXISTS ultimo_acesso TIMESTAMP WITH TIME ZONE,
+                        ADD COLUMN IF NOT EXISTS pais TEXT DEFAULT 'Brasil',
+                        ADD COLUMN IF NOT EXISTS idioma TEXT DEFAULT 'pt-BR',
+                        ADD COLUMN IF NOT EXISTS moeda TEXT DEFAULT 'BRL',
+                        ADD COLUMN IF NOT EXISTS plano TEXT DEFAULT 'Gratuito',
+                        ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Ativo',
+                        ADD COLUMN IF NOT EXISTS ativo BOOLEAN DEFAULT true;
+
+                        CREATE TABLE IF NOT EXISTS feedbacks (
+                            id TEXT PRIMARY KEY,
+                            usuario TEXT,
+                            usuario_id TEXT,
+                            data TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                            pais TEXT,
+                            funcionalidade TEXT,
+                            tipo TEXT,
+                            facilidade_uso INT,
+                            organizacao_financeira INT,
+                            tomada_decisao INT,
+                            intencao_uso INT,
+                            recomendacao INT,
+                            comentario TEXT
+                        );
+
+                        CREATE TABLE IF NOT EXISTS backlog_pm (
+                            id TEXT PRIMARY KEY,
+                            sugestao TEXT,
+                            usuario_sugeriu TEXT,
+                            impacto TEXT,
+                            esforco TEXT,
+                            prioridade TEXT,
+                            status TEXT,
+                            motivo_priorizacao TEXT,
+                            data_melhoria TIMESTAMP WITH TIME ZONE,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                        );
+
                         CREATE TABLE IF NOT EXISTS cards (
                             id TEXT PRIMARY KEY,
                             user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -42,7 +103,7 @@ const inicializarDB = async () => {
                         ADD COLUMN IF NOT EXISTS cartao_id TEXT,
                         ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20);
                     `);
-                    console.log('✅ Migração de colunas e tabela cards concluída com sucesso no PostgreSQL!');
+                    console.log('✅ Migração de colunas e tabelas concluída com sucesso no PostgreSQL!');
                 } catch (colErr) {
                     console.warn('Nota: Aviso ao aplicar colunas no Postgres:', colErr.message);
                 }
@@ -61,6 +122,7 @@ const inicializarDB = async () => {
 inicializarDB().catch(() => {});
 
 const getUsuarios = async () => {
+    await inicializarDB();
     try {
         const res = await pool.query('SELECT * FROM users');
         return res.rows.map(u => ({
@@ -73,10 +135,15 @@ const getUsuarios = async () => {
             verificado: u.verificado,
             primeiroAcesso: u.primeiro_acesso,
             otpCodigo: u.otp_codigo,
-            otpExpira: u.otp_expiracao ? u.otp_expiracao.toISOString() : null,
-            dataCriacao: u.created_at ? u.created_at.toISOString() : null,
-            ultimoAcesso: u.ultimo_acesso ? u.ultimo_acesso.toISOString() : null,
-            ativo: true
+            otpExpira: u.otp_expiracao ? new Date(u.otp_expiracao).toISOString() : null,
+            dataCriacao: u.created_at ? new Date(u.created_at).toISOString() : null,
+            ultimoAcesso: u.ultimo_acesso ? new Date(u.ultimo_acesso).toISOString() : null,
+            pais: u.pais || 'Brasil',
+            idioma: u.idioma || 'pt-BR',
+            moeda: u.moeda || 'BRL',
+            plano: u.plano || 'Gratuito',
+            status: u.status || (u.ativo !== false ? 'Ativo' : 'Inativo'),
+            ativo: u.ativo !== false && u.status !== 'Inativo'
         }));
     } catch (err) {
         console.error('Erro ao buscar usuários:', err);
@@ -86,6 +153,9 @@ const getUsuarios = async () => {
 
 // Helper function to sync database.json user list local backup
 const syncLocalUsersJson = async () => {
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        return;
+    }
     try {
         const fs = require('fs');
         const path = require('path');
@@ -103,10 +173,15 @@ const syncLocalUsersJson = async () => {
             verificado: u.verificado,
             primeiroAcesso: u.primeiro_acesso,
             otpCodigo: u.otp_codigo,
-            otpExpira: u.otp_expiracao ? u.otp_expiracao.toISOString() : null,
-            dataCriacao: u.created_at ? u.created_at.toISOString() : null,
-            ultimoAcesso: u.ultimo_acesso ? u.ultimo_acesso.toISOString() : null,
-            ativo: true
+            otpExpira: u.otp_expiracao ? new Date(u.otp_expiracao).toISOString() : null,
+            dataCriacao: u.created_at ? new Date(u.created_at).toISOString() : null,
+            ultimoAcesso: u.ultimo_acesso ? new Date(u.ultimo_acesso).toISOString() : null,
+            pais: u.pais || 'Brasil',
+            idioma: u.idioma || 'pt-BR',
+            moeda: u.moeda || 'BRL',
+            plano: u.plano || 'Gratuito',
+            status: u.status || (u.ativo !== false ? 'Ativo' : 'Inativo'),
+            ativo: u.ativo !== false && u.status !== 'Inativo'
         }));
 
         const databaseObj = { usuarios };
@@ -123,14 +198,17 @@ const syncLocalUsersJson = async () => {
 };
 
 const adicionarUsuario = async (usuario) => {
+    await inicializarDB();
     try {
         await pool.query(`
-      INSERT INTO users (id, nome, email, senha, tipo, avatar, verificado, primeiro_acesso, otp_codigo, otp_expiracao, created_at, ultimo_acesso)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      INSERT INTO users (id, nome, email, senha, tipo, avatar, verificado, primeiro_acesso, otp_codigo, otp_expiracao, created_at, ultimo_acesso, pais, idioma, moeda, plano, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     `, [
             usuario.id, usuario.nome, usuario.email, usuario.senha, usuario.tipo, 
-            usuario.avatar, usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, 
-            usuario.otpExpira, usuario.dataCriacao || new Date().toISOString(), usuario.ultimoAcesso
+            usuario.avatar || usuario.foto || null, usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, 
+            usuario.otpExpira, usuario.dataCriacao || new Date().toISOString(), usuario.ultimoAcesso || null,
+            usuario.pais || 'Brasil', usuario.idioma || 'pt-BR', usuario.moeda || 'BRL',
+            usuario.plano || 'Gratuito', usuario.status || 'Ativo'
         ]);
         
         // Sincroniza localmente
@@ -138,12 +216,13 @@ const adicionarUsuario = async (usuario) => {
         
         return true;
     } catch (err) {
-        console.error('Erro ao adicionar usuário:', err);
+        console.error('Erro ao adicionar usuário no PostgreSQL:', err.message);
         return false;
     }
 };
 
 const atualizarUsuario = async (usuario) => {
+    await inicializarDB();
     try {
         await pool.query(`
       UPDATE users SET
@@ -155,12 +234,20 @@ const atualizarUsuario = async (usuario) => {
         primeiro_acesso = $6,
         otp_codigo = $7,
         otp_expiracao = $8,
-        ultimo_acesso = $9
-      WHERE id = $10
+        ultimo_acesso = $9,
+        tipo = $10,
+        pais = $11,
+        idioma = $12,
+        moeda = $13,
+        plano = $14,
+        status = $15
+      WHERE id = $16
     `, [
-            usuario.nome, usuario.email, usuario.senha, usuario.avatar, 
+            usuario.nome, usuario.email, usuario.senha, usuario.avatar || usuario.foto || null, 
             usuario.verificado, usuario.primeiroAcesso, usuario.otpCodigo, 
-            usuario.otpExpira, usuario.ultimoAcesso, usuario.id
+            usuario.otpExpira, usuario.ultimoAcesso || null, usuario.tipo || 'usuario',
+            usuario.pais || 'Brasil', usuario.idioma || 'pt-BR', usuario.moeda || 'BRL',
+            usuario.plano || 'Gratuito', usuario.status || 'Ativo', usuario.id
         ]);
         
         // Sincroniza localmente
@@ -168,7 +255,7 @@ const atualizarUsuario = async (usuario) => {
         
         return true;
     } catch (err) {
-        console.error('Erro ao atualizar usuário:', err);
+        console.error('Erro ao atualizar usuário no PostgreSQL:', err.message);
         return false;
     }
 };
@@ -800,6 +887,118 @@ const deletarTransacao = async (userId, transacaoId) => {
     }
 };
 
+const getFeedbacks = async () => {
+    await inicializarDB();
+    try {
+        const res = await pool.query('SELECT * FROM feedbacks ORDER BY data DESC');
+        return res.rows.map(f => ({
+            id: f.id,
+            usuario: f.usuario,
+            usuarioId: f.usuario_id,
+            data: f.data ? new Date(f.data).toISOString() : new Date().toISOString(),
+            pais: f.pais || 'Brasil',
+            funcionalidade: f.funcionalidade,
+            tipo: f.tipo,
+            facilidadeUso: f.facilidade_uso,
+            organizacaoFinanceira: f.organizacao_financeira,
+            tomadaDecisao: f.tomada_decisao,
+            intencaoUso: f.intencao_uso,
+            recomendacao: f.recomendacao,
+            comentario: f.comentario
+        }));
+    } catch (err) {
+        console.error('Erro ao buscar feedbacks no PostgreSQL:', err);
+        return [];
+    }
+};
+
+const salvarFeedback = async (feedback) => {
+    await inicializarDB();
+    try {
+        await pool.query(`
+            INSERT INTO feedbacks (id, usuario, usuario_id, data, pais, funcionalidade, tipo, facilidade_uso, organizacao_financeira, tomada_decisao, intencao_uso, recomendacao, comentario)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        `, [
+            feedback.id || String(Date.now()),
+            feedback.usuario || 'Anônimo',
+            feedback.usuarioId || null,
+            feedback.data || new Date().toISOString(),
+            feedback.pais || 'Brasil',
+            feedback.funcionalidade || 'Geral',
+            feedback.tipo || 'Sugestão',
+            feedback.facilidadeUso || 10,
+            feedback.organizacaoFinanceira || 10,
+            feedback.tomadaDecisao || 10,
+            feedback.intencaoUso || 10,
+            feedback.recomendacao || 10,
+            feedback.comentario || ''
+        ]);
+        return feedback;
+    } catch (err) {
+        console.error('Erro ao salvar feedback no PostgreSQL:', err);
+        return null;
+    }
+};
+
+const getBacklogPM = async () => {
+    await inicializarDB();
+    try {
+        const res = await pool.query('SELECT * FROM backlog_pm ORDER BY created_at DESC');
+        return res.rows.map(b => ({
+            id: b.id,
+            sugestao: b.sugestao,
+            usuarioSugeriu: b.usuario_sugeriu,
+            impacto: b.impacto,
+            esforco: b.esforco,
+            prioridade: b.prioridade,
+            status: b.status,
+            motivoPriorizacao: b.motivo_priorizacao,
+            dataMelhoria: b.data_melhoria ? new Date(b.data_melhoria).toISOString() : null,
+            data: b.created_at ? new Date(b.created_at).toISOString() : new Date().toISOString()
+        }));
+    } catch (err) {
+        console.error('Erro ao buscar backlog_pm no PostgreSQL:', err);
+        return [];
+    }
+};
+
+const salvarBacklogPM = async (item) => {
+    await inicializarDB();
+    try {
+        const check = await pool.query('SELECT id FROM backlog_pm WHERE id = $1', [item.id]);
+        if (check.rows.length > 0) {
+            await pool.query(`
+                UPDATE backlog_pm SET
+                    sugestao = $1,
+                    usuario_sugeriu = $2,
+                    impacto = $3,
+                    esforco = $4,
+                    prioridade = $5,
+                    status = $6,
+                    motivo_priorizacao = $7,
+                    data_melhoria = $8
+                WHERE id = $9
+            `, [
+                item.sugestao, item.usuarioSugeriu, item.impacto, item.esforco,
+                item.prioridade, item.status, item.motivoPriorizacao, item.dataMelhoria, item.id
+            ]);
+        } else {
+            await pool.query(`
+                INSERT INTO backlog_pm (id, sugestao, usuario_sugeriu, impacto, esforco, prioridade, status, motivo_priorizacao, data_melhoria)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            `, [
+                item.id || String(Date.now()),
+                item.sugestao, item.usuarioSugeriu, item.impacto, item.esforco,
+                item.prioridade, item.status, item.motivoPriorizacao, item.dataMelhoria
+            ]);
+        }
+        return item;
+    } catch (err) {
+        console.error('Erro ao salvar backlog_pm no PostgreSQL:', err);
+        return null;
+    }
+};
+
 module.exports = {
     inicializarDB,
     getUsuarios,
@@ -810,5 +1009,9 @@ module.exports = {
     salvarDadosUsuario,
     adicionarTransacao,
     atualizarTransacao,
-    deletarTransacao
+    deletarTransacao,
+    getFeedbacks,
+    salvarFeedback,
+    getBacklogPM,
+    salvarBacklogPM
 };

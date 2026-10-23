@@ -2,9 +2,9 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// Configuração do transportador de e-mail
+// Configuração do transportador de e-mail (suporta Gmail e Outlook/Hotmail)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: process.env.EMAIL_SERVICE || (process.env.EMAIL_USER && /@(outlook|hotmail|live|msn)\./i.test(process.env.EMAIL_USER) ? 'hotmail' : 'gmail'),
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -33,7 +33,8 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
             padding: 20px;
           }
           .container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #0f172a;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             border-radius: 16px;
             padding: 40px;
             text-align: center;
@@ -119,12 +120,12 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
           <div class="warning">
             <p style="margin: 0;">
               <span class="warning-icon">⚠️</span>
-              <strong>Importante:</strong> Este código expira em <strong>2 minutos</strong> e pode ser usado apenas uma vez.
+              <strong>Importante:</strong> Este código expira em <strong>5 minutos</strong> e pode ser usado apenas uma vez.
             </p>
           </div>
 
           <div class="info-box">
-            <p style="margin: 5px 0;">✅ Válido por 2 minutos</p>
+            <p style="margin: 5px 0;">✅ Válido por 5 minutos</p>
             <p style="margin: 5px 0;">🔒 Mantenha este código em segurança</p>
             <p style="margin: 5px 0;">🚫 Nunca compartilhe com ninguém</p>
           </div>
@@ -146,20 +147,20 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.warn('⚠️ Credenciais de e-mail não configuradas. O e-mail não será enviado.');
     console.log(`🔑 CÓDIGO OTP (SIMULADO): ${codigo}`);
-    return { success: true };
+    return { success: true, simulado: true };
   }
 
   try {
     await transporter.sendMail(mailOptions);
     console.log(`✅ Código OTP enviado para ${email}`);
     console.log(`🔑 CÓDIGO OTP (DEBUG): ${codigo}`); // Log do código para testes
-    return { success: true };
+    return { success: true, simulado: false };
   } catch (error) {
     console.error('❌ Erro ao enviar código OTP:', error);
     // Em ambiente de desenvolvimento, vamos considerar sucesso mesmo se falhar o envio
     // para permitir testar o fluxo
     console.log(`🔑 CÓDIGO OTP (FALLBACK): ${codigo}`);
-    return { success: true, error: error.message };
+    return { success: true, simulado: true, error: error.message };
   }
 };
 

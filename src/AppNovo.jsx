@@ -28,6 +28,8 @@ import SystemRestore from './pages/SystemRestore';
 import Configuracoes from './pages/Configuracoes';
 import Viagens from './pages/Viagens';
 
+const isHomologacao = import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
+
 function AppNovo() {
   return (
     <Routes>
@@ -115,11 +117,20 @@ function AppNovo() {
           </ProtectedRoute>
         }
       />
+      {/* Rotas de Restauração - Exclusivas do ambiente de homologação */}
+      <Route
+        path="/restauracao"
+        element={
+          <ProtectedRoute>
+            {isHomologacao ? <SystemRestore /> : <Navigate to="/dashboard" replace />}
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/system-restore"
         element={
           <ProtectedRoute>
-            <SystemRestore />
+            {isHomologacao ? <SystemRestore /> : <Navigate to="/dashboard" replace />}
           </ProtectedRoute>
         }
       />

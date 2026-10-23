@@ -681,11 +681,12 @@ const Viagens = () => {
   // 1. Passagens, Aéreo & Bagagens (NOVO)
   const resultadoPassagens = useMemo(() => {
     const p = transportePassagens;
+    const isAereo = p.tipo === 'aereo';
     const cot = p.moeda === 'BRL' ? 1.0 : (p.cotacaoManual ? parseFloat(p.cotacaoManual) : getCotacaoMoeda(p.moeda));
     const totalTarifas = (parseFloat(p.valorTarifa) || 0) * (parseInt(p.quantidadePassageiros) || 1);
-    const totalBagagens = (parseFloat(p.valorPorMala) || 0) * (parseInt(p.quantidadeMalasDespachadas) || 0);
-    const totalTaxas = parseFloat(p.taxasEmbarque) || 0;
-    const totalAssentos = parseFloat(p.assentosConforto) || 0;
+    const totalBagagens = isAereo ? ((parseFloat(p.valorPorMala) || 0) * (parseInt(p.quantidadeMalasDespachadas) || 0)) : 0;
+    const totalTaxas = isAereo ? (parseFloat(p.taxasEmbarque) || 0) : 0;
+    const totalAssentos = isAereo ? (parseFloat(p.assentosConforto) || 0) : 0;
 
     const subtotalMoedaLocal = totalTarifas + totalBagagens + totalTaxas + totalAssentos;
     const totalBRL = subtotalMoedaLocal * cot;
@@ -697,7 +698,8 @@ const Viagens = () => {
       totalAssentos,
       subtotalMoedaLocal,
       totalBRL,
-      cotacaoUsada: cot
+      cotacaoUsada: cot,
+      isAereo
     };
   }, [transportePassagens, getCotacaoMoeda]);
 
@@ -1233,7 +1235,33 @@ const Viagens = () => {
                           </label>
                           <select
                             value={transportePassagens.tipo}
-                            onChange={(e) => setTransportePassagens({ ...transportePassagens, tipo: e.target.value })}
+                            onChange={(e) => {
+                              const novoTipo = e.target.value;
+                              let novaDescricao = transportePassagens.descricao;
+                              const descricoesPadrao = [
+                                'Passagens Aéreas (Ida e Volta)',
+                                'Passagens de Trem de Alta Velocidade',
+                                'Passagens de Ônibus Rodoviário',
+                                'Transfer / Translado Executivo'
+                              ];
+                              if (descricoesPadrao.includes(novaDescricao) || !novaDescricao) {
+                                if (novoTipo === 'aereo') novaDescricao = 'Passagens Aéreas (Ida e Volta)';
+                                else if (novoTipo === 'trem') novaDescricao = 'Passagens de Trem de Alta Velocidade';
+                                else if (novoTipo === 'onibus') novaDescricao = 'Passagens de Ônibus Rodoviário';
+                                else if (novoTipo === 'transfer') novaDescricao = 'Transfer / Translado Executivo';
+                              }
+                              setTransportePassagens({
+                                ...transportePassagens,
+                                tipo: novoTipo,
+                                descricao: novaDescricao,
+                                ...(novoTipo !== 'aereo' ? {
+                                  taxasEmbarque: 0,
+                                  quantidadeMalasDespachadas: 0,
+                                  valorPorMala: 0,
+                                  assentosConforto: 0
+                                } : {})
+                              });
+                            }}
                             className="w-full mt-1.5 bg-custom-primary text-custom-main px-4 py-2.5 border border-custom-color rounded-xl text-sm md:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer shadow-xs"
                           >
                             <option value="aereo">✈️ Aéreo (Avião)</option>
@@ -1269,66 +1297,81 @@ const Viagens = () => {
                           />
                         </div>
 
-                        <div>
-                          <label className="text-xs md:text-sm font-bold text-gray-700 dark:text-slate-300">
-                            Taxas de Embarque / Aeroporto ({formatSimboloMoeda(transportePassagens.moeda)})
-                          </label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={transportePassagens.taxasEmbarque}
-                            onChange={(e) => setTransportePassagens({ ...transportePassagens, taxasEmbarque: e.target.value })}
-                            className="w-full mt-1.5 bg-custom-primary text-custom-main px-4 py-2.5 border border-custom-color rounded-xl text-sm md:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs"
-                          />
-                        </div>
-
-                        {/* Bloco Destaque Bagagens Despachadas */}
-                        <div className="sm:col-span-2 md:col-span-2 p-4 bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/70 dark:border-sky-800/50 rounded-xl space-y-3">
-                          <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-bold text-sm">
-                            <Luggage className="w-4 h-4 text-sky-500" />
-                            <span>Despacho de Bagagens (Malas 23kg)</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Campos específicos para Aéreo (Avião) */}
+                        {transportePassagens.tipo === 'aereo' ? (
+                          <>
                             <div>
-                              <label className="text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Qtd Total de Malas Despachadas
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                value={transportePassagens.quantidadeMalasDespachadas}
-                                onChange={(e) => setTransportePassagens({ ...transportePassagens, quantidadeMalasDespachadas: e.target.value })}
-                                className="w-full mt-1 bg-custom-primary text-custom-main px-3 py-2 border border-custom-color rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-semibold text-gray-600 dark:text-slate-300">
-                                Valor por Mala ({formatSimboloMoeda(transportePassagens.moeda)})
+                              <label className="text-xs md:text-sm font-bold text-gray-700 dark:text-slate-300">
+                                Taxas de Embarque / Aeroporto ({formatSimboloMoeda(transportePassagens.moeda)})
                               </label>
                               <input
                                 type="number"
                                 step="0.01"
-                                min="0"
-                                value={transportePassagens.valorPorMala}
-                                onChange={(e) => setTransportePassagens({ ...transportePassagens, valorPorMala: e.target.value })}
-                                className="w-full mt-1 bg-custom-primary text-custom-main px-3 py-2 border border-custom-color rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                value={transportePassagens.taxasEmbarque}
+                                onChange={(e) => setTransportePassagens({ ...transportePassagens, taxasEmbarque: e.target.value })}
+                                className="w-full mt-1.5 bg-custom-primary text-custom-main px-4 py-2.5 border border-custom-color rounded-xl text-sm md:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs"
                               />
                             </div>
-                          </div>
-                        </div>
 
-                        <div>
-                          <label className="text-xs md:text-sm font-bold text-gray-700 dark:text-slate-300">
-                            Assentos Conforto / Extras ({formatSimboloMoeda(transportePassagens.moeda)})
-                          </label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={transportePassagens.assentosConforto}
-                            onChange={(e) => setTransportePassagens({ ...transportePassagens, assentosConforto: e.target.value })}
-                            className="w-full mt-1.5 bg-custom-primary text-custom-main px-4 py-2.5 border border-custom-color rounded-xl text-sm md:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs"
-                          />
-                        </div>
+                            {/* Bloco Destaque Bagagens Despachadas */}
+                            <div className="sm:col-span-2 md:col-span-2 p-4 bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/70 dark:border-sky-800/50 rounded-xl space-y-3">
+                              <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-bold text-sm">
+                                <Luggage className="w-4 h-4 text-sky-500" />
+                                <span>Despacho de Bagagens (Malas 23kg)</span>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                    Qtd Total de Malas Despachadas
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={transportePassagens.quantidadeMalasDespachadas}
+                                    onChange={(e) => setTransportePassagens({ ...transportePassagens, quantidadeMalasDespachadas: e.target.value })}
+                                    className="w-full mt-1 bg-custom-primary text-custom-main px-3 py-2 border border-custom-color rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                    Valor por Mala ({formatSimboloMoeda(transportePassagens.moeda)})
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={transportePassagens.valorPorMala}
+                                    onChange={(e) => setTransportePassagens({ ...transportePassagens, valorPorMala: e.target.value })}
+                                    className="w-full mt-1 bg-custom-primary text-custom-main px-3 py-2 border border-custom-color rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-xs md:text-sm font-bold text-gray-700 dark:text-slate-300">
+                                Assentos Conforto / Extras ({formatSimboloMoeda(transportePassagens.moeda)})
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={transportePassagens.assentosConforto}
+                                onChange={(e) => setTransportePassagens({ ...transportePassagens, assentosConforto: e.target.value })}
+                                className="w-full mt-1.5 bg-custom-primary text-custom-main px-4 py-2.5 border border-custom-color rounded-xl text-sm md:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs"
+                              />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="sm:col-span-2 md:col-span-3 p-4 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl flex items-center gap-3 text-xs md:text-sm text-emerald-800 dark:text-emerald-300">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                            <div>
+                              <span className="font-bold">
+                                {transportePassagens.tipo === 'onibus' ? 'Ônibus Rodoviário' : transportePassagens.tipo === 'trem' ? 'Trem de Alta Velocidade' : 'Transfer Executivo'}:
+                              </span>{' '}
+                              Bagagens e taxas já estão inclusas na tarifa da passagem. Não há custos de despacho de 23kg ou taxas de aeroporto. Basta informar o valor do bilhete e passageiros!
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1336,8 +1379,14 @@ const Viagens = () => {
                     <div className="bg-custom-card p-6 md:p-7 rounded-2xl border border-custom-color shadow-custom space-y-5 flex flex-col justify-between">
                       <div className="space-y-4">
                         <h4 className="font-extrabold text-lg md:text-xl text-custom-main flex items-center gap-2">
-                          <Plane className="w-5 h-5 text-sky-500" />
-                          Resumo de Transporte Aéreo
+                          {transportePassagens.tipo === 'aereo' && <Plane className="w-5 h-5 text-sky-500" />}
+                          {transportePassagens.tipo === 'trem' && <Train className="w-5 h-5 text-sky-500" />}
+                          {transportePassagens.tipo === 'onibus' && <Bus className="w-5 h-5 text-sky-500" />}
+                          {transportePassagens.tipo === 'transfer' && <Car className="w-5 h-5 text-sky-500" />}
+                          {transportePassagens.tipo === 'aereo' && 'Resumo de Transporte Aéreo'}
+                          {transportePassagens.tipo === 'trem' && 'Resumo de Trem Ferroviário'}
+                          {transportePassagens.tipo === 'onibus' && 'Resumo de Ônibus Rodoviário'}
+                          {transportePassagens.tipo === 'transfer' && 'Resumo de Transfer / Translado'}
                         </h4>
                         <div className="space-y-2.5 text-sm md:text-base">
                           <div className="flex justify-between py-1.5 border-b border-custom-color">
@@ -1349,22 +1398,36 @@ const Viagens = () => {
                             </span>
                           </div>
 
-                          <div className="flex justify-between py-1.5 border-b border-custom-color">
-                            <span className="text-gray-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                              <Luggage className="w-4 h-4 text-sky-500" />
-                              Bagagens ({transportePassagens.quantidadeMalasDespachadas} malas):
-                            </span>
-                            <span className="font-bold text-custom-main">
-                              {formatSimboloMoeda(transportePassagens.moeda)} {resultadoPassagens.totalBagagens.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                          </div>
+                          {transportePassagens.tipo === 'aereo' ? (
+                            <>
+                              <div className="flex justify-between py-1.5 border-b border-custom-color">
+                                <span className="text-gray-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                                  <Luggage className="w-4 h-4 text-sky-500" />
+                                  Bagagens ({transportePassagens.quantidadeMalasDespachadas} malas):
+                                </span>
+                                <span className="font-bold text-custom-main">
+                                  {formatSimboloMoeda(transportePassagens.moeda)} {resultadoPassagens.totalBagagens.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              </div>
 
-                          <div className="flex justify-between py-1.5 border-b border-custom-color">
-                            <span className="text-gray-500 dark:text-slate-400 font-medium">Taxas e Assentos:</span>
-                            <span className="font-bold text-custom-main">
-                              {formatSimboloMoeda(transportePassagens.moeda)} {(resultadoPassagens.totalTaxas + resultadoPassagens.totalAssentos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                          </div>
+                              <div className="flex justify-between py-1.5 border-b border-custom-color">
+                                <span className="text-gray-500 dark:text-slate-400 font-medium">Taxas e Assentos:</span>
+                                <span className="font-bold text-custom-main">
+                                  {formatSimboloMoeda(transportePassagens.moeda)} {(resultadoPassagens.totalTaxas + resultadoPassagens.totalAssentos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex justify-between py-1.5 border-b border-custom-color">
+                              <span className="text-gray-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                                <Luggage className="w-4 h-4 text-emerald-500" />
+                                Bagagens & Taxas:
+                              </span>
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-xs md:text-sm">
+                                Inclusas na passagem (Grátis)
+                              </span>
+                            </div>
+                          )}
 
                           {transportePassagens.moeda !== 'BRL' && (
                             <div className="flex justify-between py-1.5 border-b border-custom-color text-sky-600 dark:text-sky-400 font-bold">
@@ -1385,12 +1448,16 @@ const Viagens = () => {
                       <button
                         onClick={() => adicionarItemNaViagem({
                           pilar: 'transporte',
-                          descricao: `${transportePassagens.descricao} (${transportePassagens.quantidadePassageiros} pass. / ${transportePassagens.quantidadeMalasDespachadas} malas)`,
+                          descricao: transportePassagens.tipo === 'aereo'
+                            ? `${transportePassagens.descricao} (${transportePassagens.quantidadePassageiros} pass. / ${transportePassagens.quantidadeMalasDespachadas} malas)`
+                            : `${transportePassagens.descricao} (${transportePassagens.quantidadePassageiros} pass. - bagagens inclusas)`,
                           valorPrevisto: resultadoPassagens.totalBRL,
                           valorMoedaOriginal: resultadoPassagens.subtotalMoedaLocal,
                           moeda: transportePassagens.moeda,
                           cotacaoUtilizada: resultadoPassagens.cotacaoUsada,
-                          observacoes: `${transportePassagens.quantidadePassageiros} passageiro(s) + ${transportePassagens.quantidadeMalasDespachadas} mala(s) despachada(s)${transportePassagens.moeda !== 'BRL' ? ` (${resultadoPassagens.subtotalMoedaLocal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${transportePassagens.moeda} @ R$ ${resultadoPassagens.cotacaoUsada.toFixed(3)})` : ''}`
+                          observacoes: transportePassagens.tipo === 'aereo'
+                            ? `${transportePassagens.quantidadePassageiros} passageiro(s) + ${transportePassagens.quantidadeMalasDespachadas} mala(s) despachada(s)${transportePassagens.moeda !== 'BRL' ? ` (${resultadoPassagens.subtotalMoedaLocal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${transportePassagens.moeda} @ R$ ${resultadoPassagens.cotacaoUsada.toFixed(3)})` : ''}`
+                            : `${transportePassagens.quantidadePassageiros} passageiro(s) (${transportePassagens.tipo === 'onibus' ? 'Ônibus' : transportePassagens.tipo === 'trem' ? 'Trem' : 'Transfer'}) - Bagagens inclusas${transportePassagens.moeda !== 'BRL' ? ` (${resultadoPassagens.subtotalMoedaLocal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${transportePassagens.moeda} @ R$ ${resultadoPassagens.cotacaoUsada.toFixed(3)})` : ''}`
                         })}
                         className="w-full py-3.5 px-5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm md:text-base font-bold shadow-custom transition cursor-pointer flex items-center justify-center gap-2"
                       >

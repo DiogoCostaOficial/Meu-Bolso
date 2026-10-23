@@ -2,21 +2,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Shield, Mail, Loader2, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Shield, Mail, Loader2, AlertCircle, CheckCircle, Clock, ExternalLink } from 'lucide-react';
+import LanguageSelector from '../LanguageSelector';
 
 const ValidarOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { validateOTP, resendOTP } = useAuth();
 
-  const email = location.state?.email || '';
+  const email = (location.state?.email || sessionStorage.getItem('otp_email') || '').trim().toLowerCase();
+  const isOutlookEmail = /@(outlook|hotmail|live|msn)\./i.test(email) || location.state?.provider === 'outlook';
+  const isGmailEmail = /@(gmail|googlemail)\./i.test(email);
 
   const [codigo, setCodigo] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
-  const [tempoRestante, setTempoRestante] = useState(120); // 2 minutos em segundos
+  const [tempoRestante, setTempoRestante] = useState(300); // 5 minutos em segundos
+  const [otpSimulado, setOtpSimulado] = useState(location.state?.otpSimulado || '');
 
   // Countdown timer
   useEffect(() => {
@@ -26,9 +30,11 @@ const ValidarOTP = () => {
     }
   }, [tempoRestante]);
 
-  // Redireciona se não tiver email
+  // Salva email no sessionStorage ou redireciona se não tiver email
   useEffect(() => {
-    if (!email) {
+    if (email) {
+      sessionStorage.setItem('otp_email', email);
+    } else {
       navigate('/cadastro');
     }
   }, [email, navigate]);
@@ -119,7 +125,10 @@ const ValidarOTP = () => {
 
       if (result.success) {
         setSuccess('Novo código enviado para seu e-mail!');
-        setTempoRestante(120); // Reinicia o timer para 2 minutos
+        if (result.otpSimulado) {
+          setOtpSimulado(result.otpSimulado);
+        }
+        setTempoRestante(300); // Reinicia o timer para 5 minutos
         setCodigo(['', '', '', '', '', '']);
         document.getElementById('otp-0')?.focus();
       } else {
@@ -133,7 +142,10 @@ const ValidarOTP = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 px-4 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-slate-950 px-4 transition-colors duration-300 relative">
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
+      </div>
       <div className="max-w-md w-full">
         {/* Card */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-800 transition-colors">
@@ -152,7 +164,48 @@ const ValidarOTP = () => {
               <Mail className="w-4 h-4 mr-2" />
               {email}
             </p>
+
+            {/* Atalhos rápidos para abrir caixa de entrada */}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <a
+                href="https://mail.google.com/mail/u/0/#inbox"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                  isGmailEmail
+                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm'
+                    : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:border-blue-500'
+                }`}
+              >
+                <span>Abrir Gmail</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <a
+                href="https://outlook.live.com/mail/0/inbox"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                  isOutlookEmail
+                    ? 'bg-[#0078D4] text-white border-[#0078D4] hover:bg-[#106EBE] shadow-sm'
+                    : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:border-[#0078D4]'
+                }`}
+              >
+                <span>Abrir Outlook</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
           </div>
+
+          {otpSimulado && (
+            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+              <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">
+                🛠️ Ambiente de Homologação Local (código simulado):
+              </p>
+              <p className="text-xl font-bold tracking-widest text-amber-900 dark:text-amber-200 mt-1">
+                {otpSimulado}
+              </p>
+            </div>
+          )}
 
           {/* Timer */}
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center border border-blue-100 dark:border-blue-900/30">
@@ -221,7 +274,7 @@ const ValidarOTP = () => {
             </p>
             <button
               onClick={handleResend}
-              disabled={resendLoading || tempoRestante > 60} // Permite reenviar após 1 minuto
+              disabled={resendLoading || tempoRestante > 240} // Permite reenviar após 1 minuto
               className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm disabled:text-gray-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed transition"
             >
               {resendLoading ? (

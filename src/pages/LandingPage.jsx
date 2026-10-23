@@ -10,9 +10,17 @@ import {
   DollarSign,
   Wallet,
   Quote,
-  Lightbulb
+  Lightbulb,
+  CreditCard,
+  Plane,
+  Globe,
+  Sparkles,
+  Gamepad2,
+  Mail,
+  CheckCircle2
 } from 'lucide-react';
 import { ModeToggle } from '../components/mode-toggle';
+import LanguageSelector from '../components/LanguageSelector';
 import { useTheme } from '../components/theme-provider';
 import { useLayoutVariant } from '../contexts/LayoutVariantContext';
 
@@ -36,7 +44,7 @@ const LandingPage = () => {
     <div className={`min-h-screen bg-custom-primary text-custom-main font-sans transition-colors duration-300 layout-${layoutVariant}`}>
       {/* Header/Navbar */}
       <header className="fixed top-0 w-full bg-custom-card/90 border-b border-custom-color backdrop-blur-md shadow-custom z-50 transition-colors">
-        <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <nav className="container mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center space-x-2">
             <Wallet className="w-8 h-8 text-custom-gold" />
             <span className="text-2xl font-bold text-custom-gold">
@@ -44,7 +52,11 @@ const LandingPage = () => {
             </span>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-8">
+            <a href="#novidades" className="text-custom-gold font-bold hover:opacity-80 transition flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" />
+              Novidades
+            </a>
             <a href="#importancia" className="text-custom-main opacity-85 hover:text-custom-gold hover:opacity-100 transition font-medium">
               Por que controlar?
             </a>
@@ -53,17 +65,18 @@ const LandingPage = () => {
             </a>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2.5 sm:space-x-3">
+            <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
             <ModeToggle />
             <button
               onClick={() => navigate('/login')}
-              className="px-4 py-2 text-custom-main opacity-85 hover:opacity-100 font-medium transition"
+              className="px-3 sm:px-4 py-2 text-custom-main opacity-85 hover:opacity-100 font-medium transition cursor-pointer"
             >
               Entrar
             </button>
             <button
               onClick={() => navigate('/cadastro')}
-              className="px-6 py-2 bg-custom-gold text-black font-bold rounded-full hover:opacity-95 transform hover:scale-105 transition shadow-custom"
+              className="px-5 sm:px-6 py-2 bg-custom-gold text-black font-bold rounded-full hover:opacity-95 transform hover:scale-105 transition shadow-custom cursor-pointer"
             >
               Criar Conta
             </button>
@@ -128,6 +141,105 @@ const LandingPage = () => {
                     <p className="text-lg font-bold text-custom-main">Liberdade Financeira</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Novidades & Atualizações Section */}
+      <section id="novidades" className="py-20 bg-custom-card border-t border-b border-custom-color transition-colors relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-custom-gold/15 text-custom-gold rounded-full text-xs font-extrabold uppercase tracking-wider mb-4 border border-custom-gold/30">
+              <Sparkles className="w-4 h-4" />
+              Novidades & Atualizações Recentes
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-custom-main mb-4">
+              O que há de novo no <span className="text-custom-gold">Meu Bolso</span>?
+            </h2>
+            <p className="text-lg text-custom-main opacity-80">
+              Evoluímos a plataforma para tornar o cuidado com o seu dinheiro mais rápido, inteligente e divertido — desde o primeiro clique.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Update 1: Mascote FIN */}
+            <div className="bg-custom-primary p-6 rounded-2xl border border-custom-color shadow-custom hover:border-custom-gold/50 transition flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <img
+                    src="/assets/fin_gold_boy.png"
+                    alt="Mascote FIN"
+                    className="w-14 h-14 rounded-full border-2 border-custom-gold object-cover bg-slate-800 shadow-md"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                  <div>
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-custom-gold text-black">
+                      Novo Mascote
+                    </span>
+                    <h3 className="text-lg font-bold text-custom-main mt-1">
+                      FIN: Seu Melhor Amigo
+                    </h3>
+                  </div>
+                </div>
+                <p className="text-sm text-custom-main opacity-80 leading-relaxed">
+                  Logo no primeiro acesso, o <strong>FIN</strong> conversa olho no olho com você e ensina a regra nº 1: <strong>Dar Nome ao Dinheiro</strong>, explicando finanças de um jeito leve e divertido — fácil como dividir um pote de balinhas!
+                </p>
+              </div>
+            </div>
+
+            {/* Update 2: Quiz Posso Gastar */}
+            <div className="bg-custom-primary p-6 rounded-2xl border border-custom-color shadow-custom hover:border-custom-gold/50 transition flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 bg-custom-gold/15 text-custom-gold rounded-xl flex items-center justify-center mb-4 border border-custom-gold/30">
+                  <Gamepad2 className="w-6 h-6" />
+                </div>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Interativo
+                </span>
+                <h3 className="text-lg font-bold text-custom-main mt-2 mb-2">
+                  Quiz: "Posso Gastar?"
+                </h3>
+                <p className="text-sm text-custom-main opacity-80 leading-relaxed">
+                  Em dúvida antes de comprar? Diga ao FIN quanto pretende gastar e onde: ele consulta suas <strong>metas reais de Orçamento</strong> na hora e avisa se o pote está no Sinal Verde, Amarelo ou Vermelho!
+                </p>
+              </div>
+            </div>
+
+            {/* Update 3: Login Rápido Google & Outlook OTP */}
+            <div className="bg-custom-primary p-6 rounded-2xl border border-custom-color shadow-custom hover:border-custom-gold/50 transition flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 bg-custom-gold/15 text-custom-gold rounded-xl flex items-center justify-center mb-4 border border-custom-gold/30">
+                  <Mail className="w-6 h-6" />
+                </div>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                  Acesso Rápido
+                </span>
+                <h3 className="text-lg font-bold text-custom-main mt-2 mb-2">
+                  Login Google & Outlook OTP
+                </h3>
+                <p className="text-sm text-custom-main opacity-80 leading-relaxed">
+                  Entre com 1 clique pelo <strong>Google</strong> ou utilize o novo acesso rápido para <strong>Outlook / Hotmail</strong> via código de segurança (OTP de 5 minutos) com atalhos diretos para abrir seu e-mail.
+                </p>
+              </div>
+            </div>
+
+            {/* Update 4: Conversão Multimoeda & Status */}
+            <div className="bg-custom-primary p-6 rounded-2xl border border-custom-color shadow-custom hover:border-custom-gold/50 transition flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 bg-custom-gold/15 text-custom-gold rounded-xl flex items-center justify-center mb-4 border border-custom-gold/30">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  Controle Total
+                </span>
+                <h3 className="text-lg font-bold text-custom-main mt-2 mb-2">
+                  Multimoeda & Status Pago
+                </h3>
+                <p className="text-sm text-custom-main opacity-80 leading-relaxed">
+                  Converta qualquer tela instantaneamente entre <strong>Real (BRL), Dólar (USD) e Euro (EUR)</strong> com cotação ao vivo, e controle suas despesas entre <em>Pagas</em> e <em>Pendentes</em>.
+                </p>
               </div>
             </div>
           </div>
@@ -230,12 +342,24 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
                 icon: <DollarSign className="w-8 h-8 text-black" />,
                 title: "Controle de Fluxo",
                 desc: "Visualize claramente suas entradas e saídas. Saiba exatamente quanto sobra no final do mês.",
+                color: "bg-custom-gold"
+              },
+              {
+                icon: <CreditCard className="w-8 h-8 text-black" />,
+                title: "Múltiplos Cartões",
+                desc: "Gerencie todas as suas bandeiras, faturas, limites e compras parceladas em um único painel organizado.",
+                color: "bg-custom-gold"
+              },
+              {
+                icon: <Plane className="w-8 h-8 text-black" />,
+                title: "Planejamento de Viagens",
+                desc: "Simule roteiros completos com passagens, bagagens, hospedagem, gorjetas, câmbio em tempo real (IOF) e gastos multimoeda.",
                 color: "bg-custom-gold"
               },
               {
@@ -248,6 +372,12 @@ const LandingPage = () => {
                 icon: <TrendingUp className="w-8 h-8 text-black" />,
                 title: "Metas Financeiras",
                 desc: "Defina objetivos e acompanhe seu progresso. A motivação que você precisa para continuar.",
+                color: "bg-custom-gold"
+              },
+              {
+                icon: <Globe className="w-8 h-8 text-black" />,
+                title: "DRE & Multimoeda",
+                desc: "Acompanhe seu Demonstrativo de Resultados mensal, trimestral ou anual com conversão automática para Dólar, Euro e Libra.",
                 color: "bg-custom-gold"
               }
             ].map((feature, index) => (
@@ -294,15 +424,20 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-custom-card text-custom-main opacity-80 py-12 border-t border-custom-color">
+      <footer className="bg-custom-card text-custom-main opacity-90 py-12 border-t border-custom-color">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center space-x-2">
               <Wallet className="w-6 h-6 text-custom-gold" />
               <span className="text-lg font-bold text-custom-main">Meu Bolso</span>
             </div>
 
-            <div className="text-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-custom-main opacity-70">Idioma:</span>
+              <LanguageSelector variant="footer" align="right" showQuickFeatured={true} />
+            </div>
+
+            <div className="text-sm opacity-80">
               © {new Date().getFullYear()} Meu Bolso. Feito com 💙 para sua liberdade.
             </div>
           </div>
