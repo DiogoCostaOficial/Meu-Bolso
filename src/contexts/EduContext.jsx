@@ -1,9 +1,23 @@
 import React, { createContext, useState, useContext, useCallback, useMemo } from 'react';
-import { EDU_CONTENT, analyzeFinances, TRANSITION_MESSAGES } from '../utils/eduContent';
+import { useAuth } from './AuthContext';
+import { obterTratamentoUsuario } from '../utils/userTreatment';
+import { buildEduContent, analyzeFinances, getTransitionMessages } from '../utils/eduContent';
 
 const EduContext = createContext();
 
 export const EduProvider = ({ children }) => {
+    let authUser = null;
+    try {
+        const auth = useAuth();
+        authUser = auth?.user;
+    } catch {
+        authUser = null;
+    }
+
+    const { primeiroNome, vocativo } = useMemo(() => {
+        return obterTratamentoUsuario(authUser?.nome);
+    }, [authUser?.nome]);
+
     const [isVisible, setIsVisible] = useState(false);
     const [currentTopic, setCurrentTopic] = useState(null);
     const [financialData, setFinancialData] = useState({ receitas: 0, despesas: 0 });
@@ -109,19 +123,23 @@ export const EduProvider = ({ children }) => {
             const oldRank = hierarchy[prevMascot] !== undefined ? hierarchy[prevMascot] : 1;
             const newRank = hierarchy[newState];
 
+            const transMsgs = getTransitionMessages({ primeiroNome, vocativo });
+
             if (newRank > oldRank) {
-                setTransitionMessage(TRANSITION_MESSAGES.upgrade);
+                setTransitionMessage(transMsgs.upgrade);
                 setIsVisible(true);
             } else if (newRank < oldRank) {
-                setTransitionMessage(TRANSITION_MESSAGES.downgrade);
+                setTransitionMessage(transMsgs.downgrade);
                 setIsVisible(true);
             }
 
             return newState;
         });
-    }, []);
+    }, [primeiroNome, vocativo]);
 
     const getLessonContent = useCallback(() => {
+        const transitionMsgs = getTransitionMessages({ primeiroNome, vocativo });
+
         // Prioridade para mensagem de transição
         if (transitionMessage) {
             return {
@@ -148,10 +166,12 @@ export const EduProvider = ({ children }) => {
 
         if (!topic) topic = 'dashboard';
 
+        const eduContent = buildEduContent({ primeiroNome, vocativo });
+
         // Se for uma análise geral (ex: dashboard), combina conteúdo estático com análise dinâmica
         if (topic === 'dashboard') {
-            const baseContent = EDU_CONTENT['dashboard'] || {};
-            const analysis = analyzeFinances(financialData.receitas, financialData.despesas);
+            const baseContent = eduContent['dashboard'] || {};
+            const analysis = analyzeFinances(financialData.receitas, financialData.despesas, { primeiroNome, vocativo });
 
             return {
                 ...baseContent,
@@ -159,8 +179,8 @@ export const EduProvider = ({ children }) => {
             };
         }
 
-        return EDU_CONTENT[topic] || EDU_CONTENT['dashboard'];
-    }, [currentTopic, transitionMessage, financialData]);
+        return eduContent[topic] || eduContent['dashboard'];
+    }, [currentTopic, transitionMessage, financialData, primeiroNome, vocativo]);
 
     const contextValue = useMemo(() => ({
         isVisible,
@@ -172,7 +192,9 @@ export const EduProvider = ({ children }) => {
         undockMascot,
         updateFinancialData,
         getLessonContent,
-        mascotState
+        mascotState,
+        primeiroNome,
+        vocativo
     }), [
         isVisible,
         showLesson,
@@ -183,7 +205,9 @@ export const EduProvider = ({ children }) => {
         undockMascot,
         updateFinancialData,
         getLessonContent,
-        mascotState
+        mascotState,
+        primeiroNome,
+        vocativo
     ]);
 
     return (

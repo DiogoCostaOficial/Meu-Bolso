@@ -24,7 +24,7 @@ const CATEGORIAS_PADRAO_QUIZ = [
 
 const EduMascot = () => {
     const navigate = useNavigate();
-    const { isVisible, hideMascot, toggleMascot, isDocked, dockMascot, getLessonContent, mascotState } = useEdu();
+    const { isVisible, hideMascot, toggleMascot, isDocked, dockMascot, getLessonContent, mascotState, primeiroNome, vocativo } = useEdu();
     const { formatCurrency } = useCurrency();
     const [userQuestion, setUserQuestion] = useState('');
     const [chatbotResponse, setChatbotResponse] = useState(null);
@@ -107,7 +107,8 @@ const EduMascot = () => {
                 categoria: quizCategoria,
                 tipoEscolha: quizTipoEscolha
             },
-            formatCurrency
+            formatCurrency,
+            { primeiroNome, vocativo }
         );
         setQuizResult(resultado);
     };
@@ -199,7 +200,7 @@ const EduMascot = () => {
 
         setIsQuizOpen(false);
         setQuizResult(null);
-        const response = askFinAboutSystem(userQuestion);
+        const response = askFinAboutSystem(userQuestion, { primeiroNome, vocativo });
         setChatbotResponse({
             question: userQuestion,
             answer: response
@@ -276,10 +277,10 @@ const EduMascot = () => {
                             </div>
                             <div>
                                 <h3 className="text-base font-bold leading-tight">
-                                    {isQuizOpen ? '🍬 Quiz de Melhores Amigos: Posso Gastar?' : content.title}
+                                    {isQuizOpen ? '🍬 Quiz: Posso Gastar?' : content.title}
                                 </h3>
                                 <p className="text-xs text-amber-500 font-semibold">
-                                    {isQuizOpen ? 'O FIN conta as balinhas do seu pote na hora!' : 'FIN • Seu Melhor Amigo aqui na Tela'}
+                                    {isQuizOpen ? 'O FIN calcula o impacto no seu pote na hora!' : 'FIN • Seu Conselheiro Financeiro'}
                                 </p>
                             </div>
                         </div>
@@ -382,12 +383,12 @@ const EduMascot = () => {
                             ) : (
                                 <form onSubmit={handleRunQuiz} className="space-y-3">
                                     <p className="text-xs opacity-90 leading-relaxed">
-                                        Psst! Eu vi você pegando a carteira aí fora da tela! 👀 Conta pro seu melhor amigo o que você quer comprar que eu corro lá no seu pote do <strong>Orçamento</strong> pra ver se sobra balinha! 👇
+                                        Psst! Eu vi você pegando a carteira aí fora da tela! 👀 Me conta aqui, <strong>{vocativo}</strong>, o que você quer comprar que eu corro lá no seu pote do <strong>Orçamento</strong> pra ver se sobra balinha! 👇
                                     </p>
 
                                     <div>
                                         <label className="block text-xs font-bold mb-1 text-amber-500">
-                                            1. Onde ou com o quê você quer gastar, amigo?
+                                            1. Onde ou com o quê você quer gastar, {vocativo}?
                                         </label>
                                         <input
                                             type="text"
@@ -593,7 +594,7 @@ const EduMascot = () => {
                                 onClick={() => {
                                     setIsQuizOpen(false);
                                     setQuizResult(null);
-                                    const response = askFinAboutSystem(chip.query);
+                                    const response = askFinAboutSystem(chip.query, { primeiroNome, vocativo });
                                     setChatbotResponse({
                                         question: chip.query,
                                         answer: response

@@ -179,7 +179,7 @@ const LandingPage = () => {
                       Novo Mascote
                     </span>
                     <h3 className="text-lg font-bold text-custom-main mt-1">
-                      FIN: Seu Melhor Amigo
+                      FIN: Seu Conselheiro Financeiro
                     </h3>
                   </div>
                 </div>

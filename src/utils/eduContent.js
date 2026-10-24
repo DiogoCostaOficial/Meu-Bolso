@@ -1,7 +1,21 @@
-export const EDU_CONTENT = {
+/**
+ * Conteúdo pedagógico e lúdico do mascote FIN.
+ *
+ * Tom de Voz Personalizado:
+ * - Alternância natural: saudações pelo primeiro nome ("E aí, Elaine!"),
+ *   conselhos e puxões de orelha pelo vocativo de carinho ("Olha aqui, amiga...").
+ * - NUNCA misturar os dois na mesma oração ("Elaine, amiga!" é evitado).
+ */
+
+export const buildEduContent = ({ primeiroNome = '', vocativo = 'amigo' } = {}) => {
+  const saudacaoDashboard = primeiroNome ? `E aí, ${primeiroNome}! Olha o nosso Painel! 👀🍬` : `E aí, ${vocativo}! Olha o nosso Painel! 👀🍬`;
+  const saudacaoInicio = primeiroNome ? `Oi, ${primeiroNome}!` : `Oi, ${vocativo}!`;
+  const saudacaoUpdate = primeiroNome ? `Ei, ${primeiroNome}!` : `Ei, ${vocativo}!`;
+
+  return {
     primeiro_acesso_nome_dinheiro: {
         title: "Psst! Ei, você aí fora da tela! Toca aqui! ✋🍬",
-        explanation: "Oi, meu melhor amigo! Eu sou o FIN e moro aqui dentro da sua tela! Chega mais pertinho que eu vou te contar o maior segredo do mundo: sabe quando você vai na padaria com 10 moedinhas no bolso, sem decidir antes o que vai fazer com elas? Você acaba comprando tudo em balinha de morango e depois falta moeda pro lanche! Por isso, a nossa regra número 1 de melhores amigos é: DAR NOME PRO DINHEIRO logo de cara!",
+        explanation: `${saudacaoInicio} Eu sou o FIN e moro aqui dentro da sua tela! Chega mais pertinho que eu vou te contar um segredo de ouro: sabe quando você vai na padaria com 10 moedinhas no bolso, sem decidir antes o que vai fazer com elas? Você acaba comprando tudo em balinha de morango e depois falta moeda pro lanche! Por isso, a nossa regra número 1 aqui é: DAR NOME PRO DINHEIRO logo de cara!`,
         analogy: "Funciona assim, ó: cada moedinha que entra aqui no app é como uma balinha no seu pote. Antes de chupar todas de uma vez, a gente cola uma etiquetinha nelas lá na tela de Orçamento: 'Essa balinha se chama Conta de Luz', 'Essa se chama Lanche de Sábado' e 'Essa se chama Meu Grande Sonho'. Se a balinha já tem nome, você não come ela sem querer!",
         tips: [
             "🏷️ Promete de dedinho? Assim que entrar dinheiro, a gente vai juntos lá em 'Orçamento' colar o nome em cada potinho!",
@@ -14,7 +28,7 @@ export const EDU_CONTENT = {
         }
     },
     dashboard: {
-        title: "E aí, melhor amigo! Olha o nosso Painel! 👀🍬",
+        title: saudacaoDashboard,
         explanation: "Psst! Eu tô te vendo daqui de dentro da tela! Essa tela aqui é o nosso esconderijo secreto (o Dashboard). É tipo olhar pra dentro da nossa mochila pra contar quantas balinhas entraram, quantas a gente já chupou e quantas ainda estão guardadinhas no bolso!",
         analogy: "Sabe quando a gente abre o pote de doces pra ver se tá cheio até a tampa ou se só sobrou o papelzinho no fundo? É exatamente o que esses números aqui em cima mostram pra gente!",
         tips: [
@@ -26,7 +40,7 @@ export const EDU_CONTENT = {
     receitas: {
         title: "Oba! Dia de Encher o Pote de Balinhas! 🎉🍬",
         explanation: "Eu vi esse sorrisinho aí do outro lado da tela! Receitas são todas as moedinhas novas que chegaram no seu bolso — salário, mesada, um bico que você fez ou qualquer dinheirinho que pingou!",
-        analogy: "Imagina que você ganhou um pacote gigante de balinhas novinhas! Só que ó, escuta seu melhor amigo aqui: não vai sair distribuindo tudo sem antes colar nome nelas, hein?",
+        analogy: `Imagina que você ganhou um pacote gigante de balinhas novinhas! Só que ó, escuta aqui, ${vocativo}: não vai sair distribuindo tudo sem antes colar nome nelas, hein?`,
         tips: [
             "📝 Anota tudinho aqui pra mim, até as moedinhas pequenininhas!",
             "🏷️ Acabou de anotar? Corre lá em 'Orçamento' pra gente dar um nome pra cada pedacinho desse dinheiro!",
@@ -35,11 +49,11 @@ export const EDU_CONTENT = {
     },
     despesas: {
         title: "Eita! Tô vendo você tirando moeda do bolso! 👀💸",
-        explanation: "Ei, pode me contar tudo, somos melhores amigos! Despesas são todas as vezes que você troca suas moedinhas por alguma coisa lá fora: conta de luz, mercado, pizza ou até uma balinha na esquina!",
+        explanation: `Ei, pode me contar tudo, ${vocativo}! Despesas são todas as vezes que você troca suas moedinhas por alguma coisa lá fora: conta de luz, mercado, pizza ou até uma balinha na esquina!`,
         analogy: "É como fazer um furinho no fundo do nosso saco de balas. Se você fizer um furinho pequenininho pra cada doce que compra na rua, quando olhar pro saco... cadê as balas?!",
         tips: [
             "🍬 Não esconde nada de mim! Anota até aquela balinha ou cafezinho baratinho, porque de grão em grão eles esvaziam o pote.",
-            "🤔 Antes de pagar, olha pra mim aqui na tela e responde: 'Você PRECISA mesmo disso ou só deu vontade de comer doce agora?'",
+            `🤔 Antes de pagar, olha pra mim aqui na tela e me responde: você PRECISA mesmo disso agora ou só deu vontade de comer doce?`,
             "🎮 Na dúvida se pode gastar? Clica no botão 'Quiz: Posso Gastar?' aqui no meu balão que a gente testa juntos!"
         ]
     },
@@ -78,7 +92,7 @@ export const EDU_CONTENT = {
         explanation: "Os adultos chamam isso de DRE pra parecer difícil, mas entre nós dois é só o Placar Final da fase do mês! Tudo que entrou menos tudo que saiu!",
         analogy: "Sabe quando você conta quantas figurinhas tinha no começo do recreio e quantas tem no final? Se você terminou com mais figurinhas, deu LUCRO (Vitória!). Se perdeu figurinhas, deu PREJUÍZO!",
         tips: [
-            "🟢 Nosso objetivo de melhores amigos é terminar todo mês no verdinho!",
+            "🟢 Nosso objetivo aqui é terminar todo mês no verdinho!",
             "🔴 Se der vermelho, não fica triste! A gente olha onde escapou moeda e vira o jogo no mês que vem.",
             "✨ Quanto mais meses a gente vencer, mais rápido eu viro o FIN de Ouro brilhante aqui na sua tela!"
         ]
@@ -95,15 +109,18 @@ export const EDU_CONTENT = {
     },
     atualizacoes_sistema: {
         title: "Psst! Tenho um brinquedo novo pra gente! 🎮🍬",
-        explanation: "Ei, melhor amigo! Que bom que você entrou! Eu andei treinando meu cérebro aqui dentro do computador e criei um jogo novo só pra nós dois!",
+        explanation: `${saudacaoUpdate} Que bom que você entrou! Eu andei treinando meu cérebro aqui dentro do computador e criei um jogo novo só pra nós dois!`,
         analogy: "Agora, antes de você gastar seu dinheiro lá fora, você pode brincar comigo aqui dentro no 'Quiz: Posso Gastar?'!",
         tips: [
             "🎮 Quiz 'Posso Gastar?': Clica no botão dourado aqui embaixo, me conta o que você quer comprar e quanto custa, que eu abro o seu pote do Orçamento e te digo na hora se dá pra comprar!",
             "🟢 Pago ou Pendente: Nas Despesas, você pode marcar o que já pagou e o que ainda vai pagar.",
-            "💬 Bate-papo de Amigos: Pode escrever qualquer dúvida aqui embaixo que eu te explico facinho, igual dividir balinha!"
+            "💬 Bate-papo com o FIN: Pode escrever qualquer dúvida aqui embaixo que eu te explico facinho, igual dividir balinha!"
         ]
     }
+  };
 };
+
+export const EDU_CONTENT = buildEduContent();
 
 // Histórico de atualizações do sistema para o FIN avisar dinamicamente no próximo acesso
 export const SYSTEM_UPDATES = [
@@ -130,18 +147,20 @@ export const MASCOT_EXPLANATIONS = {
     gold: "UAU! Olha como eu tô brilhando em OURO aqui na sua tela! Somos a melhor dupla do mundo guardando moedinhas!"
 };
 
-export const TRANSITION_MESSAGES = {
+export const getTransitionMessages = ({ primeiroNome = '', vocativo = 'amigo' } = {}) => ({
     upgrade: {
         title: "YUPIII! Eu Subi de Nível! 🌟",
-        message: "Ei, olha aqui pro cantinho da tela! Você cuidou tão bem das nossas moedinhas que eu evoluí! Toca aqui, melhor amigo! ✋"
+        message: `Ei, olha aqui pro cantinho da tela! Você cuidou tão bem das nossas moedinhas que eu evoluí! Toca aqui, ${vocativo}! ✋`
     },
     downgrade: {
         title: "Ai, ai, ai... Eu Encolhi! 🥺",
         message: "Psst... a gente comeu balinha demais esse mês e eu encolhi! Mas não desanima, segura a minha mão que a gente arruma essa bagunça juntos!"
     }
-};
+});
 
-export const analyzeFinances = (receitas, despesas) => {
+export const TRANSITION_MESSAGES = getTransitionMessages();
+
+export const analyzeFinances = (receitas, despesas, { primeiroNome = '', vocativo = 'amigo' } = {}) => {
     const totalReceitas = receitas || 0;
     const totalDespesas = despesas || 0;
     const saldo = totalReceitas - totalDespesas;
@@ -170,7 +189,7 @@ export const analyzeFinances = (receitas, despesas) => {
             analysis.tip = "Bora carimbar esse dinheiro que sobrou com o nome do seu maior sonho?";
             analysis.explanation = MASCOT_EXPLANATIONS.gold;
         } else if (percentualEconomia > 10) {
-            analysis.status = "Mandou bem, melhor amigo! Estamos no verde! ✋🟢";
+            analysis.status = primeiroNome ? `Mandou bem, ${primeiroNome}! Estamos no verde! ✋🟢` : `Mandou bem, ${vocativo}! Estamos no verde! ✋🟢`;
             analysis.analogy = "Você chupou algumas balinhas, mas deixou um monte guardadas no pote pro resto do mês! Tô orgulhoso de você!";
             analysis.tip = "Antes de comprar mais alguma coisa, brinca no meu 'Quiz: Posso Gastar?' aqui embaixo!";
             analysis.explanation = MASCOT_EXPLANATIONS.bill;
@@ -182,11 +201,11 @@ export const analyzeFinances = (receitas, despesas) => {
         }
     } else if (saldo === 0) {
         analysis.status = "Zero a zero! Não sobrou nem uma balinha! 😮";
-        analysis.analogy = "Você comeu exatamente todas as balinhas que ganhou neste mês! O pote tá limpinho, sem nenhuma reserva!",
+        analysis.analogy = "Você comeu exatamente todas as balinhas que ganhou neste mês! O pote tá limpinho, sem nenhuma reserva!";
         analysis.tip = "No mês que vem, promete guardar a primeira balinha no cofrinho antes de gastar o resto?";
         analysis.explanation = MASCOT_EXPLANATIONS.coin;
     } else {
-        analysis.status = "SOCORRO, MELHOR AMIGO! Comemos balinha fiado! 🚨😱";
+        analysis.status = `Olha aqui, ${vocativo}: comemos balinha fiado! 🚨😱`;
         analysis.analogy = "As nossas balinhas acabaram e a gente ainda pegou balinha emprestada dos outros! O pote tá devendo moedas!";
         analysis.tip = "Tira a mão do cartão agora! Vamos olhar juntos onde dá pra cortar gastos e usar o Quiz antes de comprar qualquer coisa!";
         analysis.explanation = MASCOT_EXPLANATIONS.coin;

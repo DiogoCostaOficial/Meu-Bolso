@@ -26,7 +26,7 @@ export const FIN_WISDOM_QA_ENTRIES = [
     title: "🤔 Necessidade vs. Desejo: Almoço ou Balinha?",
     keywords: ['necessidade', 'necessidades', 'desejo', 'desejos', 'impulso', 'vontade', 'preciso', 'superfluo', 'consumo consciente'],
     matches: ['comprar', 'gastar', 'diferenca', 'escolher', 'controlar'],
-    response: "🍭 **Olha nos meus olhinhos aqui na tela, melhor amigo!**\n" +
+    response: "🍭 **Olha nos meus olhinhos aqui na tela!**\n" +
               "Antes de você tirar a carteira do bolso aí fora, lembra da diferença entre o **Almoço** e a **Balinha**:\n\n" +
               "• 🍞 **Necessidade (O Almoço):** É aquilo que se faltar, dá ruim de verdade — comida, água, luz, teto pra morar, remédio. Isso vem SEMPRE primeiro!\n" +
               "• 🍬 **Desejo (A Balinha Extra):** É aquele brinquedo novo, tênis da moda ou pedir comida cara na terça-feira. É gostoso? É! Mas você vive super bem sem ele hoje!\n" +
@@ -78,7 +78,7 @@ export const FIN_WISDOM_QA_ENTRIES = [
     matches: ['gasto', 'despesa', 'orcamento', 'comprar', 'manter'],
     response: "🚗 **Psiu! Sabe aquele carro bonitão lá na rua? Ele é um comilão de moedas disfarçado!**\n\n" +
               "• Muita gente acha que comprar carro é só pagar a parcela, mas ele pede 'balinha' todo santo mês: **Gasolina + Seguro + Imposto (IPVA) + Pneu + Oficina + Estacionamento**!\n" +
-              "• Como seu melhor amigo, eu te aviso: antes de ter ou trocar de carro, coloca todos esses gastos escondidos lá no nosso **Orçamento** pra ver se ele não vai comer as balinhas da sua família!"
+              "• Como seu conselheiro financeiro, eu te aviso: antes de ter ou trocar de carro, coloca todos esses gastos escondidos lá no nosso **Orçamento** pra ver se ele não vai comer as balinhas da sua família!"
   },
 
   // 7. Armadilhas do Cartão de Crédito, Rotativo e Cheque Especial
@@ -148,7 +148,7 @@ export const FIN_WISDOM_QA_ENTRIES = [
     title: "🐷 A Primeira Balinha do Pacote é Sua!",
     keywords: ['pague-se primeiro', 'pagar primeiro', 'guardar', 'poupar', 'dez por cento', '10%', 'cofrinho', 'sobrar'],
     matches: ['dinheiro', 'dica', 'conselho', 'economizar'],
-    response: "🐷 **Ei, me faz uma promessa de melhor amigo agora mesmo?**\n" +
+    response: "🐷 **Ei, me faz uma promessa de dedinho agora mesmo?**\n" +
               "Quando você abre um pacote com 10 balinhas e sai oferecendo pra todo mundo na rua, quantas sobram pra você no final? **Nenhuma!**\n\n" +
               "• Com o seu salário é igualzinho! Se você pagar todo mundo primeiro esperando 'sobrar no fim do mês' pra guardar, nunca sobra!\n" +
               "• A nossa regra secreta é: **entrou 10 moedinhas? A 1ª moedinha (10%) vai direto pro seu cofrinho do futuro** antes de qualquer outra coisa!"
@@ -245,10 +245,10 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
         horasDeSuor ? `⏱️ Suor de amigo: Isso vale ${horasDeSuor} horas inteirinhas do seu trabalho lá fora!` : null
       ].filter(Boolean),
       kidExplanation:
-        `Ei, melhor amigo, tira a mão da carteira por 1 segundinho! ✋ Eu dei um pulo lá nos bastidores do seu aplicativo pra contar suas balinhas de **${nomeCategoria}**, mas você ainda não colou o adesivo dizendo quanto pode gastar nesse pote!\n\n` +
+        `Ei, ${vocativo}, tira a mão da carteira por 1 segundinho! ✋ Eu dei um pulo lá nos bastidores do seu aplicativo pra contar suas balinhas de **${nomeCategoria}**, mas você ainda não colou o adesivo dizendo quanto pode gastar nesse pote!\n\n` +
         (ehDesejo
-          ? `🍭 **Papo reto de melhor amigo:** Você mesmo me confessou aqui no botão que "${nomeItem}" é só uma **Vontade de Doce (Desejo)**! Se a gente comprar no escuro, pode faltar moeda pro almoço depois! Clica no botão aqui embaixo, vamos lá no *Orçamento* dar nome pro seu dinheiro primeiro e faz o **Teste dos 3 Dias**!`
-          : `🍞 **Papo reto de melhor amigo:** Eu sei que "${nomeItem}" é importante (**Necessidade**), mas não deixa a nossa dupla voar de olhos vendados! Clica aqui embaixo pra gente colar a etiqueta de meta no pote de **${nomeCategoria}** lá no *Orçamento*!`)
+          ? `🍭 **Papo reto aqui entre nós:** Você mesmo me confessou aqui no botão que "${nomeItem}" é só uma **Vontade de Doce (Desejo)**! Se a gente comprar no escuro, pode faltar moeda pro almoço depois! Clica no botão aqui embaixo, vamos lá no *Orçamento* dar nome pro seu dinheiro primeiro e faz o **Teste dos 3 Dias**!`
+          : `🍞 **Papo reto aqui entre nós:** Eu sei que "${nomeItem}" é importante (**Necessidade**), mas não deixa a nossa dupla voar de olhos vendados! Clica aqui embaixo pra gente colar a etiqueta de meta no pote de **${nomeCategoria}** lá no *Orçamento*!`)
     };
   }
 
@@ -263,7 +263,7 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
     return {
       status: 'verde',
       badge: '🟢 Toca Aqui ✋! Cabe no Nosso Pote!',
-      headline: `Aê, melhor amigo! Eu olhei o seu pote de "${nomeCategoria}" aqui dentro do app e TEM BALINHA SOBRANDO pra "${nomeItem}"!`,
+      headline: `${primeiroNome ? `Aê, ${primeiroNome}!` : `Aê, ${vocativo}!`} Eu olhei o seu pote de "${nomeCategoria}" aqui dentro do app e TEM BALINHA SOBRANDO pra "${nomeItem}"!`,
       numbersSummary: [
         `🍬 Tamanho do pote de ${nomeCategoria}: ${fmt(metaCategoria)}`,
         `😋 Já comemos: ${fmt(gastoAtualCategoria)} | Ainda tem no pote: ${fmt(disponivelAntes)}`,
@@ -272,7 +272,7 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
       ].filter(Boolean),
       kidExplanation:
         ehDesejo
-          ? `🍭 **Segredinho do FIN (chega pertinho da tela):** Você mandou muito bem dando nome pro nosso dinheiro! Essa balinha de **${fmt(valorCompra)}** cabe folgada dentro do pote de **${nomeCategoria}**!\n\nMas como sou seu melhor amigo, tenho que fazer a pergunta mágica: *se você deixar essas moedas quietinhas no pote rendendo filhotinhos ou pedir um descontão à vista, não fica ainda mais gostoso?* Se quiser mesmo comprar, vai lá sem culpa e não parcela a perder de vista, hein!`
+          ? `🍭 **Segredinho do FIN (chega pertinho da tela):** Você mandou muito bem dando nome pro nosso dinheiro! Essa balinha de **${fmt(valorCompra)}** cabe folgada dentro do pote de **${nomeCategoria}**!\n\nMas como estou aqui pra cuidar das suas moedinhas, tenho que fazer a pergunta mágica: *se você deixar essas moedas quietinhas no pote rendendo filhotinhos ou pedir um descontão à vista, não fica ainda mais gostoso?* Se quiser mesmo comprar, vai lá sem culpa e não parcela a perder de vista, hein!`
           : `🍞 **Orgulho do FIN!** Toca aqui na tela! ✋ Você planejou tudo direitinho, colou nome no pote de **${nomeCategoria}** e essa compra que você **precisa** cabe com um montão de folga! Só não esquece de chorar um descontinho à vista lá fora por mim!`
     };
   }
@@ -291,7 +291,7 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
       ].filter(Boolean),
       kidExplanation:
         ehDesejo
-          ? `🍭 **Escuta seu melhor amigo aqui:** Sabe quando só têm 3 balinhas no fundo do pote e ainda faltam vários dias pra acabar o mês? Se você comer quase tudo agora com **"${nomeItem}"** (que você me contou que é só um **Desejo**!), depois você vai ficar chupando o dedo se aparecer algo mais legal!\n\n💡 **Combinado de amigos:** Espera **3 dias** antes de comprar ou procura uma versão mais baratinha pra não secar o nosso pote!`
+          ? `🍭 **Escuta aqui, ${vocativo}:** Sabe quando só têm 3 balinhas no fundo do pote e ainda faltam vários dias pra acabar o mês? Se você comer quase tudo agora com **"${nomeItem}"** (que você me contou que é só um **Desejo**!), depois você vai ficar chupando o dedo se aparecer algo mais legal!\n\n💡 **Combinado de amigos:** Espera **3 dias** antes de comprar ou procura uma versão mais baratinha pra não secar o nosso pote!`
           : `🍞 **Atenção da nossa dupla:** Como você **precisa mesmo** de "${nomeItem}", dá pra comprar porque ainda cabe na meta! Mas ó, tô batendo aqui no vidro da tela pra te lembrar: depois disso só vão sobrar **${fmt(disponivelDepois)}** no pote de **${nomeCategoria}**. Fecha a tampa do pote com cadeado até o mês acabar!`
     };
   }
@@ -301,7 +301,7 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
   return {
     status: 'vermelho',
     badge: '🔴 PARA TUDO! Larga a Carteira Agora! 😱',
-    headline: `Socorro, melhor amigo! Gastar ${fmt(valorCompra)} em "${nomeItem}" vai QUEBRAR o nosso pote de ${nomeCategoria} em ${fmt(valorEstouro)}!`,
+    headline: `Olha aqui, ${vocativo}! Gastar ${fmt(valorCompra)} em "${nomeItem}" vai QUEBRAR o nosso pote de ${nomeCategoria} em ${fmt(valorEstouro)}!`,
     numbersSummary: [
       `🍬 Limite do pote de ${nomeCategoria}: ${fmt(metaCategoria)}`,
       `😋 Já comemos: ${fmt(gastoAtualCategoria)} | Só tem no fundo do pote: ${fmt(Math.max(0, disponivelAntes))}`,
@@ -310,7 +310,7 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
     ].filter(Boolean),
     kidExplanation:
       ehDesejo
-        ? `🛑 **Olha bem nos meus olhos aqui na tela!** Eu sou seu melhor amigo e não vou deixar você cair nessa cilada! No nosso pote de **${nomeCategoria}** só restam **${fmt(Math.max(0, disponivelAntes))}**! Pra você comprar essa "balinha" de **${fmt(valorCompra)}** que é só um **Desejo**, você teria que assaltar **${fmt(valorEstouro)}** do potinho de outra conta importante ou do seu grande sonho!\n\n✋ **Promete de dedinho pra mim:** Guarda essa carteira no bolso agora! Deixa "${nomeItem}" pro mês que vem quando o pote encher de novo. Você vai me agradecer no fim do mês!`
-        : `⚠️ **Eita, melhor amigo, temos uma emergência aqui!** Mesmo "${nomeItem}" sendo uma **Necessidade**, o pote de **${nomeCategoria}** só tem **${fmt(Math.max(0, disponivelAntes))}** e vão faltar **${fmt(valorEstouro)}**!\n\n💡 **O que a nossa dupla precisa fazer já:**\n1. Tenta negociar um preço menor ou uma opção mais baratinha lá fora.\n2. Se tiver que pagar esse valor mesmo, clica em **Ir ao Orçamento** aqui embaixo e tira **${fmt(valorEstouro)}** do pote de *Lazer/Doces* pra cobrir esse buraco sem entrar em dívida no cartão!`
+        ? `🛑 **Olha bem nos meus olhos aqui na tela!** Eu estou aqui pra te proteger e não vou deixar você cair nessa cilada! No nosso pote de **${nomeCategoria}** só restam **${fmt(Math.max(0, disponivelAntes))}**! Pra você comprar essa "balinha" de **${fmt(valorCompra)}** que é só um **Desejo**, você teria que assaltar **${fmt(valorEstouro)}** do potinho de outra conta importante ou do seu grande sonho!\n\n✋ **Promete de dedinho pra mim:** Guarda essa carteira no bolso agora! Deixa "${nomeItem}" pro mês que vem quando o pote encher de novo. Você vai me agradecer no fim do mês!`
+        : `⚠️ **Eita, ${vocativo}, temos uma emergência aqui!** Mesmo "${nomeItem}" sendo uma **Necessidade**, o pote de **${nomeCategoria}** só tem **${fmt(Math.max(0, disponivelAntes))}** e vão faltar **${fmt(valorEstouro)}**!\n\n💡 **O que a nossa dupla precisa fazer já:**\n1. Tenta negociar um preço menor ou uma opção mais baratinha lá fora.\n2. Se tiver que pagar esse valor mesmo, clica em **Ir ao Orçamento** aqui embaixo e tira **${fmt(valorEstouro)}** do pote de *Lazer/Doces* pra cobrir esse buraco sem entrar em dívida no cartão!`
   };
 };
