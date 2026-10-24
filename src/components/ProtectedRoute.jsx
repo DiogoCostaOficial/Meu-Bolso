@@ -30,9 +30,8 @@ const ProtectedRoute = ({ children }) => {
 
   // Lógica para proteger a rota /admin
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isDiogo = usuario?.email === 'diogo.grunge@gmail.com';
-
-  if (isAdminRoute && usuario?.tipo !== 'admin' && !isDiogo) {
+  
+  if (isAdminRoute && usuario?.tipo !== 'admin') {
     // Se tentar acessar /admin e não for admin, redireciona para o dashboard
     return <Navigate to="/dashboard" replace />;
   }

@@ -41,7 +41,7 @@ export function ModeToggle() {
                                     )}
                                 >
                                     <Moon className="mr-2 h-4 w-4 text-amber-400" />
-                                    Preto com Dourado
+                                    Tema Escuro
                                 </button>
                             )}
                         </Menu.Item>
@@ -56,7 +56,7 @@ export function ModeToggle() {
                                     )}
                                 >
                                     <Sun className="mr-2 h-4 w-4 text-amber-500" />
-                                    Branco com Dourado
+                                    Tema Claro
                                 </button>
                             )}
                         </Menu.Item>

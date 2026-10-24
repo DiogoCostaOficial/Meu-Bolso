@@ -80,6 +80,56 @@ button, [role="button"] {
   animation: spin 1s linear infinite;
 }
 
+
+/* Color Scheme Native Support */
+html.dark {
+  color-scheme: dark;
+}
+html.light {
+  color-scheme: light;
+}
+
+/* Previne que o Chrome/Edge force fundo branco nos campos de e-mail e senha no modo escuro */
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover, 
+html.dark input:-webkit-autofill:focus, 
+html.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #151512 inset !important;
+  -webkit-text-fill-color: #F5F5F0 !important;
+  caret-color: #F5F5F0 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+html.light input:-webkit-autofill,
+html.light input:-webkit-autofill:hover, 
+html.light input:-webkit-autofill:focus, 
+html.light input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #1C1917 !important;
+  caret-color: #1C1917 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Inputs de autenticação universais e consistentes */
+.custom-auth-input {
+  background-color: #FFFFFF !important;
+  color: #1C1917 !important;
+  border-color: var(--border-color) !important;
+}
+.custom-auth-input::placeholder {
+  color: #9CA3AF !important;
+  opacity: 0.8;
+}
+html.dark .custom-auth-input {
+  background-color: #151512 !important;
+  color: #F5F5F0 !important;
+  border-color: var(--border-color) !important;
+}
+html.dark .custom-auth-input::placeholder {
+  color: #71717A !important;
+  opacity: 0.8;
+}
+
 /* --- DYNAMIC HOMOLOGATION LAYOUTS --- */
 :root, html {
   /* Default variables (Lux Gold) */

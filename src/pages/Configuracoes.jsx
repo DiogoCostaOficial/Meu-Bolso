@@ -153,19 +153,19 @@ const Configuracoes = () => {
   return (
     <div className="space-y-6">
       {/* CABEÇALHO HORIZONTAL OTIMIZADO: Título à esquerda, Abas Horizontais à direita */}
-      <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-custom-card border border-custom-color rounded-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-custom transition-colors">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2.5">
+          <h1 className="text-xl md:text-2xl font-bold text-custom-main flex items-center gap-2.5">
             <Settings className="w-6 h-6 text-custom-gold" />
             Configurações
           </h1>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-custom-main opacity-70 mt-1">
             Personalize seu perfil, contatos de e-mail/WhatsApp, categorias e segurança da conta.
           </p>
         </div>
 
         {/* NAVEGAÇÃO HORIZONTAL DE ABAS (Elimina a coluna lateral desperdiçada) */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-gray-950/80 rounded-xl border border-gray-800 self-start md:self-auto">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-custom-primary/60 rounded-xl border border-custom-color self-start md:self-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -179,7 +179,7 @@ const Configuracoes = () => {
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-custom-gold text-black shadow-sm'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
+                    : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-card'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -206,12 +206,12 @@ const Configuracoes = () => {
 
       {/* ABA 1: MEU PERFIL & CONTATO (Layout Agrupado, Compacto e Alinhado) */}
       {activeTab === 'perfil' && (
-        <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 shadow-sm">
+        <div className="bg-custom-card border border-custom-color rounded-2xl p-6 shadow-custom transition-colors">
           <form onSubmit={handleProfileSubmit} className="space-y-6">
             {/* Bloco Superior: Avatar + Resumo do Usuário */}
-            <div className="flex flex-col sm:flex-row items-center gap-5 pb-5 border-b border-gray-800">
+            <div className="flex flex-col sm:flex-row items-center gap-5 pb-5 border-b border-custom-color">
               <div className="relative group">
-                <div className="w-20 h-20 rounded-full bg-gray-800 border-2 border-amber-400/40 shadow-lg overflow-hidden flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-custom-primary border-2 border-custom-gold/40 shadow-md overflow-hidden flex items-center justify-center">
                   {profileData.avatar ? (
                     <img src={profileData.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
@@ -229,12 +229,12 @@ const Configuracoes = () => {
 
               <div className="flex-1 text-center sm:text-left space-y-1">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <h2 className="text-lg font-bold text-white">{profileData.nome || user?.nome || 'Usuário'}</h2>
+                  <h2 className="text-lg font-bold text-custom-main">{profileData.nome || user?.nome || 'Usuário'}</h2>
                   <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold uppercase">
                     {user?.plano || 'Plano Pessoal'}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-custom-main opacity-70">
                   {profileData.email || user?.email} • {profileData.telefone || 'Telefone não cadastrado'}
                 </p>
               </div>
@@ -254,7 +254,7 @@ const Configuracoes = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Nome */}
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
                   Nome Completo
                 </label>
                 <div className="relative">
@@ -262,7 +262,7 @@ const Configuracoes = () => {
                     type="text"
                     value={profileData.nome}
                     onChange={(e) => setProfileData({ ...profileData, nome: e.target.value })}
-                    className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400 transition-colors"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold transition-colors"
                     placeholder="Seu nome completo"
                   />
                 </div>
@@ -270,7 +270,7 @@ const Configuracoes = () => {
 
               {/* E-mail (Editável) */}
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-amber-400" />
                   E-mail de Contato
                 </label>
@@ -279,7 +279,7 @@ const Configuracoes = () => {
                     type="email"
                     value={profileData.email}
                     onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                    className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400 transition-colors"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold transition-colors"
                     placeholder="seuemail@exemplo.com"
                   />
                 </div>
@@ -287,7 +287,7 @@ const Configuracoes = () => {
 
               {/* Telefone / WhatsApp */}
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-green-400" />
                   Telefone / WhatsApp
                 </label>
@@ -297,14 +297,14 @@ const Configuracoes = () => {
                     value={profileData.telefone}
                     onChange={(e) => setProfileData({ ...profileData, telefone: e.target.value })}
                     placeholder="+55 (11) 99999-9999"
-                    className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400 transition-colors"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold transition-colors"
                   />
                 </div>
               </div>
 
               {/* URL do Avatar */}
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
                   URL da Foto (opcional)
                 </label>
                 <input
@@ -312,13 +312,13 @@ const Configuracoes = () => {
                   value={profileData.avatar}
                   onChange={(e) => setProfileData({ ...profileData, avatar: e.target.value })}
                   placeholder="https://exemplo.com/foto.jpg"
-                  className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold transition-colors"
                 />
               </div>
 
               {/* Tema da Aplicação */}
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Palette className="w-3.5 h-3.5 text-amber-400" />
                   Tema Visual da Aplicação
                 </label>
@@ -329,10 +329,10 @@ const Configuracoes = () => {
                     setTheme(val);
                     setLayoutVariant('lux-gold');
                   }}
-                  className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-100 focus:outline-none focus:border-amber-400 transition-colors cursor-pointer"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-2.5 text-xs text-custom-main focus:outline-none focus:border-custom-gold transition-colors cursor-pointer"
                 >
-                  <option value="dark">🌙 Preto com Dourado (Tema Escuro Oficial)</option>
-                  <option value="light">☀️ Branco com Dourado (Tema Claro Oficial)</option>
+                  <option value="light">☀️ Tema Claro</option>
+                  <option value="dark">🌙 Tema Escuro</option>
                 </select>
               </div>
             </div>
@@ -347,53 +347,53 @@ const Configuracoes = () => {
 
       {/* ABA 3: SEGURANÇA DA CONTA */}
       {activeTab === 'seguranca' && (
-        <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+        <div className="bg-custom-card border border-custom-color rounded-2xl p-6 shadow-custom transition-colors">
+          <h2 className="text-lg font-bold text-custom-main mb-2 flex items-center gap-2">
             <Shield className="w-5 h-5 text-amber-400" />
             Segurança & Troca de Senha
           </h2>
-          <p className="text-xs text-gray-400 mb-6">
+          <p className="text-xs text-custom-main opacity-70 mb-6">
             Mantenha sua conta protegida alterando periodicamente a sua senha de acesso.
           </p>
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-xl">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
                   Senha Atual
                 </label>
                 <input
                   type="password"
                   value={passwordData.senhaAtual}
                   onChange={(e) => setPasswordData({ ...passwordData, senhaAtual: e.target.value })}
-                  className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
                   Nova Senha
                 </label>
                 <input
                   type="password"
                   value={passwordData.novaSenha}
                   onChange={(e) => setPasswordData({ ...passwordData, novaSenha: e.target.value })}
-                  className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
                   required
                   minLength={6}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
                   Confirmar Nova
                 </label>
                 <input
                   type="password"
                   value={passwordData.confirmarSenha}
                   onChange={(e) => setPasswordData({ ...passwordData, confirmarSenha: e.target.value })}
-                  className="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
                   required
                 />
               </div>
@@ -570,14 +570,14 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
   return (
     <div className="space-y-4">
       {/* BARRA DE AÇÕES NO TOPO (Sem rolagem para baixo) */}
-      <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-custom-card border border-custom-color rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-custom transition-colors">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Categorias & Metas Padrão</h2>
-            <p className="text-xs text-gray-400">
+            <h2 className="text-base font-bold text-custom-main">Categorias & Metas Padrão</h2>
+            <p className="text-xs text-custom-main opacity-70">
               {categorias.length} categorias cadastradas • Metas mensais configuráveis
             </p>
           </div>
@@ -600,31 +600,31 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
         {categorias.map((cat, idx) => (
           <div
             key={idx}
-            className="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 hover:border-gray-700/80 transition-all flex flex-col justify-between h-[360px] shadow-sm"
+            className="bg-custom-card border border-custom-color rounded-2xl p-4 hover:border-custom-gold/50 transition-all flex flex-col justify-between h-[360px] shadow-custom"
           >
             <div>
               {/* Header do Card */}
-              <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-gray-800/60">
+              <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-custom-color/60">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div
                     className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-xs ring-2 ring-gray-800"
                     style={{ backgroundColor: cat.cor || '#eab308' }}
                   ></div>
-                  <h3 className="font-bold text-white text-sm truncate" title={cat.nome}>{cat.nome}</h3>
+                  <h3 className="font-bold text-custom-main text-sm truncate" title={cat.nome}>{cat.nome}</h3>
                 </div>
 
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => iniciarEdicao(idx)}
                     title="Editar categoria e meta"
-                    className="p-1.5 text-gray-400 hover:text-amber-400 hover:bg-gray-800 rounded-lg transition"
+                    className="p-1.5 text-custom-main opacity-65 hover:text-amber-400 hover:bg-custom-primary/60 rounded-lg transition"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => removerCategoria(idx)}
                     title="Excluir categoria"
-                    className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition"
+                    className="p-1.5 text-custom-main opacity-65 hover:text-red-400 hover:bg-custom-primary/60 rounded-lg transition"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -633,7 +633,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
 
               {/* Badge da Meta Padrão & Contador */}
               <div className="flex items-center justify-between mb-3 text-[11px]">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold bg-gray-950/80 border border-gray-800 text-gray-300">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold bg-custom-primary/60 border border-custom-color text-custom-main">
                   <Target className="w-3 h-3 text-amber-400 flex-shrink-0" />
                   {cat.valorMeta !== null && cat.valorMeta !== undefined && cat.valorMeta !== '' ? (
                     <span>
@@ -645,10 +645,10 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                       </strong>
                     </span>
                   ) : (
-                    <span className="text-gray-500 italic">Sem meta configurada</span>
+                    <span className="text-custom-main opacity-50 italic">Sem meta configurada</span>
                   )}
                 </span>
-                <span className="text-[11px] text-gray-400 font-medium">
+                <span className="text-[11px] text-custom-main opacity-65 font-medium">
                   {(cat.subcategorias || []).length} {(cat.subcategorias || []).length === 1 ? 'item' : 'itens'}
                 </span>
               </div>
@@ -656,16 +656,16 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
               {/* Subcategorias alinhadas em Grade de 2 Colunas com altura uniforme */}
               <div className="h-44 overflow-y-auto pr-1.5 custom-scrollbar mb-2">
                 {(cat.subcategorias || []).length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-3 border border-dashed border-gray-800/80 rounded-xl text-gray-500 text-xs">
+                  <div className="h-full flex flex-col items-center justify-center text-center p-3 border border-dashed border-custom-color/80 rounded-xl text-custom-main opacity-50 text-xs">
                     <span>Nenhuma subcategoria</span>
-                    <span className="text-[10px] text-gray-600 mt-1">Adicione uma abaixo</span>
+                    <span className="text-[10px] text-custom-main opacity-40 mt-1">Adicione uma abaixo</span>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 content-start">
                     {(cat.subcategorias || []).map((sub, sIdx) => (
                       <div
                         key={sIdx}
-                        className="group flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-gray-950/80 border border-gray-800 hover:border-amber-400/40 hover:bg-gray-950 text-xs text-gray-300 transition-all min-h-[34px]"
+                        className="group flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-custom-primary/40 border border-custom-color hover:border-custom-gold/40 text-xs text-custom-main transition-all min-h-[34px]"
                       >
                         <span className="truncate pr-1 text-[11px] font-medium" title={sub}>
                           {sub}
@@ -674,7 +674,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                           type="button"
                           onClick={() => removerSubcategoria(idx, sIdx)}
                           title="Remover"
-                          className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0 p-0.5 rounded opacity-60 group-hover:opacity-100"
+                          className="text-custom-main opacity-50 hover:text-red-400 transition-colors flex-shrink-0 p-0.5 rounded opacity-60 group-hover:opacity-100"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -686,7 +686,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
             </div>
 
             {/* Ação Inline: Adicionar Subcategoria DIRETO no Card (Perfeitamente alinhada no rodapé) */}
-            <div className="pt-3 border-t border-gray-800/80 mt-auto">
+            <div className="pt-3 border-t border-custom-color/60 mt-auto">
               <div className="flex items-center gap-1.5">
                 <input
                   type="text"
@@ -699,7 +699,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                       adicionarSubcategoriaInline(idx);
                     }
                   }}
-                  className="flex-1 bg-gray-950/90 border border-gray-800 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none transition-colors"
+                  className="flex-1 bg-custom-primary/60 border border-custom-color focus:border-custom-gold rounded-lg px-2.5 py-1.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none transition-colors"
                 />
                 <button
                   type="button"
@@ -718,15 +718,15 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
       {/* MODAL: NOVA CATEGORIA */}
       {showNovaCategoriaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-              <h3 className="font-bold text-white text-base flex items-center gap-2">
+          <div className="bg-custom-card border border-custom-color rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-custom-main">
+            <div className="flex items-center justify-between pb-3 border-b border-custom-color">
+              <h3 className="font-bold text-custom-main text-base flex items-center gap-2">
                 <Plus className="w-4 h-4 text-amber-400" />
                 Nova Categoria
               </h3>
               <button
                 onClick={() => setShowNovaCategoriaModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-custom-main opacity-65 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -734,7 +734,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1">
                   Nome da Categoria
                 </label>
                 <input
@@ -742,12 +742,12 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                   placeholder="Ex: Transporte, Saúde, Moradia..."
                   value={novaCategoria.nome}
                   onChange={(e) => setNovaCategoria({ ...novaCategoria, nome: e.target.value })}
-                  className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-custom-primary border border-custom-color rounded-xl px-3.5 py-2 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1">
                   Cor Identificadora
                 </label>
                 <div className="flex items-center gap-3">
@@ -755,23 +755,23 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                     type="color"
                     value={novaCategoria.cor}
                     onChange={(e) => setNovaCategoria({ ...novaCategoria, cor: e.target.value })}
-                    className="h-9 w-14 rounded-lg cursor-pointer border border-gray-800 bg-transparent"
+                    className="h-9 w-14 rounded-lg cursor-pointer border border-custom-color bg-transparent"
                   />
-                  <span className="text-xs font-mono text-gray-400">{novaCategoria.cor}</span>
+                  <span className="text-xs font-mono text-custom-main opacity-65">{novaCategoria.cor}</span>
                 </div>
               </div>
 
-              <div className="bg-gray-950/70 p-3.5 rounded-xl border border-gray-800 space-y-2.5">
+              <div className="bg-custom-primary/50 p-3.5 rounded-xl border border-custom-color space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider">
                     Meta Mensal Padrão
                   </span>
-                  <div className="flex bg-gray-800 p-0.5 rounded-lg text-xs">
+                  <div className="flex bg-custom-primary/80 p-0.5 rounded-lg text-xs border border-custom-color">
                     <button
                       type="button"
                       onClick={() => setNovaCategoria({ ...novaCategoria, tipoMeta: 'percentual' })}
                       className={`px-2.5 py-0.5 rounded-md font-bold transition ${
-                        novaCategoria.tipoMeta === 'percentual' ? 'bg-amber-400 text-black' : 'text-gray-400'
+                        novaCategoria.tipoMeta === 'percentual' ? 'bg-amber-400 text-black' : 'text-custom-main opacity-65'
                       }`}
                     >
                       %
@@ -780,7 +780,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                       type="button"
                       onClick={() => setNovaCategoria({ ...novaCategoria, tipoMeta: 'valor' })}
                       className={`px-2.5 py-0.5 rounded-md font-bold transition ${
-                        novaCategoria.tipoMeta === 'valor' ? 'bg-amber-400 text-black' : 'text-gray-400'
+                        novaCategoria.tipoMeta === 'valor' ? 'bg-amber-400 text-black' : 'text-custom-main opacity-65'
                       }`}
                     >
                       R$
@@ -795,16 +795,16 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                   placeholder={novaCategoria.tipoMeta === 'valor' ? 'Ex: 1500.00' : 'Ex: 15.0 (%)'}
                   value={novaCategoria.valorMeta}
                   onChange={(e) => setNovaCategoria({ ...novaCategoria, valorMeta: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-custom-primary border border-custom-color rounded-xl px-3 py-1.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-custom-color">
               <button
                 type="button"
                 onClick={() => setShowNovaCategoriaModal(false)}
-                className="px-4 py-2 text-xs text-gray-400 hover:text-white rounded-xl"
+                className="px-4 py-2 text-xs text-custom-main opacity-65 hover:text-white rounded-xl"
               >
                 Cancelar
               </button>
@@ -824,15 +824,15 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
       {/* MODAL: EDITAR CATEGORIA E META */}
       {categoriaEditando !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+          <div className="bg-custom-card border border-custom-color rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-custom-main">
+            <div className="flex items-center justify-between pb-3 border-b border-custom-color">
               <div className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-bold text-white">Editar Categoria & Meta</h3>
+                <h3 className="text-base font-bold text-custom-main">Editar Categoria & Meta</h3>
               </div>
               <button
                 onClick={() => setCategoriaEditando(null)}
-                className="text-gray-400 hover:text-white"
+                className="text-custom-main opacity-65 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -840,19 +840,19 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1">
                   Nome da Categoria
                 </label>
                 <input
                   type="text"
                   value={dadosEdicao.nome}
                   onChange={(e) => setDadosEdicao({ ...dadosEdicao, nome: e.target.value })}
-                  className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2 text-xs text-gray-100 focus:outline-none focus:border-amber-400"
+                  className="w-full bg-custom-primary border border-custom-color rounded-xl px-3.5 py-2 text-xs text-custom-main focus:outline-none focus:border-custom-gold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1">
                   Cor
                 </label>
                 <div className="flex items-center gap-3">
@@ -860,23 +860,23 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                     type="color"
                     value={dadosEdicao.cor}
                     onChange={(e) => setDadosEdicao({ ...dadosEdicao, cor: e.target.value })}
-                    className="h-9 w-14 rounded-lg cursor-pointer border border-gray-800 bg-transparent"
+                    className="h-9 w-14 rounded-lg cursor-pointer border border-custom-color bg-transparent"
                   />
-                  <span className="text-xs font-mono text-gray-400">{dadosEdicao.cor}</span>
+                  <span className="text-xs font-mono text-custom-main opacity-65">{dadosEdicao.cor}</span>
                 </div>
               </div>
 
-              <div className="bg-gray-950/70 p-3.5 rounded-xl border border-gray-800 space-y-2.5">
+              <div className="bg-custom-primary/50 p-3.5 rounded-xl border border-custom-color space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                  <label className="text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider">
                     Tipo da Meta
                   </label>
-                  <div className="flex bg-gray-800 p-0.5 rounded-lg text-xs">
+                  <div className="flex bg-custom-primary/80 p-0.5 rounded-lg text-xs border border-custom-color">
                     <button
                       type="button"
                       onClick={() => setDadosEdicao({ ...dadosEdicao, tipoMeta: 'percentual' })}
                       className={`flex items-center gap-1 px-2.5 py-0.5 rounded-md font-bold transition ${
-                        dadosEdicao.tipoMeta === 'percentual' ? 'bg-amber-400 text-black' : 'text-gray-400'
+                        dadosEdicao.tipoMeta === 'percentual' ? 'bg-amber-400 text-black' : 'text-custom-main opacity-65'
                       }`}
                     >
                       <Percent className="w-3 h-3" /> %
@@ -885,7 +885,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                       type="button"
                       onClick={() => setDadosEdicao({ ...dadosEdicao, tipoMeta: 'valor' })}
                       className={`flex items-center gap-1 px-2.5 py-0.5 rounded-md font-bold transition ${
-                        dadosEdicao.tipoMeta === 'valor' ? 'bg-amber-400 text-black' : 'text-gray-400'
+                        dadosEdicao.tipoMeta === 'valor' ? 'bg-amber-400 text-black' : 'text-custom-main opacity-65'
                       }`}
                     >
                       <DollarSign className="w-3 h-3" /> R$
@@ -902,17 +902,17 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
                     placeholder={dadosEdicao.tipoMeta === 'valor' ? 'Ex: 1500.00' : 'Ex: 25.0'}
                     value={dadosEdicao.valorMeta}
                     onChange={(e) => setDadosEdicao({ ...dadosEdicao, valorMeta: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-100 focus:outline-none focus:border-amber-400"
+                    className="w-full bg-custom-primary border border-custom-color rounded-xl px-3 py-1.5 text-xs text-custom-main focus:outline-none focus:border-custom-gold"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-custom-color">
               <button
                 type="button"
                 onClick={() => setCategoriaEditando(null)}
-                className="px-4 py-2 text-xs text-gray-400 hover:text-white rounded-xl"
+                className="px-4 py-2 text-xs text-custom-main opacity-65 hover:text-white rounded-xl"
               >
                 Cancelar
               </button>

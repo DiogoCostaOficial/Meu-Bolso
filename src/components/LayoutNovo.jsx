@@ -65,7 +65,7 @@ const LayoutNovo = ({ children }) => {
     { path: '/configuracoes', icon: Settings, label: 'Configurações' },
   ];
 
-  if (user?.tipo === 'admin' || user?.email === 'diogo.grunge@gmail.com') {
+  if (user?.tipo === 'admin') {
     menuItems.unshift({ path: '/admin', icon: LayoutDashboard, label: 'Painel Admin' });
   }
 
@@ -187,19 +187,19 @@ const LayoutNovo = ({ children }) => {
             </div>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              title={isSidebarCollapsed ? (theme === "dark" ? "Mudar para Branco com Dourado" : "Mudar para Preto com Dourado") : undefined}
+              title={theme === "dark" ? t("Tema Claro") : t("Tema Escuro")}
               className={`flex items-center w-full text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white rounded-custom transition-custom ${
                 isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'
               }`}
             >
               {theme === "dark" ? (
-                <Sun className="w-5 h-5 text-amber-500" />
+                <Moon className="w-5 h-5 text-custom-gold" />
               ) : (
-                <Moon className="w-5 h-5 text-amber-400" />
+                <Sun className="w-5 h-5 text-amber-500" />
               )}
               {!isSidebarCollapsed && (
                 <span className="font-medium text-[13px] truncate">
-                  {t(theme === "dark" ? "Branco com Dourado" : "Preto com Dourado")}
+                  {theme === "dark" ? t("Tema Escuro") : t("Tema Claro")}
                 </span>
               )}
             </button>
@@ -324,8 +324,8 @@ const LayoutNovo = ({ children }) => {
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="flex items-center gap-3 px-4 py-3 w-full text-left text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white rounded-custom transition-custom"
             >
-              {theme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-amber-400" />}
-              <span className="font-medium">{t(theme === "dark" ? "Branco com Dourado" : "Preto com Dourado")}</span>
+              {theme === "dark" ? <Moon className="w-5 h-5 text-custom-gold" /> : <Sun className="w-5 h-5 text-amber-500" />}
+              <span className="font-medium">{theme === "dark" ? t("Tema Escuro") : t("Tema Claro")}</span>
             </button>
             <button
               onClick={() => { handleLogout(); closeMobileMenu(); }}

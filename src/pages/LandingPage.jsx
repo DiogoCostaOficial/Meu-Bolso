@@ -217,10 +217,10 @@ const LandingPage = () => {
                   Acesso Rápido
                 </span>
                 <h3 className="text-lg font-bold text-custom-main mt-2 mb-2">
-                  Login Google & Outlook OTP
+                  Acesso Rápido com Google
                 </h3>
                 <p className="text-sm text-custom-main opacity-80 leading-relaxed">
-                  Entre com 1 clique pelo <strong>Google</strong> ou utilize o novo acesso rápido para <strong>Outlook / Hotmail</strong> via código de segurança (OTP de 5 minutos) com atalhos diretos para abrir seu e-mail.
+                  Entre com 1 clique pelo <strong>Google</strong> ou utilize seu e-mail e senha com total segurança.
                 </p>
               </div>
             </div>

@@ -90,7 +90,7 @@ const LISTA_PAISES = [
 
 const CadastroNovo = () => {
   const navigate = useNavigate();
-  const { register, loginGoogle, loginOutlookOTP } = useAuth();
+  const { register, loginGoogle } = useAuth();
   const { layoutVariant } = useLayoutVariant();
   const { t } = useLanguage();
 
@@ -109,9 +109,6 @@ const CadastroNovo = () => {
   const [apiError, setApiError] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
-  const [mostrarInputOutlook, setMostrarInputOutlook] = useState(false);
-  const [emailOutlook, setEmailOutlook] = useState('');
-  const [loadingOutlook, setLoadingOutlook] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
@@ -158,32 +155,6 @@ const CadastroNovo = () => {
 
     if (errors.whatsapp) {
       setErrors((prev) => ({ ...prev, whatsapp: '' }));
-    }
-  };
-
-  const handleOutlookQuickAccess = async (targetEmail) => {
-    const emailFinal = String(targetEmail ?? emailOutlook ?? formData.email ?? '').trim();
-    if (!emailFinal || !/\S+@\S+\.\S+/.test(emailFinal)) {
-      setEmailOutlook(formData.email || '');
-      setMostrarInputOutlook(true);
-      return;
-    }
-
-    setLoadingOutlook(true);
-    try {
-      const result = await loginOutlookOTP(emailFinal, formData.nome);
-      if (result.success) {
-        toast.success('Código de 6 dígitos enviado para seu Outlook!');
-        navigate('/validar-otp', {
-          state: { email: result.email, otpSimulado: result.otpSimulado, provider: 'outlook' }
-        });
-      } else {
-        toast.error(result.message || 'Erro ao enviar código para o Outlook');
-      }
-    } catch (err) {
-      toast.error('Erro ao conectar com o servidor');
-    } finally {
-      setLoadingOutlook(false);
     }
   };
 
@@ -341,7 +312,7 @@ const CadastroNovo = () => {
                   name="nome"
                   value={formData.nome}
                   onChange={handleChange}
-                  className={`block w-full pl-11 pr-4 py-3 bg-custom-primary/60 border ${
+                  className={`block w-full pl-11 pr-4 py-3 custom-auth-input border ${
                     errors.nome ? 'border-red-400' : 'border-custom-color'
                   } rounded-xl text-sm text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="Informe seu nome completo"
@@ -370,7 +341,7 @@ const CadastroNovo = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full pl-11 pr-4 py-3 bg-custom-primary/60 border ${
+                  className={`block w-full pl-11 pr-4 py-3 custom-auth-input border ${
                     errors.email ? 'border-red-400' : 'border-custom-color'
                   } rounded-xl text-sm text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                   placeholder="Informe seu melhor e-mail"
@@ -401,7 +372,7 @@ const CadastroNovo = () => {
                     name="pais"
                     value={formData.pais}
                     onChange={handlePaisChange}
-                    className={`block w-full pl-10 pr-8 py-3 bg-custom-primary/60 border ${
+                    className={`block w-full pl-10 pr-8 py-3 custom-auth-input border ${
                       errors.pais ? 'border-red-400' : 'border-custom-color'
                     } rounded-xl text-sm text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition appearance-none cursor-pointer`}
                     disabled={loading}
@@ -429,7 +400,7 @@ const CadastroNovo = () => {
                 >
                   {t('WhatsApp com DDD')}*
                 </label>
-                <div className="relative flex rounded-xl border border-custom-color focus-within:ring-2 focus-within:ring-custom-gold transition overflow-hidden">
+                <div className="relative flex rounded-xl custom-auth-input border border-custom-color focus-within:ring-2 focus-within:ring-custom-gold transition overflow-hidden">
                   <span className="inline-flex items-center px-3 bg-custom-primary/80 text-custom-gold text-xs font-bold border-r border-custom-color select-none">
                     {formData.ddi}
                   </span>
@@ -439,7 +410,7 @@ const CadastroNovo = () => {
                     name="whatsapp"
                     value={formData.whatsapp}
                     onChange={handleWhatsappChange}
-                    className={`block w-full px-3 py-3 bg-custom-primary/60 text-sm text-custom-main outline-none ${
+                    className={`block w-full px-3 py-3 bg-transparent text-sm text-custom-main outline-none ${
                       errors.whatsapp ? 'border-red-400' : ''
                     }`}
                     placeholder={formData.ddi === '+55' ? '(11) 99999-9999' : '99999-9999'}
@@ -470,7 +441,7 @@ const CadastroNovo = () => {
                     name="senha"
                     value={formData.senha}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-10 py-3 bg-custom-primary/60 border ${
+                    className={`block w-full pl-10 pr-10 py-3 custom-auth-input border ${
                       errors.senha ? 'border-red-400' : 'border-custom-color'
                     } rounded-xl text-sm text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                     placeholder="Mín. 6 dígitos"
@@ -507,7 +478,7 @@ const CadastroNovo = () => {
                     name="confirmarSenha"
                     value={formData.confirmarSenha}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-10 py-3 bg-custom-primary/60 border ${
+                    className={`block w-full pl-10 pr-10 py-3 custom-auth-input border ${
                       errors.confirmarSenha ? 'border-red-400' : 'border-custom-color'
                     } rounded-xl text-sm text-custom-main focus:ring-2 focus:ring-custom-gold outline-none transition`}
                     placeholder="Repita a senha"
@@ -576,84 +547,7 @@ const CadastroNovo = () => {
                   shape="pill"
                   text="continue_with"
                 />
-
-                <button
-                  type="button"
-                  disabled={loadingOutlook}
-                  onClick={() => {
-                    if (formData.email && /\S+@\S+\.\S+/.test(formData.email)) {
-                      handleOutlookQuickAccess(formData.email);
-                    } else {
-                      setEmailOutlook(formData.email || '');
-                      setMostrarInputOutlook((prev) => !prev);
-                    }
-                  }}
-                  className="inline-flex items-center justify-center gap-2.5 px-5 py-2 rounded-full bg-[#131314] hover:bg-[#1f1f22] text-white text-xs font-medium border border-[#3c4043] transition cursor-pointer h-[40px]"
-                >
-                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white p-0.5">
-                    <svg viewBox="0 0 23 23" className="w-3 h-3">
-                      <path fill="#f35325" d="M1 1h10v10H1z" />
-                      <path fill="#81bc06" d="M12 1h10v10H12z" />
-                      <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                      <path fill="#ffba08" d="M12 12h10v10H12z" />
-                    </svg>
-                  </span>
-                  {loadingOutlook ? (
-                    <span className="flex items-center gap-1.5">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Enviando...
-                    </span>
-                  ) : (
-                    <span>Continuar com Outlook</span>
-                  )}
-                </button>
               </div>
-
-              {mostrarInputOutlook && (
-                <div className="w-full mt-3 p-4 rounded-xl bg-custom-primary/60 border border-custom-color space-y-3 transition-all">
-                  <p className="text-xs text-custom-main opacity-80">
-                    Digite seu e-mail <strong>Outlook / Hotmail</strong> para criar e acessar sua conta com código de 6 dígitos:
-                  </p>
-                  <input
-                    type="email"
-                    value={emailOutlook}
-                    onChange={(e) => setEmailOutlook(e.target.value)}
-                    placeholder="seu.nome@outlook.com"
-                    className="block w-full px-3.5 py-2.5 bg-custom-card border border-custom-color rounded-lg text-sm text-custom-main focus:ring-2 focus:ring-custom-gold outline-none"
-                    disabled={loadingOutlook}
-                  />
-                  <div className="flex flex-wrap gap-1.5">
-                    {['@outlook.com', '@hotmail.com', '@live.com'].map((dominio) => (
-                      <button
-                        key={dominio}
-                        type="button"
-                        onClick={() => {
-                          const base = emailOutlook.split('@')[0] || '';
-                          setEmailOutlook(`${base}${dominio}`);
-                        }}
-                        className="text-[11px] px-2.5 py-1 rounded-full bg-custom-card border border-custom-color text-custom-main opacity-80 hover:opacity-100 hover:border-custom-gold transition cursor-pointer"
-                      >
-                        {dominio}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    disabled={loadingOutlook || !emailOutlook}
-                    onClick={() => handleOutlookQuickAccess(emailOutlook)}
-                    className="w-full py-2.5 px-4 rounded-lg bg-[#0078D4] hover:bg-[#106EBE] text-white text-xs font-semibold transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {loadingOutlook ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Enviando código OTP...
-                      </>
-                    ) : (
-                      'Receber Código OTP no Outlook'
-                    )}
-                  </button>
-                </div>
-              )}
             </div>
           </form>
         </div>

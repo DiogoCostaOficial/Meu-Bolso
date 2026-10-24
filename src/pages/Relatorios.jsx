@@ -8,8 +8,10 @@ import {
 import {
   TrendingUp, TrendingDown, DollarSign, Calendar,
   PieChart as PieChartIcon, Filter, ChevronDown, ChevronUp, Target, GraduationCap,
-  BarChart3, AlertCircle, Sliders, ShieldCheck, PiggyBank, GripVertical
+  BarChart3, AlertCircle, Sliders, ShieldCheck, PiggyBank, GripVertical, ChevronLeft, ChevronRight, RotateCcw,
+  Sparkles, LayoutGrid
 } from 'lucide-react';
+import HeatmapGastosDiarios from '../components/HeatmapGastosDiarios';
 import { useEdu } from '../contexts/EduContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
@@ -28,14 +30,26 @@ const ORDEM_CATEGORIAS = [
   'Reserva de Emergência'
 ];
 
+const CHART_CATEGORIES = {
+  'orcamento': 'essencial',
+  'custo-vida': 'essencial',
+  'distribuicao': 'essencial',
+  'compromissos-essenciais': 'essencial',
+  'evolucao': 'essencial',
+  'precisao': 'avancado',
+  'heatmap-gastos': 'avancado',
+  'construcao-patrimonial': 'avancado',
+};
+
 const DEFAULT_CHART_CONFIGS = [
-  { id: 'orcamento', title: 'Acompanhamento de Orçamento', size: 'large', visible: true },
-  { id: 'distribuicao', title: 'Distribuição Geral (Reais vs Planejado)', size: 'large', visible: true },
-  { id: 'custo-vida', title: 'Análise de Custo de Vida', size: 'large', visible: true },
-  { id: 'precisao', title: 'Análise de Precisão por Subcategoria', size: 'large', visible: true },
-  { id: 'compromissos-essenciais', title: 'Compromissos Essenciais (Fixas + Educação)', size: 'large', visible: true },
-  { id: 'construcao-patrimonial', title: 'Construção Patrimonial (Investimentos + Reserva)', size: 'large', visible: true },
-  { id: 'evolucao', title: 'Evolução Temporal de Receitas/Despesas', size: 'large', visible: true },
+  { id: 'orcamento', title: 'Acompanhamento de Orçamento', size: 'large', visible: true, category: 'essencial' },
+  { id: 'custo-vida', title: 'Análise de Custo de Vida', size: 'large', visible: true, category: 'essencial' },
+  { id: 'distribuicao', title: 'Distribuição Geral (Reais vs Planejado)', size: 'large', visible: true, category: 'essencial' },
+  { id: 'precisao', title: 'Análise de Precisão por Subcategoria', size: 'large', visible: true, category: 'avancado' },
+  { id: 'compromissos-essenciais', title: 'Compromissos Essenciais (Fixas + Educação)', size: 'large', visible: true, category: 'essencial' },
+  { id: 'heatmap-gastos', title: 'Calendário Térmico de Gastos Diários', size: 'large', visible: true, category: 'avancado' },
+  { id: 'construcao-patrimonial', title: 'Construção Patrimonial (Investimentos + Reserva)', size: 'large', visible: true, category: 'avancado' },
+  { id: 'evolucao', title: 'Evolução Temporal de Receitas/Despesas', size: 'large', visible: true, category: 'essencial' },
 ];
 
 const matchCat = (catName, target) => {
@@ -96,18 +110,23 @@ const Relatorios = () => {
   const [dadosSubcategorias, setDadosSubcategorias] = useState([]);
   const [dadosComparativosMensais, setDadosComparativosMensais] = useState([]);
   const [listaCategoriasAtivas, setListaCategoriasAtivas] = useState([]);
+  const [categoriaRelatorioAtiva, setCategoriaRelatorioAtiva] = useState('todos'); // 'todos' | 'essenciais' | 'avancados'
+  const [despesasPeriodo, setDespesasPeriodo] = useState([]);
+
   const [chartConfigs, setChartConfigs] = useState(() => {
-    const saved = localStorage.getItem('relatorios_chart_configs');
+    const saved = localStorage.getItem('relatorios_chart_configs_v4');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const existingIds = new Set(parsed.map(c => c.id));
           const missing = DEFAULT_CHART_CONFIGS.filter(c => !existingIds.has(c.id));
-          if (missing.length > 0) {
-            return [...parsed, ...missing];
-          }
-          return parsed;
+          const combined = missing.length > 0 ? [...parsed, ...missing] : parsed;
+          return combined.map(item => ({
+            ...item,
+            title: DEFAULT_CHART_CONFIGS.find(d => d.id === item.id)?.title || item.title,
+            category: CHART_CATEGORIES[item.id] || 'essencial'
+          }));
         }
       } catch (e) {}
     }
@@ -118,7 +137,7 @@ const Relatorios = () => {
   const [dadosPatrimonio, setDadosPatrimonio] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem('relatorios_chart_configs', JSON.stringify(chartConfigs));
+    localStorage.setItem('relatorios_chart_configs_v4', JSON.stringify(chartConfigs));
   }, [chartConfigs]);
 
   const handleDragStart = (e, index) => {
@@ -133,6 +152,19 @@ const Relatorios = () => {
     const [removed] = newConfigs.splice(sourceIndex, 1);
     newConfigs.splice(targetIndex, 0, removed);
     setChartConfigs(newConfigs);
+  };
+
+  const moveChartOrder = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= chartConfigs.length) return;
+    const newConfigs = [...chartConfigs];
+    const [item] = newConfigs.splice(index, 1);
+    newConfigs.splice(targetIndex, 0, item);
+    setChartConfigs(newConfigs);
+  };
+
+  const resetDefaultChartOrder = () => {
+    setChartConfigs(DEFAULT_CHART_CONFIGS);
   };
 
   const handleDragOver = (e) => {
@@ -221,31 +253,70 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
       const response = await api.get('/user/dados');
       const { receitas = [], despesas = [], orcamentos = [], categorias = [] } = response.data.dados || {};
 
+      // Helper robusto para extração de data em qualquer formato (YYYY-MM-DD, DD/MM/YYYY, ISO)
+      const parseItemDate = (item) => {
+        const raw = item?.data || item?.dataLancamento || item?.dataVencimento || item?.dataCompra;
+        if (!raw) return null;
+        const str = String(raw).trim();
+        if (str.includes('-')) {
+          const parts = str.split('T')[0].split('-');
+          if (parts.length >= 2) {
+            return {
+              ano: String(parts[0]).trim(),
+              mes: String(parts[1]).padStart(2, '0')
+            };
+          }
+        }
+        if (str.includes('/')) {
+          const parts = str.split(' ')[0].split('/');
+          if (parts.length >= 3) {
+            return {
+              ano: String(parts[2]).trim(),
+              mes: String(parts[1]).padStart(2, '0')
+            };
+          }
+        }
+        return null;
+      };
+
+      // Helper robusto para conversão numérica de moeda/valores
+      const parseValor = (v) => {
+        if (typeof v === 'number') return isNaN(v) ? 0 : v;
+        if (!v) return 0;
+        const s = String(v).replace(/[^\d,-]/g, '').replace(',', '.');
+        const num = parseFloat(s);
+        return isNaN(num) ? 0 : num;
+      };
+
       // Find budget for selected month (for mensal) or year (for other periods)
       let orcamentoSelecionado = null;
+      const targetAno = String(anoSelecionado).trim();
+      const targetMes = String(mesSelecionado).padStart(2, '0');
+      const targetTrimestre = parseInt(trimestreSelecionado) || 1;
+
       if (periodoSelecionado === 'mensal') {
-        const mesAnoSelecionado = `${anoSelecionado}-${mesSelecionado}`;
+        const mesAnoSelecionado = `${targetAno}-${targetMes}`;
         orcamentoSelecionado = orcamentos.find(o => o.mes === mesAnoSelecionado);
       } else {
-        // For trimestral/anual, use the first budget found for the selected year
-        orcamentoSelecionado = orcamentos.find(o => o.mes && o.mes.startsWith(anoSelecionado));
+        orcamentoSelecionado = orcamentos.find(o => o.mes && o.mes.startsWith(targetAno));
       }
 
       setOrcamentoCompleto(orcamentoSelecionado);
 
-      // Filtragem básica
+      // Filtragem básica resiliente
       const filtrarPorPeriodo = (items) => {
+        if (!Array.isArray(items)) return [];
         return items.filter(item => {
-          if (!item.data) return false;
-          const [ano, mes] = item.data.split('-');
+          const dt = parseItemDate(item);
+          if (!dt) return false;
 
-          if (ano !== anoSelecionado) return false;
+          if (String(dt.ano) !== targetAno) return false;
 
           if (periodoSelecionado === 'mensal') {
-            return mes === mesSelecionado;
+            return String(dt.mes).padStart(2, '0') === targetMes;
           } else if (periodoSelecionado === 'trimestral') {
-            const mesNum = parseInt(mes);
-            const trimestreInicio = (parseInt(trimestreSelecionado) - 1) * 3 + 1;
+            const mesNum = parseInt(dt.mes);
+            const trimestreInicio = (targetTrimestre - 1) * 3 + 1;
             return mesNum >= trimestreInicio && mesNum < trimestreInicio + 3;
           }
           return true; // anual
@@ -254,35 +325,77 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
 
       const receitasFiltradas = filtrarPorPeriodo(receitas).filter(r => r.somarNoOrcamento !== false);
       const despesasFiltradas = filtrarPorPeriodo(despesas).filter(d => d.somarNoOrcamento !== false);
+      setDespesasPeriodo(despesasFiltradas);
 
-      // Totais
-      const totalRec = receitasFiltradas.reduce((acc, curr) => acc + Number(curr.valor), 0);
-      const totalDesp = despesasFiltradas.reduce((acc, curr) => acc + Number(curr.valor), 0);
+      // Totais com fallback inteligente ao orçamento
+      let totalRec = receitasFiltradas.reduce((acc, curr) => acc + parseValor(curr.valor), 0);
+      let totalDesp = despesasFiltradas.reduce((acc, curr) => acc + parseValor(curr.valor), 0);
+
+      // Fallback para Receita: se não houver receita lançada avulsa para o período, mas houver renda no orçamento
+      if (totalRec === 0 && orcamentoSelecionado) {
+        const rendaOrc = parseValor(orcamentoSelecionado.rendaReal) || parseValor(orcamentoSelecionado.rendaPrevista);
+        if (rendaOrc > 0) {
+          totalRec = rendaOrc;
+        }
+      }
+
+      // Fallback para Despesa: se não houver despesas lançadas no período, mas houver gastos cadastrados nas categorias do orçamento
+      if (totalDesp === 0 && orcamentoSelecionado && Array.isArray(orcamentoSelecionado.categorias)) {
+        const gastoOrcTotal = orcamentoSelecionado.categorias.reduce((acc, c) => acc + parseValor(c.gastoAtual), 0);
+        if (gastoOrcTotal > 0) {
+          totalDesp = gastoOrcTotal;
+        }
+      }
+
       setTotalReceitas(totalRec);
       setTotalDespesas(totalDesp);
       setSaldo(totalRec - totalDesp);
 
-      // Dados por Categoria
+      // Dados por Categoria (normalizando nomes)
       const categoriasMap = {};
       despesasFiltradas.forEach(d => {
-        if (!categoriasMap[d.categoria]) {
-          categoriasMap[d.categoria] = 0;
+        const catKey = d.categoria ? d.categoria.trim() : 'Geral';
+        if (!categoriasMap[catKey]) {
+          categoriasMap[catKey] = 0;
         }
-        categoriasMap[d.categoria] += Number(d.valor);
+        categoriasMap[catKey] += parseValor(d.valor);
       });
+
+      const findGastoNaCategoria = (catNome) => {
+        if (!catNome) return 0;
+        const target = catNome.trim().toLowerCase();
+        for (const [k, v] of Object.entries(categoriasMap)) {
+          if (k && k.trim().toLowerCase() === target) {
+            return v;
+          }
+        }
+        return 0;
+      };
 
       const dadosCat = Object.keys(categoriasMap).map(cat => ({
         categoria: cat,
-        receitas: 0, // Simplificação
+        receitas: 0,
         despesas: categoriasMap[cat]
       }));
       setDadosPorCategoria(dadosCat);
 
       // Dados Pizza - Ordenados conforme ORDEM_CATEGORIAS
-      const dadosPiz = Object.keys(categoriasMap).map(cat => ({
+      let dadosPiz = Object.keys(categoriasMap).map(cat => ({
         name: cat,
         value: categoriasMap[cat]
-      })).sort((a, b) => {
+      })).filter(item => item.value > 0);
+
+      // Se despesas avulsas estiverem vazias, usa o gastoAtual registrado nas categorias do orçamento
+      if (dadosPiz.length === 0 && orcamentoSelecionado && Array.isArray(orcamentoSelecionado.categorias)) {
+        dadosPiz = orcamentoSelecionado.categorias
+          .map(catOrc => ({
+            name: catOrc.nome,
+            value: parseValor(catOrc.gastoAtual)
+          }))
+          .filter(item => item.value > 0);
+      }
+
+      dadosPiz.sort((a, b) => {
         const indexA = ORDEM_CATEGORIAS.indexOf(a.name);
         const indexB = ORDEM_CATEGORIAS.indexOf(b.name);
         if (indexA !== -1 && indexB !== -1) return indexA - indexB;
@@ -309,8 +422,9 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
         const semanasRest = (periodoSelecionado === 'mensal' && semanasRestantes > 0) ? semanasRestantes : totalSemanasMes;
 
         const dadosOrc = orcamentoSelecionado.categorias.map(catOrc => {
-          const gasto = categoriasMap[catOrc.nome] || 0;
-          const planejado = catOrc.valor || (parseFloat(orcamentoSelecionado.rendaReal || orcamentoSelecionado.rendaPrevista || 0) * catOrc.percentual / 100);
+          const gastoCalculado = findGastoNaCategoria(catOrc.nome);
+          const gasto = gastoCalculado > 0 ? gastoCalculado : (parseValor(catOrc.gastoAtual) || 0);
+          const planejado = catOrc.valor || (parseFloat(orcamentoSelecionado.rendaReal || orcamentoSelecionado.rendaPrevista || 0) * (catOrc.percentual || 0) / 100);
           const disponivel = planejado - gasto;
           const gastoAtualPositivo = Math.min(gasto, planejado);
           const disponivelPositivo = Math.max(0, disponivel);
@@ -336,7 +450,7 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
         // NOVO: Dados Pizza Orçamento - Também Ordenados
         const dadosPizOrc = orcamentoSelecionado.categorias.map(catOrc => ({
           name: catOrc.nome,
-          value: catOrc.valor || (parseFloat(orcamentoSelecionado.rendaReal || orcamentoSelecionado.rendaPrevista || 0) * catOrc.percentual / 100)
+          value: catOrc.valor || (parseFloat(orcamentoSelecionado.rendaReal || orcamentoSelecionado.rendaPrevista || 0) * (catOrc.percentual || 0) / 100)
         })).sort((a, b) => {
           const indexA = ORDEM_CATEGORIAS.indexOf(a.name);
           const indexB = ORDEM_CATEGORIAS.indexOf(b.name);
@@ -361,8 +475,14 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
           { nome: '4º Trim', meses: ['10', '11', '12'] }
         ];
         trimestresConfig.forEach(t => {
-          const recTrim = receitas.filter(r => t.meses.some(m => r.data && r.data.startsWith(`${anoSelecionado}-${m}`)) && r.somarNoOrcamento !== false).reduce((acc, r) => acc + Number(r.valor), 0);
-          const despTrim = despesas.filter(d => t.meses.some(m => d.data && d.data.startsWith(`${anoSelecionado}-${m}`)) && d.somarNoOrcamento !== false).reduce((acc, d) => acc + Number(d.valor), 0);
+          const recTrim = receitas.filter(r => {
+            const dt = parseItemDate(r);
+            return dt && dt.ano === targetAno && t.meses.includes(dt.mes) && r.somarNoOrcamento !== false;
+          }).reduce((acc, r) => acc + parseValor(r.valor), 0);
+          const despTrim = despesas.filter(d => {
+            const dt = parseItemDate(d);
+            return dt && dt.ano === targetAno && t.meses.includes(dt.mes) && d.somarNoOrcamento !== false;
+          }).reduce((acc, d) => acc + parseValor(d.valor), 0);
           dadosEvolucao.push({
             name: t.nome,
             receitas: recTrim,
@@ -372,14 +492,20 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
         });
       } else if (graficoEvolucaoPeriodo === 'anual') {
         const todosAnos = [...new Set([
-          ...receitas.map(r => r.data?.split('-')[0]),
-          ...despesas.map(d => d.data?.split('-')[0]),
-          anoSelecionado
+          ...receitas.map(r => parseItemDate(r)?.ano),
+          ...despesas.map(d => parseItemDate(d)?.ano),
+          targetAno
         ])].filter(Boolean).sort();
         const anosParaExibir = todosAnos.slice(-5);
         anosParaExibir.forEach(ano => {
-          const recAno = receitas.filter(r => r.data && r.data.startsWith(`${ano}-`) && r.somarNoOrcamento !== false).reduce((acc, r) => acc + Number(r.valor), 0);
-          const despAno = despesas.filter(d => d.data && d.data.startsWith(`${ano}-`) && d.somarNoOrcamento !== false).reduce((acc, d) => acc + Number(d.valor), 0);
+          const recAno = receitas.filter(r => {
+            const dt = parseItemDate(r);
+            return dt && dt.ano === String(ano) && r.somarNoOrcamento !== false;
+          }).reduce((acc, r) => acc + parseValor(r.valor), 0);
+          const despAno = despesas.filter(d => {
+            const dt = parseItemDate(d);
+            return dt && dt.ano === String(ano) && d.somarNoOrcamento !== false;
+          }).reduce((acc, d) => acc + parseValor(d.valor), 0);
           dadosEvolucao.push({
             name: String(ano),
             receitas: recAno,
@@ -391,8 +517,14 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
         const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         const mesesDoAno = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
         mesesDoAno.forEach((mes, idx) => {
-          const recMes = receitas.filter(r => r.data && r.data.startsWith(`${anoSelecionado}-${mes}`) && r.somarNoOrcamento !== false).reduce((acc, r) => acc + Number(r.valor), 0);
-          const despMes = despesas.filter(d => d.data && d.data.startsWith(`${anoSelecionado}-${mes}`) && d.somarNoOrcamento !== false).reduce((acc, d) => acc + Number(d.valor), 0);
+          const recMes = receitas.filter(r => {
+            const dt = parseItemDate(r);
+            return dt && dt.ano === targetAno && dt.mes === mes && r.somarNoOrcamento !== false;
+          }).reduce((acc, r) => acc + parseValor(r.valor), 0);
+          const despMes = despesas.filter(d => {
+            const dt = parseItemDate(d);
+            return dt && dt.ano === targetAno && dt.mes === mes && d.somarNoOrcamento !== false;
+          }).reduce((acc, d) => acc + parseValor(d.valor), 0);
           dadosEvolucao.push({
             name: nomesMeses[idx] || mes,
             receitas: recMes,
@@ -409,16 +541,18 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
           const inicio = (t - 1) * 3 + 1;
           const fim = inicio + 2;
           const recTrim = receitas.filter(r => {
-            const [a, m] = r.data.split('-');
-            const mNum = parseInt(m);
-            return a === anoSelecionado && mNum >= inicio && mNum <= fim && r.somarNoOrcamento !== false;
-          }).reduce((acc, r) => acc + Number(r.valor), 0);
+            const dt = parseItemDate(r);
+            if (!dt) return false;
+            const mNum = parseInt(dt.mes);
+            return dt.ano === targetAno && mNum >= inicio && mNum <= fim && r.somarNoOrcamento !== false;
+          }).reduce((acc, r) => acc + parseValor(r.valor), 0);
 
           const despTrim = despesas.filter(d => {
-            const [a, m] = d.data.split('-');
-            const mNum = parseInt(m);
-            return a === anoSelecionado && mNum >= inicio && mNum <= fim && d.somarNoOrcamento !== false;
-          }).reduce((acc, d) => acc + Number(d.valor), 0);
+            const dt = parseItemDate(d);
+            if (!dt) return false;
+            const mNum = parseInt(dt.mes);
+            return dt.ano === targetAno && mNum >= inicio && mNum <= fim && d.somarNoOrcamento !== false;
+          }).reduce((acc, d) => acc + parseValor(d.valor), 0);
 
           return {
             trimestre: `${t}º Trim`,
@@ -712,6 +846,34 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
             </h3>
             {orcamentoCompleto && orcamentoCompleto.categorias && orcamentoCompleto.categorias.length > 0 ? (
               <div className="mt-4">
+                {/* Cards Rápidos de Totais do Orçamento */}
+                {(() => {
+                  const totPlan = dadosOrcamento.reduce((acc, it) => acc + (it.planejadoTotal || 0), 0);
+                  const totGasto = dadosOrcamento.reduce((acc, it) => acc + (it.gastoAtualPositivo + Math.abs(it.excedenteNegativo || 0)), 0);
+                  const totDisp = totPlan - totGasto;
+                  const totPerc = totPlan > 0 ? (totGasto / totPlan) * 100 : 0;
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                      <div className="p-3.5 bg-custom-primary/30 rounded-xl border border-custom-color">
+                        <span className="text-[11px] font-bold text-custom-main opacity-70 uppercase tracking-wider block">Total Planejado</span>
+                        <span className="text-base sm:text-xl font-extrabold text-blue-500 mt-0.5 block">{formatarMoeda(totPlan)}</span>
+                      </div>
+                      <div className="p-3.5 bg-custom-primary/30 rounded-xl border border-custom-color">
+                        <span className="text-[11px] font-bold text-custom-main opacity-70 uppercase tracking-wider block">Total Gasto</span>
+                        <span className="text-base sm:text-xl font-extrabold text-red-500 mt-0.5 block">{formatarMoeda(totGasto)}</span>
+                      </div>
+                      <div className="p-3.5 bg-custom-primary/30 rounded-xl border border-custom-color">
+                        <span className="text-[11px] font-bold text-custom-main opacity-70 uppercase tracking-wider block">Saldo Disponível</span>
+                        <span className={`text-base sm:text-xl font-extrabold mt-0.5 block ${totDisp >= 0 ? 'text-green-500' : 'text-orange-500'}`}>{formatarMoeda(totDisp)}</span>
+                      </div>
+                      <div className="p-3.5 bg-custom-primary/30 rounded-xl border border-custom-color">
+                        <span className="text-[11px] font-bold text-custom-main opacity-70 uppercase tracking-wider block">% Comprometido</span>
+                        <span className={`text-base sm:text-xl font-extrabold mt-0.5 block ${totPerc > 100 ? 'text-orange-500' : 'text-custom-gold'}`}>{totPerc.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={dadosOrcamento} margin={{ top: 10, right: 10, left: 0, bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#e2e8f0'} />
@@ -772,6 +934,33 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
                         );
                       })}
                     </tbody>
+                    <tfoot className="bg-custom-primary/60 font-bold border-t-2 border-custom-color">
+                      {(() => {
+                        const totPlan = dadosOrcamento.reduce((acc, it) => acc + (it.planejadoTotal || 0), 0);
+                        const totPlanSem = dadosOrcamento.reduce((acc, it) => acc + (it.planoSemanal || 0), 0);
+                        const totGasto = dadosOrcamento.reduce((acc, it) => acc + (it.gastoAtualPositivo + Math.abs(it.excedenteNegativo || 0)), 0);
+                        const totDisp = totPlan - totGasto;
+                        const totDispSem = dadosOrcamento.reduce((acc, it) => acc + (it.disponivelSemanal || 0), 0);
+                        const totPerc = totPlan > 0 ? (totGasto / totPlan) * 100 : 0;
+                        const totUltrapassou = totGasto > totPlan;
+                        return (
+                          <tr>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-custom-gold uppercase tracking-wider">TOTAL GERAL</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-custom-main font-extrabold">{formatarMoeda(totPlan)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-custom-main font-bold opacity-80">{formatarMoeda(totPlanSem)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-red-500 font-extrabold">{formatarMoeda(totGasto)}</td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-extrabold ${totUltrapassou ? 'text-orange-500' : 'text-green-500'}`}>{formatarMoeda(totDisp)}</td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${totUltrapassou ? 'text-orange-500' : 'text-green-500'}`}>{formatarMoeda(totDispSem)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-custom-main font-extrabold">{totPerc.toFixed(1)}%</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold">
+                              <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${totUltrapassou ? 'bg-orange-950/20 text-orange-400 border border-orange-500/30' : 'bg-green-950/20 text-green-400 border border-green-500/30'}`}>
+                                {totUltrapassou ? 'Teto Excedido' : 'Dentro do Teto'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })()}
+                    </tfoot>
                   </table>
                 </div>
               </div>
@@ -793,7 +982,12 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col items-center">
-                <h4 className="text-sm font-semibold text-custom-main opacity-80 mb-4 uppercase tracking-wider">Gastos Reais</h4>
+                <div className="flex items-center justify-between w-full mb-4 px-2">
+                  <h4 className="text-sm font-semibold text-custom-main opacity-80 uppercase tracking-wider">Gastos Reais</h4>
+                  <span className="text-xs font-bold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-lg border border-red-500/20">
+                    Total: {formatarMoeda(dadosPizza.reduce((acc, curr) => acc + (curr.value || 0), 0))}
+                  </span>
+                </div>
                 {dadosPizza.length > 0 ? (
                   <ResponsiveContainer width="100%" height={320}>
                     <PieChart margin={{ top: 0, right: 40, left: 40, bottom: 0 }}>
@@ -824,7 +1018,12 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
                 )}
               </div>
               <div className="flex flex-col items-center">
-                <h4 className="text-sm font-semibold text-custom-main opacity-80 mb-4 uppercase tracking-wider">Planejado (Orçamento)</h4>
+                <div className="flex items-center justify-between w-full mb-4 px-2">
+                  <h4 className="text-sm font-semibold text-custom-main opacity-80 uppercase tracking-wider">Planejado (Orçamento)</h4>
+                  <span className="text-xs font-bold text-blue-500 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
+                    Total: {formatarMoeda(dadosPizzaOrcamento.reduce((acc, curr) => acc + (curr.value || 0), 0))}
+                  </span>
+                </div>
                 {dadosPizzaOrcamento.length > 0 ? (
                   <ResponsiveContainer width="100%" height={320}>
                     <PieChart margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
@@ -1190,6 +1389,28 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
                 </select>
               </div>
             </div>
+            {dadosEvolucaoTemporal.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {(() => {
+                  const totRec = dadosEvolucaoTemporal.reduce((acc, it) => acc + (it.receitas || 0), 0);
+                  const totDesp = dadosEvolucaoTemporal.reduce((acc, it) => acc + (it.despesas || 0), 0);
+                  const totSaldo = totRec - totDesp;
+                  return (
+                    <>
+                      <span className="px-3 py-1 text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                        Total Receitas Período: {formatarMoeda(totRec)}
+                      </span>
+                      <span className="px-3 py-1 text-xs font-bold rounded-lg bg-red-500/10 text-red-500 border border-red-500/20">
+                        Total Despesas Período: {formatarMoeda(totDesp)}
+                      </span>
+                      <span className={`px-3 py-1 text-xs font-bold rounded-lg border ${totSaldo >= 0 ? 'bg-custom-gold/15 text-custom-gold border-custom-gold/30' : 'bg-orange-500/10 text-orange-400 border-orange-500/20'}`}>
+                        Saldo Líquido Período: {formatarMoeda(totSaldo)}
+                      </span>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
             {dadosEvolucaoTemporal.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
                 <AreaChart
@@ -1653,6 +1874,17 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
             </div>
           </div>
         );
+            case 'heatmap-gastos':
+        return (
+          <HeatmapGastosDiarios
+            despesas={despesasPeriodo}
+            anoSelecionado={anoSelecionado}
+            mesSelecionado={mesSelecionado}
+            periodoSelecionado={periodoSelecionado}
+            formatarMoeda={formatarMoeda}
+            theme={theme}
+          />
+        );
       default:
         return null;
     }
@@ -1764,30 +1996,158 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
         </div>
       </div>
 
-      {/* Central de Personalização de Gráficos (Drag, Drop e Resize) */}
+            {/* Seletor de Categoria de Relatórios (Essenciais vs Avançados PRO) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-custom-card p-2 rounded-2xl border border-custom-color shadow-custom">
+        <div className="flex items-center gap-1.5 overflow-x-auto p-1">
+          <button
+            type="button"
+            onClick={() => setCategoriaRelatorioAtiva('todos')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+              categoriaRelatorioAtiva === 'todos'
+                ? 'bg-custom-gold text-black shadow-xs font-extrabold'
+                : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-primary/50'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span>Todos os Relatórios</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/15 dark:bg-white/15">
+              {chartConfigs.filter(c => c.visible).length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCategoriaRelatorioAtiva('essenciais')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+              categoriaRelatorioAtiva === 'essenciais'
+                ? 'bg-custom-gold text-black shadow-xs font-extrabold'
+                : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-primary/50'
+            }`}
+          >
+            <PieChartIcon className="w-4 h-4" />
+            <span>Relatórios Essenciais</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/15 dark:bg-white/15">
+              {chartConfigs.filter(c => c.visible && (CHART_CATEGORIES[c.id] || c.category) === 'essencial').length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCategoriaRelatorioAtiva('avancados')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+              categoriaRelatorioAtiva === 'avancados'
+                ? 'bg-custom-gold text-black shadow-xs font-extrabold'
+                : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-primary/50'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>Relatórios Avançados</span>
+            <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+              PRO
+            </span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/15 dark:bg-white/15">
+              {chartConfigs.filter(c => c.visible && (CHART_CATEGORIES[c.id] || c.category) === 'avancado').length}
+            </span>
+          </button>
+        </div>
+
+        <div className="px-3 py-1 text-[11px] text-custom-main opacity-60 hidden md:block">
+          {categoriaRelatorioAtiva === 'avancados'
+            ? 'Exibindo análises preditivas, hábitos diários e patrimônio'
+            : categoriaRelatorioAtiva === 'essenciais'
+            ? 'Exibindo acompanhamento orçamentário e custos essenciais'
+            : 'Visualização completa de todos os painéis analíticos'}
+        </div>
+      </div>
+
+      {/* Central de Personalização de Gráficos (Ordem, Visibilidade e Tamanho) */}
       <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-colors">
-        <h3 className="text-lg font-bold text-custom-main mb-3 flex items-center gap-2">
-          <Sliders className="w-5 h-5 text-custom-gold" />
-          <span>Personalizar Painel de Relatórios</span>
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+          <h3 className="text-lg font-bold text-custom-main flex items-center gap-2">
+            <Sliders className="w-5 h-5 text-custom-gold" />
+            <span>Personalizar Ordem e Exibição dos Relatórios</span>
+          </h3>
+          <button
+            type="button"
+            onClick={resetDefaultChartOrder}
+            className="text-xs px-3 py-1.5 rounded-lg border border-custom-color text-custom-main opacity-80 hover:opacity-100 hover:border-custom-gold hover:text-custom-gold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+            title="Voltar para a ordem padrão dos relatórios"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Restaurar Ordem Padrão
+          </button>
+        </div>
+
         <p className="text-xs text-custom-main opacity-70 mb-4">
-          Ative ou desative os gráficos abaixo. Você também pode **clicar e arrastar** os gráficos para reordenar suas posições, e usar os botões de controle em cada card para alterar o tamanho deles.
+          Defina a ordem em que os relatórios devem aparecer usando as <strong>setas (◀ ▶)</strong> ou <strong>arrastando os itens</strong>. Clique no nome para ativar ou ocultar.
         </p>
-        <div className="flex flex-wrap gap-3">
-          {chartConfigs.map(chart => (
-            <button
+
+        <div className="flex flex-wrap gap-2.5">
+          {chartConfigs
+          .filter(chart => {
+            const cat = CHART_CATEGORIES[chart.id] || chart.category || 'essencial';
+            if (categoriaRelatorioAtiva === 'essenciais') return cat === 'essencial';
+            if (categoriaRelatorioAtiva === 'avancados') return cat === 'avancado';
+            return true;
+          })
+          .map((chart) => {
+            const index = chartConfigs.findIndex(c => c.id === chart.id);
+            return (
+            <div
               key={chart.id}
-              onClick={() => toggleChartVisibility(chart.id)}
-              className={`px-4 py-2 text-xs font-bold rounded-custom transition-custom flex items-center gap-2 border cursor-pointer ${
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, index)}
+              className={`flex items-center rounded-xl border transition-all text-xs select-none ${
                 chart.visible
-                  ? 'bg-custom-gold text-black border-custom-gold'
-                  : 'bg-transparent text-custom-main opacity-50 border-custom-color'
+                  ? 'bg-custom-gold/15 border-custom-gold text-custom-main shadow-xs'
+                  : 'bg-custom-primary/30 border-custom-color text-custom-main opacity-50'
               }`}
             >
-              <span>{chart.visible ? '✓' : '+'}</span>
-              <span>{chart.title}</span>
-            </button>
-          ))}
+              {/* Mover para a esquerda */}
+              <button
+                type="button"
+                onClick={() => moveChartOrder(index, -1)}
+                disabled={index === 0}
+                className="px-2 py-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-l-xl transition disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                title="Mover para antes"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Botão de Toggle e Título */}
+              <button
+                type="button"
+                onClick={() => toggleChartVisibility(chart.id)}
+                className="px-2.5 py-2 flex items-center gap-2 hover:opacity-80 transition cursor-pointer"
+                title={chart.visible ? 'Clique para ocultar este relatório' : 'Clique para exibir este relatório'}
+              >
+                <span className="w-4 h-4 rounded-full bg-black/20 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-custom-gold">
+                  {index + 1}
+                </span>
+                <span className="font-bold">{chart.visible ? '✓' : '✗'}</span>
+                <span className="font-semibold">{chart.title}</span>
+                {chart.category === 'avancado' && (
+                  <span className="text-[8px] font-extrabold px-1.5 py-0.2 rounded bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    PRO
+                  </span>
+                )}
+              </button>
+
+              {/* Mover para a direita */}
+              <button
+                type="button"
+                onClick={() => moveChartOrder(index, 1)}
+                disabled={index === chartConfigs.length - 1}
+                className="px-2 py-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-r-xl transition disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                title="Mover para depois"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            );
+          })}
         </div>
       </div>
 
@@ -1795,6 +2155,12 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
       <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mt-6">
         {chartConfigs
           .filter(chart => chart.visible)
+          .filter(chart => {
+            const cat = CHART_CATEGORIES[chart.id] || chart.category || 'essencial';
+            if (categoriaRelatorioAtiva === 'essenciais') return cat === 'essencial';
+            if (categoriaRelatorioAtiva === 'avancados') return cat === 'avancado';
+            return true;
+          })
           .map((chart, index) => {
             const sizeClass = chart.size === 'small' 
               ? 'col-span-1 md:col-span-2' 

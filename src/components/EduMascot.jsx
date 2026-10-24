@@ -222,6 +222,12 @@ const EduMascot = () => {
         ? `${isTopHalf ? 'top-full mt-3' : 'bottom-full mb-3'} ${isLeftHalf ? 'left-0' : 'right-0'}`
         : 'bottom-full mb-3 right-0';
 
+    const balloonMaxHeight = isCustom
+        ? isTopHalf
+            ? `calc(100dvh - ${Math.min(position.y + 115, window.innerHeight - 80)}px)`
+            : `calc(${Math.max(position.y - 15, 220)}px)`
+        : 'calc(100dvh - 140px)';
+
     const statusColors = {
         verde: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400',
         amarelo: 'bg-amber-500/15 border-amber-500/40 text-amber-400',
@@ -229,8 +235,22 @@ const EduMascot = () => {
     };
 
     return (
-        <div
-            ref={mascotRef}
+        <>
+            {/* Backdrop suave: levemente esbranquiçado e levemente borrado para focar a atenção no FINAN */}
+            {isVisible && content && (
+                <div
+                    className="fixed inset-0 z-40 bg-white/20 dark:bg-white/10 backdrop-blur-[3px] transition-all duration-300 animate-in fade-in"
+                    onClick={() => {
+                        clearChat();
+                        hideMascot();
+                    }}
+                    title="Clique fora para fechar a ajuda do FIN"
+                    aria-label="Fechar ajuda do FIN"
+                />
+            )}
+
+            <div
+                ref={mascotRef}
             style={
                 position
                     ? { left: `${position.x}px`, top: `${position.y}px`, bottom: 'auto', right: 'auto' }
@@ -243,12 +263,13 @@ const EduMascot = () => {
             {/* Balão de Fala / Diálogo do FIN */}
             {isVisible && content && (
                 <div
-                    className={`absolute z-50 w-[calc(100vw-32px)] max-w-md bg-custom-card text-custom-main rounded-2xl p-5 shadow-2xl border border-custom-color transition-all animate-in fade-in zoom-in-95 duration-200 ${balloonPositionClass}`}
+                    style={{ maxHeight: balloonMaxHeight }}
+                    className={`absolute z-50 w-[calc(100vw-32px)] sm:w-[440px] max-w-[calc(100vw-24px)] flex flex-col bg-custom-card text-custom-main rounded-2xl p-4 sm:p-5 shadow-2xl border border-custom-color transition-all animate-in fade-in zoom-in-95 duration-200 ${balloonPositionClass}`}
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Cabeçalho do Balão */}
-                    <div className="flex items-center justify-between pb-3 border-b border-custom-color/40">
+                    <div className="flex items-center justify-between pb-3 border-b border-custom-color/40 flex-shrink-0">
                         <div className="flex items-center gap-2.5">
                             <div className="p-1.5 bg-amber-500/10 dark:bg-amber-900/30 rounded-lg text-amber-500">
                                 <GraduationCap className="w-5 h-5" />
@@ -303,7 +324,7 @@ const EduMascot = () => {
                     </div>
 
                     {/* Conteúdo da Mensagem / Quiz / Chatbot */}
-                    <div className="mt-3.5 max-h-[58vh] overflow-y-auto pr-1 space-y-3.5 text-sm">
+                    <div className="mt-3 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3 text-sm">
                         {isQuizOpen ? (
                             quizResult ? (
                                 <div className="space-y-3">
@@ -552,7 +573,7 @@ const EduMascot = () => {
                     </div>
 
                     {/* Atalhos Rápidos do FIN (Quiz + Sabedoria sem citar livros) */}
-                    <div className="mt-3 pt-2.5 border-t border-custom-color/40 flex flex-wrap gap-1.5">
+                    <div className="mt-2.5 pt-2 border-t border-custom-color/40 flex flex-wrap gap-1.5 flex-shrink-0">
                         <button
                             type="button"
                             onClick={openQuiz}
@@ -586,7 +607,7 @@ const EduMascot = () => {
                     </div>
 
                     {/* Caixa de Pergunta ao FIN */}
-                    <form onSubmit={handleAskQuestion} className="mt-2.5 flex gap-2">
+                    <form onSubmit={handleAskQuestion} className="mt-2 flex gap-2 flex-shrink-0">
                         <input
                             type="text"
                             value={userQuestion}
@@ -645,6 +666,7 @@ const EduMascot = () => {
                 </button>
             </div>
         </div>
+        </>
     );
 };
 
