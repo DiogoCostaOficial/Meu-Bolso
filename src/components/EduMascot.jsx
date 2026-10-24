@@ -24,7 +24,7 @@ const CATEGORIAS_PADRAO_QUIZ = [
 
 const EduMascot = () => {
     const navigate = useNavigate();
-    const { isVisible, hideMascot, toggleMascot, isDocked, dockMascot, getLessonContent, mascotState, primeiroNome, vocativo } = useEdu();
+    const { isVisible, hideMascot, toggleMascot, isDocked, dockMascot, getLessonContent, mascotState, primeiroNome, vocativo, tratamento } = useEdu();
     const { formatCurrency } = useCurrency();
     const [userQuestion, setUserQuestion] = useState('');
     const [chatbotResponse, setChatbotResponse] = useState(null);
@@ -108,7 +108,7 @@ const EduMascot = () => {
                 tipoEscolha: quizTipoEscolha
             },
             formatCurrency,
-            { primeiroNome, vocativo }
+            tratamento
         );
         setQuizResult(resultado);
     };
@@ -383,7 +383,7 @@ const EduMascot = () => {
                             ) : (
                                 <form onSubmit={handleRunQuiz} className="space-y-3">
                                     <p className="text-xs opacity-90 leading-relaxed">
-                                        Psst! Eu vi você pegando a carteira aí fora da tela! 👀 Me conta aqui, <strong>{vocativo}</strong>, o que você quer comprar que eu corro lá no seu pote do <strong>Orçamento</strong> pra ver se sobra balinha! 👇
+                                        Psst! Eu vi você pegando a carteira aí fora da tela! 👀 Me conta aqui, <strong>{vocativo}</strong>, o que você quer comprar que eu olho o seu <strong>Orçamento</strong> pra ver se sobram moedinhas no cofre! 👇
                                     </p>
 
                                     <div>

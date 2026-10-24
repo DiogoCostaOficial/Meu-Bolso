@@ -14,9 +14,11 @@ export const EduProvider = ({ children }) => {
         authUser = null;
     }
 
-    const { primeiroNome, vocativo } = useMemo(() => {
+    const tratamento = useMemo(() => {
         return obterTratamentoUsuario(authUser?.nome);
     }, [authUser?.nome]);
+
+    const { primeiroNome, vocativo, genero, itemColecao, itemColecaoSingular, recipienteColecao, emojiColecao } = tratamento;
 
     const [isVisible, setIsVisible] = useState(false);
     const [currentTopic, setCurrentTopic] = useState(null);
@@ -123,7 +125,7 @@ export const EduProvider = ({ children }) => {
             const oldRank = hierarchy[prevMascot] !== undefined ? hierarchy[prevMascot] : 1;
             const newRank = hierarchy[newState];
 
-            const transMsgs = getTransitionMessages({ primeiroNome, vocativo });
+            const transMsgs = getTransitionMessages(tratamento);
 
             if (newRank > oldRank) {
                 setTransitionMessage(transMsgs.upgrade);
@@ -135,10 +137,10 @@ export const EduProvider = ({ children }) => {
 
             return newState;
         });
-    }, [primeiroNome, vocativo]);
+    }, [tratamento]);
 
     const getLessonContent = useCallback(() => {
-        const transitionMsgs = getTransitionMessages({ primeiroNome, vocativo });
+        const transitionMsgs = getTransitionMessages(tratamento);
 
         // Prioridade para mensagem de transição
         if (transitionMessage) {
@@ -166,12 +168,12 @@ export const EduProvider = ({ children }) => {
 
         if (!topic) topic = 'dashboard';
 
-        const eduContent = buildEduContent({ primeiroNome, vocativo });
+        const eduContent = buildEduContent(tratamento);
 
         // Se for uma análise geral (ex: dashboard), combina conteúdo estático com análise dinâmica
         if (topic === 'dashboard') {
             const baseContent = eduContent['dashboard'] || {};
-            const analysis = analyzeFinances(financialData.receitas, financialData.despesas, { primeiroNome, vocativo });
+            const analysis = analyzeFinances(financialData.receitas, financialData.despesas, tratamento);
 
             return {
                 ...baseContent,
@@ -180,7 +182,7 @@ export const EduProvider = ({ children }) => {
         }
 
         return eduContent[topic] || eduContent['dashboard'];
-    }, [currentTopic, transitionMessage, financialData, primeiroNome, vocativo]);
+    }, [currentTopic, transitionMessage, financialData, tratamento]);
 
     const contextValue = useMemo(() => ({
         isVisible,
@@ -194,7 +196,13 @@ export const EduProvider = ({ children }) => {
         getLessonContent,
         mascotState,
         primeiroNome,
-        vocativo
+        vocativo,
+        genero,
+        itemColecao,
+        itemColecaoSingular,
+        recipienteColecao,
+        emojiColecao,
+        tratamento
     }), [
         isVisible,
         showLesson,
@@ -207,7 +215,13 @@ export const EduProvider = ({ children }) => {
         getLessonContent,
         mascotState,
         primeiroNome,
-        vocativo
+        vocativo,
+        genero,
+        itemColecao,
+        itemColecaoSingular,
+        recipienteColecao,
+        emojiColecao,
+        tratamento
     ]);
 
     return (

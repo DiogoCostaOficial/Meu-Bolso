@@ -232,27 +232,39 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
 
   const totalDespesasMes = despesasMes.reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0);
 
+  const {
+    primeiroNome = '',
+    vocativo = 'amigo',
+    genero = 'masculino',
+    itemColecao = 'figurinhas',
+    recipienteColecao = 'álbum de figurinhas',
+    emojiColecao = '🃏'
+  } = tratamento;
+
+  const isFeminino = genero === 'feminino';
+  const nomeRecipiente = isFeminino ? 'caixinha' : 'pote';
+
   // Caso 1: Usuário ainda não definiu meta de orçamento para esta categoria
   if (metaCategoria <= 0) {
     const saldoRestanteGeral = rendaBase - (totalDespesasMes + valorCompra);
     return {
       status: rendaBase > 0 && saldoRestanteGeral >= 0 ? 'amarelo' : 'vermelho',
-      badge: '🍬 Eita! Pote de Balinhas sem Etiqueta!',
-      headline: `Psst! Olha pra mim aqui na tela: eu fui abrir o seu pote de "${nomeCategoria}" e ele tá SEM META definida!`,
+      badge: isFeminino ? '✨ Eita! Caixinha sem Etiqueta de Meta!' : '🃏 Eita! Pote sem Etiqueta de Meta!',
+      headline: `Psst! Olha pra mim aqui na tela: eu fui olhar ${nomeCategoria} e ela tá SEM META definida!`,
       numbersSummary: [
-        `🍭 O que você quer pegar: ${nomeItem} (${fmt(valorCompra)})`,
-        `📦 Quanto você já tirou de ${nomeCategoria} este mês: ${fmt(gastoAtualCategoria)}`,
-        horasDeSuor ? `⏱️ Suor de amigo: Isso vale ${horasDeSuor} horas inteirinhas do seu trabalho lá fora!` : null
+        `🛍️ O que você quer comprar: ${nomeItem} (${fmt(valorCompra)})`,
+        `📦 Quanto você já gastou em ${nomeCategoria} este mês: ${fmt(gastoAtualCategoria)}`,
+        horasDeSuor ? `⏱️ Suor de trabalho: Isso vale ${horasDeSuor} horas inteirinhas do seu esforço lá fora!` : null
       ].filter(Boolean),
       kidExplanation:
-        `Ei, ${vocativo}, tira a mão da carteira por 1 segundinho! ✋ Eu dei um pulo lá nos bastidores do seu aplicativo pra contar suas balinhas de **${nomeCategoria}**, mas você ainda não colou o adesivo dizendo quanto pode gastar nesse pote!\n\n` +
+        `Ei, ${vocativo}, tira a mão da carteira por 1 segundinho! ✋ Eu dei um pulo lá nos bastidores do seu aplicativo pra conferir a sua reserva de **${nomeCategoria}**, mas você ainda não colou o adesivo dizendo quanto pode gastar aqui!\n\n` +
         (ehDesejo
-          ? `🍭 **Papo reto aqui entre nós:** Você mesmo me confessou aqui no botão que "${nomeItem}" é só uma **Vontade de Doce (Desejo)**! Se a gente comprar no escuro, pode faltar moeda pro almoço depois! Clica no botão aqui embaixo, vamos lá no *Orçamento* dar nome pro seu dinheiro primeiro e faz o **Teste dos 3 Dias**!`
-          : `🍞 **Papo reto aqui entre nós:** Eu sei que "${nomeItem}" é importante (**Necessidade**), mas não deixa a nossa dupla voar de olhos vendados! Clica aqui embaixo pra gente colar a etiqueta de meta no pote de **${nomeCategoria}** lá no *Orçamento*!`)
+          ? `💡 **Papo reto aqui entre nós:** Você mesmo me confessou aqui no botão que "${nomeItem}" é só um **Desejo passageiro**! Se a gente comprar no escuro, pode faltar moeda pro almoço depois! Clica no botão aqui embaixo, vamos lá no *Orçamento* dar nome pro seu dinheiro primeiro e faz o **Teste dos 3 Dias**!`
+          : `💡 **Papo reto aqui entre nós:** Eu sei que "${nomeItem}" é importante (**Necessidade**), mas não deixa a nossa dupla voar de olhos vendados! Clica aqui embaixo pra gente colar a etiqueta de meta no pote de **${nomeCategoria}** lá no *Orçamento*!`)
     };
   }
 
-  // Caso 2: Usuário TEM meta definida no Orçamento! Vamos contar as balinhas do pote!
+  // Caso 2: Usuário TEM meta definida no Orçamento!
   const disponivelAntes = metaCategoria - gastoAtualCategoria;
   const gastoDepois = gastoAtualCategoria + valorCompra;
   const disponivelDepois = metaCategoria - gastoDepois;
@@ -262,55 +274,55 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
   if (percentualDepois <= 80) {
     return {
       status: 'verde',
-      badge: '🟢 Toca Aqui ✋! Cabe no Nosso Pote!',
-      headline: `${primeiroNome ? `Aê, ${primeiroNome}!` : `Aê, ${vocativo}!`} Eu olhei o seu pote de "${nomeCategoria}" aqui dentro do app e TEM BALINHA SOBRANDO pra "${nomeItem}"!`,
+      badge: isFeminino ? '🟢 Toca Aqui ✋! Cabe na Nossa Caixinha!' : '🟢 Toca Aqui ✋! Cabe no Nosso Pote!',
+      headline: `${primeiroNome ? `Aê, ${primeiroNome}!` : `Aê, ${vocativo}!`} Eu olhei a sua meta de "${nomeCategoria}" aqui dentro do app e TEM FOLGA SOBRANDO pra "${nomeItem}"!`,
       numbersSummary: [
-        `🍬 Tamanho do pote de ${nomeCategoria}: ${fmt(metaCategoria)}`,
-        `😋 Já comemos: ${fmt(gastoAtualCategoria)} | Ainda tem no pote: ${fmt(disponivelAntes)}`,
-        `✅ Se pegar ${fmt(valorCompra)} agora: Ainda sobram ${fmt(disponivelDepois)} no pote (${percentualDepois.toFixed(0)}% usado)!`,
+        `🎯 Limite planejado para ${nomeCategoria}: ${fmt(metaCategoria)}`,
+        `💸 Já utilizado: ${fmt(gastoAtualCategoria)} | Ainda livre: ${fmt(disponivelAntes)}`,
+        `✅ Se comprar agora: Ainda sobram ${fmt(disponivelDepois)} livres (${percentualDepois.toFixed(0)}% usado)!`,
         horasDeSuor ? `⏱️ Na ponta do lápis: Custa ${horasDeSuor} horas do seu suor.` : null
       ].filter(Boolean),
       kidExplanation:
         ehDesejo
-          ? `🍭 **Segredinho do FIN (chega pertinho da tela):** Você mandou muito bem dando nome pro nosso dinheiro! Essa balinha de **${fmt(valorCompra)}** cabe folgada dentro do pote de **${nomeCategoria}**!\n\nMas como estou aqui pra cuidar das suas moedinhas, tenho que fazer a pergunta mágica: *se você deixar essas moedas quietinhas no pote rendendo filhotinhos ou pedir um descontão à vista, não fica ainda mais gostoso?* Se quiser mesmo comprar, vai lá sem culpa e não parcela a perder de vista, hein!`
-          : `🍞 **Orgulho do FIN!** Toca aqui na tela! ✋ Você planejou tudo direitinho, colou nome no pote de **${nomeCategoria}** e essa compra que você **precisa** cabe com um montão de folga! Só não esquece de chorar um descontinho à vista lá fora por mim!`
+          ? `🌟 **Segredinho do FIN (chega pertinho da tela):** Você mandou muito bem dando nome pro seu dinheiro! Essa compra de **${fmt(valorCompra)}** cabe com folga dentro de **${nomeCategoria}**!\n\nMas como estou aqui pra cuidar de você, tenho que fazer a pergunta mágica: *se você deixar esse dinheiro quietinho rendendo ou pedir um bom desconto à vista, não fica ainda melhor?* Se quiser mesmo comprar, vai lá sem culpa e não parcela a perder de vista, hein!`
+          : `🍞 **Orgulho do FIN!** Toca aqui na tela! ✋ Você planejou tudo direitinho, colocou meta em **${nomeCategoria}** e essa compra que você **precisa** cabe com um montão de folga! Só não esquece de chorar um descontinho à vista lá fora por mim!`
     };
   }
 
-  // 🟡 SINAL AMARELO: Cabe, mas fica na raspinha do pote (entre 80% e 100% da meta)
+  // 🟡 SINAL AMARELO: Cabe, mas fica na raspinha (entre 80% e 100% da meta)
   if (percentualDepois <= 100) {
     return {
       status: 'amarelo',
-      badge: '🟡 Ui, Ui, Ui! Vai Raspar o Fundo do Pote!',
-      headline: `Olha pra mim aqui na tela 👀: "${nomeItem}" até cabe em ${nomeCategoria}, mas vai deixar o pote com ${percentualDepois.toFixed(0)}% cheio!`,
+      badge: isFeminino ? '🟡 Atenção! Vai Raspar o Espaço da Caixinha!' : '🟡 Atenção! Vai Raspar o Fundo do Pote!',
+      headline: `Olha pra mim aqui na tela 👀: "${nomeItem}" até cabe em ${nomeCategoria}, mas vai deixar o limite com ${percentualDepois.toFixed(0)}% ocupado!`,
       numbersSummary: [
-        `🍬 Tamanho do pote de ${nomeCategoria}: ${fmt(metaCategoria)}`,
-        `😋 Já comemos: ${fmt(gastoAtualCategoria)} | Tem hoje no pote: ${fmt(disponivelAntes)}`,
-        `⚠️ Se gastar ${fmt(valorCompra)} agora: Só vai sobrar o farelo de ${fmt(disponivelDepois)} pro resto do mês inteiro!`,
+        `🎯 Limite planejado para ${nomeCategoria}: ${fmt(metaCategoria)}`,
+        `💸 Já utilizado: ${fmt(gastoAtualCategoria)} | Disponível hoje: ${fmt(disponivelAntes)}`,
+        `⚠️ Se gastar ${fmt(valorCompra)} agora: Só vai sobrar ${fmt(disponivelDepois)} pro resto do mês inteiro!`,
         horasDeSuor ? `⏱️ Na ponta do lápis: Custa ${horasDeSuor} horas do seu suor.` : null
       ].filter(Boolean),
       kidExplanation:
         ehDesejo
-          ? `🍭 **Escuta aqui, ${vocativo}:** Sabe quando só têm 3 balinhas no fundo do pote e ainda faltam vários dias pra acabar o mês? Se você comer quase tudo agora com **"${nomeItem}"** (que você me contou que é só um **Desejo**!), depois você vai ficar chupando o dedo se aparecer algo mais legal!\n\n💡 **Combinado de amigos:** Espera **3 dias** antes de comprar ou procura uma versão mais baratinha pra não secar o nosso pote!`
-          : `🍞 **Atenção da nossa dupla:** Como você **precisa mesmo** de "${nomeItem}", dá pra comprar porque ainda cabe na meta! Mas ó, tô batendo aqui no vidro da tela pra te lembrar: depois disso só vão sobrar **${fmt(disponivelDepois)}** no pote de **${nomeCategoria}**. Fecha a tampa do pote com cadeado até o mês acabar!`
+          ? `🍭 **Escuta aqui, ${vocativo}:** Sabe quando a gente tem poucas moedas no bolso e ainda faltam vários dias pra acabar o mês? Se você gastar quase tudo agora com **"${nomeItem}"** (que é só um **Desejo**!), depois você vai ficar sem folga se aparecer uma oportunidade melhor!\n\n💡 **Combinado de amigos:** Espera **3 dias** antes de comprar ou procura uma opção mais baratinha pra não secar a reserva!`
+          : `🍞 **Atenção da nossa dupla:** Como você **precisa mesmo** de "${nomeItem}", dá pra comprar porque ainda cabe na meta! Mas ó, tô batendo aqui no vidro da tela pra te lembrar: depois disso só vão sobrar **${fmt(disponivelDepois)}** em **${nomeCategoria}**. Guarda o cartão com cadeado até o mês acabar!`
     };
   }
 
-  // 🔴 SINAL VERMELHO: Estoura o pote de balinhas do cliente!
+  // 🔴 SINAL VERMELHO: Estoura o orçamento!
   const valorEstouro = Math.abs(disponivelDepois);
   return {
     status: 'vermelho',
     badge: '🔴 PARA TUDO! Larga a Carteira Agora! 😱',
-    headline: `Olha aqui, ${vocativo}! Gastar ${fmt(valorCompra)} em "${nomeItem}" vai QUEBRAR o nosso pote de ${nomeCategoria} em ${fmt(valorEstouro)}!`,
+    headline: `Olha aqui, ${vocativo}! Gastar ${fmt(valorCompra)} em "${nomeItem}" vai ESTOURAR o orçamento de ${nomeCategoria} em ${fmt(valorEstouro)}!`,
     numbersSummary: [
-      `🍬 Limite do pote de ${nomeCategoria}: ${fmt(metaCategoria)}`,
-      `😋 Já comemos: ${fmt(gastoAtualCategoria)} | Só tem no fundo do pote: ${fmt(Math.max(0, disponivelAntes))}`,
-      `🚨 Se gastar ${fmt(valorCompra)}: Faltam ${fmt(valorEstouro)} de balinhas (${percentualDepois.toFixed(0)}% da meta)!`,
-      horasDeSuor ? `⏱️ Pensa bem: São ${horasDeSuor} horas inteirinhas de trabalho lá fora!` : null
+      `🎯 Limite máximo de ${nomeCategoria}: ${fmt(metaCategoria)}`,
+      `💸 Já utilizado: ${fmt(gastoAtualCategoria)} | Sobra real: ${fmt(Math.max(0, disponivelAntes))}`,
+      `🚨 Se gastar ${fmt(valorCompra)}: Faltam ${fmt(valorEstouro)} (${percentualDepois.toFixed(0)}% da meta)!\n`,
+      horasDeSuor ? `⏱️ Pensa bem: São ${horasDeSuor} horas inteirinhas do seu trabalho lá fora!` : null
     ].filter(Boolean),
     kidExplanation:
       ehDesejo
-        ? `🛑 **Olha bem nos meus olhos aqui na tela!** Eu estou aqui pra te proteger e não vou deixar você cair nessa cilada! No nosso pote de **${nomeCategoria}** só restam **${fmt(Math.max(0, disponivelAntes))}**! Pra você comprar essa "balinha" de **${fmt(valorCompra)}** que é só um **Desejo**, você teria que assaltar **${fmt(valorEstouro)}** do potinho de outra conta importante ou do seu grande sonho!\n\n✋ **Promete de dedinho pra mim:** Guarda essa carteira no bolso agora! Deixa "${nomeItem}" pro mês que vem quando o pote encher de novo. Você vai me agradecer no fim do mês!`
-        : `⚠️ **Eita, ${vocativo}, temos uma emergência aqui!** Mesmo "${nomeItem}" sendo uma **Necessidade**, o pote de **${nomeCategoria}** só tem **${fmt(Math.max(0, disponivelAntes))}** e vão faltar **${fmt(valorEstouro)}**!\n\n💡 **O que a nossa dupla precisa fazer já:**\n1. Tenta negociar um preço menor ou uma opção mais baratinha lá fora.\n2. Se tiver que pagar esse valor mesmo, clica em **Ir ao Orçamento** aqui embaixo e tira **${fmt(valorEstouro)}** do pote de *Lazer/Doces* pra cobrir esse buraco sem entrar em dívida no cartão!`
+        ? `🛑 **Olha bem nos meus olhos aqui na tela!** Eu estou aqui pra te proteger e não vou deixar você cair nessa cilada! Em **${nomeCategoria}** só restam **${fmt(Math.max(0, disponivelAntes))}**! Pra comprar "${nomeItem}" que é só um **Desejo**, você teria que tirar **${fmt(valorEstouro)}** de outra conta essencial ou do seu grande sonho!\n\n✋ **Promete de dedinho pra mim:** Guarda essa carteira agora! Deixa "${nomeItem}" pro mês que vem quando o saldo renovar. Você vai me agradecer no fim do mês!`
+        : `⚠️ **Eita, ${vocativo}, temos uma emergência aqui!** Mesmo "${nomeItem}" sendo uma **Necessidade**, o saldo de **${nomeCategoria}** só tem **${fmt(Math.max(0, disponivelAntes))}** e vão faltar **${fmt(valorEstouro)}**!\n\n💡 **O que a nossa dupla precisa fazer já:**\n1. Tenta negociar um preço menor ou uma opção mais barata lá fora.\n2. Se tiver que pagar esse valor mesmo, clica em **Ir ao Orçamento** aqui embaixo e remaneja **${fmt(valorEstouro)}** de *Lazer* pra cobrir esse buraco sem entrar em dívida no cartão!`
   };
 };
