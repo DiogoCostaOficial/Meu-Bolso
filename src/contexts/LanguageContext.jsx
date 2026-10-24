@@ -217,6 +217,24 @@ const PHRASE_MAP = {
     'Activer',
     'Aktivieren'
   ],
+    'Tema Claro': [
+    'Tema Claro',
+    'Light Theme',
+    'Tema Claro',
+    'Tema Chiaro',
+    '浅色主题',
+    'Thème Clair',
+    'Helles Thema'
+  ],
+  'Tema Escuro': [
+    'Tema Escuro',
+    'Dark Theme',
+    'Tema Oscuro',
+    'Tema Scuro',
+    '深色主题',
+    'Thème Sombre',
+    'Dunkles Thema'
+  ],
   'Branco com Dourado': [
     'Branco com Dourado',
     'Light Gold Theme',
@@ -1807,19 +1825,28 @@ export const LanguageProvider = ({ children }) => {
         while (currentNode) {
           const val = currentNode.nodeValue;
           if (val && val.trim().length > 0) {
-            if (currentNode.__origPtBr === undefined) {
-              currentNode.__origPtBr = val;
-            } else if (language !== 'pt-BR' && val !== currentNode.__lastTranslated) {
-              // Se o React atualizou o texto dinamicamente com um novo texto em PT-BR
-              currentNode.__origPtBr = val;
-            }
+            if (language === 'pt-BR') {
+              if (currentNode.__lastTranslated !== undefined) {
+                if (currentNode.__origPtBr !== undefined && currentNode.nodeValue !== currentNode.__origPtBr) {
+                  currentNode.nodeValue = currentNode.__origPtBr;
+                }
+                delete currentNode.__lastTranslated;
+              }
+              currentNode.__origPtBr = currentNode.nodeValue;
+            } else {
+              if (currentNode.__origPtBr === undefined) {
+                currentNode.__origPtBr = val;
+              } else if (val !== currentNode.__lastTranslated) {
+                currentNode.__origPtBr = val;
+              }
 
-            const baseText = currentNode.__origPtBr;
-            const newText = language === 'pt-BR' ? baseText : translateString(baseText, language);
+              const baseText = currentNode.__origPtBr;
+              const newText = translateString(baseText, language);
 
-            if (currentNode.nodeValue !== newText) {
-              currentNode.__lastTranslated = newText;
-              currentNode.nodeValue = newText;
+              if (currentNode.nodeValue !== newText) {
+                currentNode.__lastTranslated = newText;
+                currentNode.nodeValue = newText;
+              }
             }
           }
           currentNode = walker.nextNode();
@@ -1833,29 +1860,49 @@ export const LanguageProvider = ({ children }) => {
 
             if (el.hasAttribute('placeholder')) {
               const currentPh = el.getAttribute('placeholder');
-              if (el.__origPlaceholder === undefined) {
+              if (language === 'pt-BR') {
+                if (el.__lastTranslatedPlaceholder !== undefined) {
+                  if (el.__origPlaceholder !== undefined) {
+                    el.setAttribute('placeholder', el.__origPlaceholder);
+                  }
+                  delete el.__lastTranslatedPlaceholder;
+                }
                 el.__origPlaceholder = currentPh;
-              }
-              const nextPh =
-                language === 'pt-BR'
-                  ? el.__origPlaceholder
-                  : translateString(el.__origPlaceholder, language);
-              if (currentPh !== nextPh) {
-                el.setAttribute('placeholder', nextPh);
+              } else {
+                if (el.__origPlaceholder === undefined) {
+                  el.__origPlaceholder = currentPh;
+                } else if (currentPh !== el.__lastTranslatedPlaceholder) {
+                  el.__origPlaceholder = currentPh;
+                }
+                const nextPh = translateString(el.__origPlaceholder, language);
+                if (currentPh !== nextPh) {
+                  el.__lastTranslatedPlaceholder = nextPh;
+                  el.setAttribute('placeholder', nextPh);
+                }
               }
             }
 
             if (el.hasAttribute('title')) {
               const currentTitle = el.getAttribute('title');
-              if (el.__origTitle === undefined) {
+              if (language === 'pt-BR') {
+                if (el.__lastTranslatedTitle !== undefined) {
+                  if (el.__origTitle !== undefined) {
+                    el.setAttribute('title', el.__origTitle);
+                  }
+                  delete el.__lastTranslatedTitle;
+                }
                 el.__origTitle = currentTitle;
-              }
-              const nextTitle =
-                language === 'pt-BR'
-                  ? el.__origTitle
-                  : translateString(el.__origTitle, language);
-              if (currentTitle !== nextTitle) {
-                el.setAttribute('title', nextTitle);
+              } else {
+                if (el.__origTitle === undefined) {
+                  el.__origTitle = currentTitle;
+                } else if (currentTitle !== el.__lastTranslatedTitle) {
+                  el.__origTitle = currentTitle;
+                }
+                const nextTitle = translateString(el.__origTitle, language);
+                if (currentTitle !== nextTitle) {
+                  el.__lastTranslatedTitle = nextTitle;
+                  el.setAttribute('title', nextTitle);
+                }
               }
             }
           });

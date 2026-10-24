@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Trash2,
   Edit2,
@@ -18,7 +19,8 @@ import {
   CheckCircle, // Novo ícone para 'pago'
   TrendingDown, // Adicionado para o card de despesas
   GraduationCap,
-  ArrowUpDown // Import for sorting
+  ArrowUpDown, // Import for sorting
+  Download
 } from 'lucide-react';
 import api from '../services/api';
 import { removeDuplicates } from '../utils/arrayUtils';
@@ -760,9 +762,17 @@ const Despesas = () => {
   }, [despesasFiltradas, sortConfig]);
 
   // Cálculos para os cards de resumo (sempre sincronizados com os itens filtrados ou totais da lista)
-  const totalDespesasFiltradas = despesasFiltradas.reduce((acc, d) => acc + extrairValorNumerico(d.valor), 0);
-  const categoriasAtivasDespesas = [...new Set(despesasFiltradas.map(d => d.categoria).filter(Boolean))].length;
-  const subcategoriasAtivasDespesas = [...new Set(despesasFiltradas.map(d => d.subcategoria).filter(Boolean))].length;
+  const totalDespesasFiltradas = React.useMemo(() => {
+    return despesasFiltradas.reduce((acc, d) => acc + extrairValorNumerico(d.valor), 0);
+  }, [despesasFiltradas]);
+
+  const categoriasAtivasDespesas = React.useMemo(() => {
+    return [...new Set(despesasFiltradas.map(d => d.categoria).filter(Boolean))].length;
+  }, [despesasFiltradas]);
+
+  const subcategoriasAtivasDespesas = React.useMemo(() => {
+    return [...new Set(despesasFiltradas.map(d => d.subcategoria).filter(Boolean))].length;
+  }, [despesasFiltradas]);
 
   // Estes cálculos não são usados diretamente nos cards de resumo, mas podem ser úteis para outros gráficos ou análises.
   const despesasPorCategoriaFiltradas = categorias.map(cat => {
@@ -915,6 +925,14 @@ const Despesas = () => {
         </div>
         <div className="flex items-start gap-3 flex-wrap">
           <CurrencySelector />
+          <Link
+            to="/backup"
+            className="h-11 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-full transition flex items-center justify-center gap-2 font-medium text-sm border border-gray-200 dark:border-slate-700 shadow-sm"
+            title="Exportar despesas em Excel, CSV, PDF ou JSON no Backup"
+          >
+            <Download className="w-4 h-4 text-emerald-500" />
+            Exportar
+          </Link>
           <button
             onClick={() => {
               setMostrarFormulario(true);
@@ -1403,7 +1421,7 @@ const Despesas = () => {
       </div>
 
       {/* Cards de Resumo de Despesas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-no-translate="true">
         <div className="bg-red-50 dark:bg-red-950/20 rounded-xl shadow-lg p-6 border border-red-200 dark:border-red-900/30">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600 dark:text-slate-400">Total de Despesas</h3>
@@ -1420,12 +1438,12 @@ const Despesas = () => {
           <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{categoriasAtivasDespesas}</p>
           <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">categorias ativas</p>
         </div>
-        <div className="bg-purple-50 dark:bg-purple-950/20 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-900/30">
+        <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl shadow-lg p-6 border border-amber-200 dark:border-amber-900/30">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600 dark:text-slate-400">Subcategorias</h3>
-            <Layers className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <Layers className="w-6 h-6 text-amber-600 dark:text-amber-400" />
           </div>
-          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{subcategoriasAtivasDespesas}</p>
+          <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{subcategoriasAtivasDespesas}</p>
           <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">subcategorias ativas</p>
         </div>
       </div>

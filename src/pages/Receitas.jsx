@@ -384,10 +384,17 @@ const Receitas = () => {
   }, [receitasFiltradas, sortConfig]);
 
   // Total de receitas: soma todas as receitas visíveis na lista (ou todas se sem filtro)
-  const totalReceitas = receitasFiltradas
-    .reduce((acc, r) => acc + extrairValorNumerico(r.valor), 0);
-  const categoriasAtivas = [...new Set(receitasFiltradas.map(r => r.categoria).filter(Boolean))].length;
-  const subcategoriasAtivas = [...new Set(receitasFiltradas.map(r => r.subcategoria).filter(Boolean))].length;
+  const totalReceitas = React.useMemo(() => {
+    return receitasFiltradas.reduce((acc, r) => acc + extrairValorNumerico(r.valor), 0);
+  }, [receitasFiltradas]);
+
+  const categoriasAtivas = React.useMemo(() => {
+    return [...new Set(receitasFiltradas.map(r => r.categoria).filter(Boolean))].length;
+  }, [receitasFiltradas]);
+
+  const subcategoriasAtivas = React.useMemo(() => {
+    return [...new Set(receitasFiltradas.map(r => r.subcategoria).filter(Boolean))].length;
+  }, [receitasFiltradas]);
   return (
     <div className="space-y-6 bg-transparent min-h-screen transition-colors duration-300">
       {/* Header — mobile-first */}
@@ -694,7 +701,7 @@ const Receitas = () => {
       </div>
 
       {/* Cards de Resumo — 3 colunas compactas em mobile */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3" data-no-translate="true">
         <div className="bg-green-50 dark:bg-green-900/20 rounded-xl shadow p-3 md:p-6 border border-green-200 dark:border-green-800">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-xs md:text-sm font-medium text-gray-600 dark:text-slate-400">Total</h3>
