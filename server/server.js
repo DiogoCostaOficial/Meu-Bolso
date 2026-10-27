@@ -15,6 +15,7 @@ const allowedOrigins = [
   'http://localhost:5000',
   'https://financas-facil-i3zn.vercel.app',
   'https://meu-bolso.vercel.app',
+  'https://meu-bolso-beige.vercel.app',
   'https://meubolso.capital',
   'https://www.meubolso.capital',
   'http://meubolso.capital',
