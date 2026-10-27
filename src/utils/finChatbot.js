@@ -1,4 +1,5 @@
 import { FIN_WISDOM_QA_ENTRIES } from './finBooksKnowledge.js';
+import { FIN_MANUAL_QA_ENTRIES } from './finManualKnowledge.js';
 
 /**
  * Lógica de processamento de perguntas em linguagem natural para o FIN.
@@ -9,6 +10,7 @@ import { FIN_WISDOM_QA_ENTRIES } from './finBooksKnowledge.js';
  */
 
 const KNOWLEDGE_BASE = [
+  ...FIN_MANUAL_QA_ENTRIES,
   ...FIN_WISDOM_QA_ENTRIES,
   // Ativos vs Passivos
   {
@@ -138,11 +140,11 @@ export const askFinAboutSystem = (question, { primeiroNome = '', vocativo = 'ami
   for (const entry of KNOWLEDGE_BASE) {
     let score = 0;
 
-    // Verifica palavras-chave primárias
+    // Verifica palavras-chave primárias (frases compostas de nomes de campos recebem peso maior)
     for (const keyword of entry.keywords) {
-      const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const cleanKeyword = keyword.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       if (normalized.includes(cleanKeyword)) {
-        score += 2;
+        score += cleanKeyword.includes(' ') ? 4 : 2;
       }
     }
 
