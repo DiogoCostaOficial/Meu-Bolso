@@ -1,3 +1,4 @@
+const fs = require('fs');
 // server/server.js
 const express = require('express');
 const cors = require('cors');
@@ -46,7 +47,11 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use('/uploads', express.static('uploads'));
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
 
 // Importa as rotas
 const authRoutes = require('./routes/auth');

@@ -8,10 +8,11 @@ import CurrencySelector from '../components/CurrencySelector';
 import {
   Wallet, TrendingUp, TrendingDown, CreditCard,
   ArrowUpRight, ArrowDownRight, DollarSign, Calendar,
-  GraduationCap, PiggyBank, Target
+  GraduationCap, PiggyBank, Target, FileSpreadsheet
 } from 'lucide-react';
 import api from '../services/api';
 import { removeDuplicates } from '../utils/arrayUtils';
+import ImportadorPlanilhaModal from '../components/ImportadorPlanilhaModal';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend, PieChart, Pie, Cell, AreaChart, Area
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [categorias, setCategorias] = useState([]);
   const [orcamentos, setOrcamentos] = useState([]);
   const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
+  const [mostrarImportador, setMostrarImportador] = useState(false);
   const [mesSelecionado, setMesSelecionado] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
 
   const meses = [
@@ -284,6 +286,16 @@ const Dashboard = () => {
 
         <div className="flex flex-col sm:flex-row items-start gap-3">
           {/* Seletor de Moeda e Cotação Comercial */}
+                    {/* Botão Importar Planilha */}
+          <button
+            type="button"
+            onClick={() => setMostrarImportador(true)}
+            className="h-11 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-custom flex items-center gap-2 text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            title="Importar planilha de receitas e despesas"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Importar Planilha</span>
+          </button>
           <CurrencySelector />
 
           {/* Filtro de Mês/Ano com altura h-11 idêntica e formato pill */}
@@ -554,6 +566,15 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+    
+      {/* Modal Importador Inteligente de Planilhas */}
+      <ImportadorPlanilhaModal
+        isOpen={mostrarImportador}
+        onClose={() => setMostrarImportador(false)}
+        onImportSuccess={() => loadData()}
+        categoriasExistentes={categorias}
+        tipoPadrao="auto"
+      />
     </div>
   );
 };

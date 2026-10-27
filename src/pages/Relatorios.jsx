@@ -90,6 +90,18 @@ const Relatorios = () => {
   const { theme } = useTheme();
   const { formatCurrency: formatarMoeda } = useCurrency();
   const [isFiltrosMinimized, setIsFiltrosMinimized] = useState(false);
+  const [isPersonalizarMinimized, setIsPersonalizarMinimized] = useState(() => {
+    const saved = localStorage.getItem('relatorios_personalizar_minimized');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  const togglePersonalizarMinimized = () => {
+    setIsPersonalizarMinimized(prev => {
+      const next = !prev;
+      localStorage.setItem('relatorios_personalizar_minimized', String(next));
+      return next;
+    });
+  };
   const [periodoSelecionado, setPeriodoSelecionado] = useState('mensal');
   const [mesSelecionado, setMesSelecionado] = useState(new Date().getMonth() + 1 < 10 ? `0${new Date().getMonth() + 1}` : `${new Date().getMonth() + 1}`);
   const [trimestreSelecionado, setTrimestreSelecionado] = useState('1');
@@ -2061,94 +2073,126 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
       </div>
 
       {/* Central de Personalização de Gráficos (Ordem, Visibilidade e Tamanho) */}
-      <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-colors">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-          <h3 className="text-lg font-bold text-custom-main flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-custom-gold" />
-            <span>Personalizar Ordem e Exibição dos Relatórios</span>
-          </h3>
-          <button
-            type="button"
-            onClick={resetDefaultChartOrder}
-            className="text-xs px-3 py-1.5 rounded-lg border border-custom-color text-custom-main opacity-80 hover:opacity-100 hover:border-custom-gold hover:text-custom-gold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-            title="Voltar para a ordem padrão dos relatórios"
+      <div className="bg-custom-card px-5 py-4 rounded-custom shadow-custom border border-custom-color transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div
+            onClick={togglePersonalizarMinimized}
+            className="flex items-center gap-2.5 cursor-pointer select-none group"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Restaurar Ordem Padrão
-          </button>
-        </div>
+            <Sliders className="w-5 h-5 text-custom-gold shrink-0" />
+            <h3 className="text-base md:text-lg font-bold text-custom-main group-hover:text-custom-gold transition-colors">
+              Personalizar Ordem e Exibição dos Relatórios
+            </h3>
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-custom-primary/60 border border-custom-color text-custom-main opacity-75">
+              {chartConfigs.filter(c => c.visible).length}/{chartConfigs.length} ativos
+            </span>
+          </div>
 
-        <p className="text-xs text-custom-main opacity-70 mb-4">
-          Defina a ordem em que os relatórios devem aparecer usando as <strong>setas (◀ ▶)</strong> ou <strong>arrastando os itens</strong>. Clique no nome para ativar ou ocultar.
-        </p>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {!isPersonalizarMinimized && (
+              <button
+                type="button"
+                onClick={resetDefaultChartOrder}
+                className="text-xs px-3 py-1.5 rounded-lg border border-custom-color text-custom-main opacity-80 hover:opacity-100 hover:border-custom-gold hover:text-custom-gold transition flex items-center gap-1.5 cursor-pointer"
+                title="Voltar para a ordem padrão dos relatórios"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Restaurar Ordem Padrão</span>
+              </button>
+            )}
 
-        <div className="flex flex-wrap gap-2.5">
-          {chartConfigs
-          .filter(chart => {
-            const cat = CHART_CATEGORIES[chart.id] || chart.category || 'essencial';
-            if (categoriaRelatorioAtiva === 'essenciais') return cat === 'essencial';
-            if (categoriaRelatorioAtiva === 'avancados') return cat === 'avancado';
-            return true;
-          })
-          .map((chart) => {
-            const index = chartConfigs.findIndex(c => c.id === chart.id);
-            return (
-            <div
-              key={chart.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, index)}
-              className={`flex items-center rounded-xl border transition-all text-xs select-none ${
-                chart.visible
-                  ? 'bg-custom-gold/15 border-custom-gold text-custom-main shadow-xs'
-                  : 'bg-custom-primary/30 border-custom-color text-custom-main opacity-50'
-              }`}
+            <button
+              type="button"
+              onClick={togglePersonalizarMinimized}
+              className="text-xs px-3 py-1.5 rounded-lg border border-custom-color text-custom-main opacity-80 hover:opacity-100 hover:bg-custom-primary/40 hover:border-custom-gold transition flex items-center gap-1.5 cursor-pointer"
+              title={isPersonalizarMinimized ? 'Expandir personalização de relatórios' : 'Minimizar personalização de relatórios'}
             >
-              {/* Mover para a esquerda */}
-              <button
-                type="button"
-                onClick={() => moveChartOrder(index, -1)}
-                disabled={index === 0}
-                className="px-2 py-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-l-xl transition disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
-                title="Mover para antes"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
-
-              {/* Botão de Toggle e Título */}
-              <button
-                type="button"
-                onClick={() => toggleChartVisibility(chart.id)}
-                className="px-2.5 py-2 flex items-center gap-2 hover:opacity-80 transition cursor-pointer"
-                title={chart.visible ? 'Clique para ocultar este relatório' : 'Clique para exibir este relatório'}
-              >
-                <span className="w-4 h-4 rounded-full bg-black/20 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-custom-gold">
-                  {index + 1}
-                </span>
-                <span className="font-bold">{chart.visible ? '✓' : '✗'}</span>
-                <span className="font-semibold">{chart.title}</span>
-                {chart.category === 'avancado' && (
-                  <span className="text-[8px] font-extrabold px-1.5 py-0.2 rounded bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                    PRO
-                  </span>
-                )}
-              </button>
-
-              {/* Mover para a direita */}
-              <button
-                type="button"
-                onClick={() => moveChartOrder(index, 1)}
-                disabled={index === chartConfigs.length - 1}
-                className="px-2 py-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-r-xl transition disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
-                title="Mover para depois"
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            );
-          })}
+              <span>{isPersonalizarMinimized ? 'Personalizar / Expandir' : 'Minimizar'}</span>
+              {isPersonalizarMinimized ? <ChevronDown className="w-4 h-4 text-custom-gold" /> : <ChevronUp className="w-4 h-4 text-custom-gold" />}
+            </button>
+          </div>
         </div>
+
+        {!isPersonalizarMinimized && (
+          <div className="mt-4 pt-3 border-t border-custom-color/60">
+            <p className="text-xs text-custom-main opacity-70 mb-3.5">
+              Defina a ordem em que os relatórios devem aparecer usando as <strong>setas (◀ ▶)</strong> ou <strong>arrastando os itens</strong>. Clique no nome para ativar ou ocultar.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {chartConfigs
+                .filter(chart => {
+                  const cat = CHART_CATEGORIES[chart.id] || chart.category || 'essencial';
+                  if (categoriaRelatorioAtiva === 'essenciais') return cat === 'essencial';
+                  if (categoriaRelatorioAtiva === 'avancados') return cat === 'avancado';
+                  return true;
+                })
+                .map((chart) => {
+                  const index = chartConfigs.findIndex(c => c.id === chart.id);
+                  return (
+                    <div
+                      key={chart.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, index)}
+                      className={`h-[52px] w-full flex items-center justify-between rounded-xl border transition-all text-xs select-none overflow-hidden ${
+                        chart.visible
+                          ? 'bg-custom-gold/15 border-custom-gold text-custom-main shadow-xs'
+                          : 'bg-custom-primary/30 border-custom-color text-custom-main opacity-50'
+                      }`}
+                    >
+                      {/* Mover para a esquerda */}
+                      <button
+                        type="button"
+                        onClick={() => moveChartOrder(index, -1)}
+                        disabled={index === 0}
+                        className="w-8 h-full flex items-center justify-center shrink-0 hover:bg-black/10 dark:hover:bg-white/10 border-r border-custom-color/40 transition disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                        title="Mover para antes"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Botão Central: Toggle e Título Alinhado */}
+                      <button
+                        type="button"
+                        onClick={() => toggleChartVisibility(chart.id)}
+                        className="flex-1 min-w-0 h-full px-2.5 flex items-center justify-between gap-2 hover:opacity-85 transition cursor-pointer text-left"
+                        title={`${chart.title} — ${chart.visible ? 'Clique para ocultar' : 'Clique para exibir'}`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className="w-5 h-5 rounded-full bg-black/20 dark:bg-white/15 shrink-0 flex items-center justify-center text-[10px] font-bold text-custom-gold">
+                            {index + 1}
+                          </span>
+                          <span className="font-bold shrink-0">{chart.visible ? '✓' : '✗'}</span>
+                          <span className="font-semibold leading-tight line-clamp-2 break-words">
+                            {chart.title}
+                          </span>
+                        </div>
+
+                        {chart.category === 'avancado' && (
+                          <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0">
+                            PRO
+                          </span>
+                        )}
+                      </button>
+
+                      {/* Mover para a direita */}
+                      <button
+                        type="button"
+                        onClick={() => moveChartOrder(index, 1)}
+                        disabled={index === chartConfigs.length - 1}
+                        className="w-8 h-full flex items-center justify-center shrink-0 hover:bg-black/10 dark:hover:bg-white/10 border-l border-custom-color/40 transition disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                        title="Mover para depois"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Dynamic Drag, Drop and Resize Charts Grid */}

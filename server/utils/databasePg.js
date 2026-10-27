@@ -92,8 +92,10 @@ const inicializarDB = async () => {
                             id TEXT PRIMARY KEY,
                             user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
                             dados JSONB DEFAULT '{}'::jsonb,
-                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                         );
+                        ALTER TABLE trips ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
                         ALTER TABLE categories 
                         ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
                         ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
@@ -713,6 +715,8 @@ const salvarDadosUsuario = async (userId, dados) => {
         // 4.1 TRIPS / VIAGENS
         // =========================================================================
         if (dados.viagens && Array.isArray(dados.viagens)) {
+            await client.query(`CREATE TABLE IF NOT EXISTS trips (id TEXT PRIMARY KEY, user_id TEXT, dados JSONB DEFAULT '{}'::jsonb, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)`);
+            await client.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP`);
             const tripIds = dados.viagens.map(v => String(v.id)).filter(id => id && id !== 'undefined' && id !== 'null');
             if (tripIds.length > 0) {
                 await client.query(`
@@ -733,8 +737,9 @@ const salvarDadosUsuario = async (userId, dados) => {
                     SELECT id, user_id, dados::jsonb
                     FROM UNNEST($1::text[], $2::text[], $3::text[]) AS x(id, user_id, dados)
                     ON CONFLICT (id) DO UPDATE SET
-                        dados = EXCLUDED.dados,
-                        updated_at = CURRENT_TIMESTAMP
+                        user_id = EXCLUDED.user_id,
+                        dados = EXCLUDED.dados
+
                 `, [tIds, tUserIds, tDados]);
             }
         }
@@ -744,7 +749,7 @@ const salvarDadosUsuario = async (userId, dados) => {
         // =========================================================================
         // 5. BACKUP LOCAL AUTOMÁTICO EM JSON
         // =========================================================================
-        try {
+        if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') try {
             const fs = require('fs');
             const path = require('path');
             const dataDir = path.join(__dirname, '..', 'data');
@@ -777,6 +782,11 @@ const deletarUsuario = async (userId) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
+        await client.query('DELETE FROM transactions WHERE user_id = $1', [userId]);
+        await client.query('DELETE FROM budgets WHERE user_id = $1', [userId]);
+        await client.query('DELETE FROM categories WHERE user_id = $1', [userId]);
+        await client.query('DELETE FROM cards WHERE user_id = $1', [userId]);
+        await client.query('DELETE FROM trips WHERE user_id = $1', [userId]).catch(() => {});
         await client.query('DELETE FROM users WHERE id = $1', [userId]);
         await client.query('COMMIT');
         return true;

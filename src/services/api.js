@@ -280,6 +280,14 @@ export const adminService = {
 // SERVIÇOS DE DADOS (Exemplo: Receitas, Despesas, Orçamento)
 // -----------------------------------------------------------------------------
 export const userService = {
+  async excluirConta(confirmacao = 'EXCLUIR') {
+    try {
+      const response = await api.delete('/user/conta', { data: { confirmacao } });
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
   async obterPerfil() {
     try {
       const response = await api.get('/user/perfil');

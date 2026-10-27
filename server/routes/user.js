@@ -24,6 +24,8 @@ const upload = multer({
 
 router.get('/perfil', verificarToken, userController.obterPerfil);
 router.put('/perfil', verificarToken, userController.atualizarPerfil);
+router.delete('/conta', verificarToken, userController.excluirConta);
+router.delete('/perfil', verificarToken, userController.excluirConta);
 router.post('/upload-avatar', verificarToken, upload.single('avatar'), userController.uploadAvatar);
 router.get('/dados', verificarToken, userController.obterDados);
 router.post('/dados', verificarToken, userController.salvarDados);

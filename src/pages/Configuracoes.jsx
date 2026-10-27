@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../components/theme-provider';
 import { useLayoutVariant } from '../contexts/LayoutVariantContext';
@@ -9,6 +10,7 @@ import {
   Save,
   Check,
   AlertCircle,
+  AlertTriangle,
   Camera,
   Layers,
   Trash2,
@@ -22,12 +24,51 @@ import {
   Percent,
   X,
   Phone,
+  Globe,
   Mail,
   Palette,
   Sparkles,
   CheckCircle2
 } from 'lucide-react';
 import { removeDuplicates } from '../utils/arrayUtils';
+
+
+const LISTA_PAISES = [
+  { nome: 'Brasil', ddi: '+55', flag: '🇧🇷' },
+  { nome: 'Portugal', ddi: '+351', flag: '🇵🇹' },
+  { nome: 'Estados Unidos', ddi: '+1', flag: '🇺🇸' },
+  { nome: 'Espanha', ddi: '+34', flag: '🇪🇸' },
+  { nome: 'Argentina', ddi: '+54', flag: '🇦🇷' },
+  { nome: 'Uruguai', ddi: '+598', flag: '🇺🇾' },
+  { nome: 'Paraguai', ddi: '+595', flag: '🇵🇾' },
+  { nome: 'Chile', ddi: '+56', flag: '🇨🇱' },
+  { nome: 'Colômbia', ddi: '+57', flag: '🇨🇴' },
+  { nome: 'México', ddi: '+52', flag: '🇲🇽' },
+  { nome: 'Peru', ddi: '+51', flag: '🇵🇪' },
+  { nome: 'Itália', ddi: '+39', flag: '🇮🇹' },
+  { nome: 'França', ddi: '+33', flag: '🇫🇷' },
+  { nome: 'Alemanha', ddi: '+49', flag: '🇩🇪' },
+  { nome: 'Reino Unido', ddi: '+44', flag: '🇬🇧' },
+  { nome: 'Canadá', ddi: '+1', flag: '🇨🇦' },
+  { nome: 'Angola', ddi: '+244', flag: '🇦🇴' },
+  { nome: 'Moçambique', ddi: '+258', flag: '🇲🇿' },
+  { nome: 'Japão', ddi: '+81', flag: '🇯🇵' },
+  { nome: 'Austrália', ddi: '+61', flag: '🇦🇺' },
+  { nome: 'Outro', ddi: '+1', flag: '🌐' }
+];
+
+function extrairPaisEDdi(telCompleto) {
+  if (!telCompleto) {
+    return { pais: 'Brasil', ddi: '+55', numero: '' };
+  }
+  const limpo = String(telCompleto).trim();
+  const paisEncontrado = LISTA_PAISES.find(p => limpo.startsWith(p.ddi));
+  if (paisEncontrado) {
+    const resto = limpo.slice(paisEncontrado.ddi.length).trim();
+    return { pais: paisEncontrado.nome, ddi: paisEncontrado.ddi, numero: resto };
+  }
+  return { pais: 'Brasil', ddi: '+55', numero: limpo };
+}
 
 const categoriasDefault = [
   { nome: 'Despesas Fixas', cor: '#ef4444', tipoMeta: 'percentual', valorMeta: 30, subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
@@ -39,14 +80,25 @@ const categoriasDefault = [
 ];
 
 const Configuracoes = () => {
-  const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
+  const { user, updateUser, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const { layoutVariant, setLayoutVariant } = useLayoutVariant();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('perfil'); // 'perfil' | 'categorias' | 'seguranca'
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  // Exclusão de conta
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
   // Profile State
+    const [paisSelecionado, setPaisSelecionado] = useState('Brasil');
+  const [ddiSelecionado, setDdiSelecionado] = useState('+55');
+  const [telefoneSemDdi, setTelefoneSemDdi] = useState('');
+
   const [profileData, setProfileData] = useState({
     nome: user?.nome || '',
     avatar: user?.avatar || '',
@@ -56,14 +108,57 @@ const Configuracoes = () => {
 
   useEffect(() => {
     if (user) {
+      const tel = user.telefone || user.whatsapp || '';
+      const { pais, ddi, numero } = extrairPaisEDdi(tel);
+      setPaisSelecionado(pais);
+      setDdiSelecionado(ddi);
+      setTelefoneSemDdi(numero);
+
       setProfileData({
         nome: user.nome || '',
         avatar: user.avatar || '',
         email: user.email || '',
-        telefone: user.telefone || user.whatsapp || ''
+        telefone: tel
       });
     }
   }, [user]);
+
+  const handlePaisChange = (e) => {
+    const nomePais = e.target.value;
+    const paisObj = LISTA_PAISES.find(p => p.nome === nomePais);
+    const novoDdi = paisObj ? paisObj.ddi : '+55';
+
+    setPaisSelecionado(nomePais);
+    setDdiSelecionado(novoDdi);
+
+    let numAtual = telefoneSemDdi;
+    if (novoDdi !== '+55') {
+      numAtual = numAtual.replace(/[\(\)\s-]/g, '');
+      setTelefoneSemDdi(numAtual);
+    }
+    const telCompleto = numAtual ? `${novoDdi} ${numAtual}`.trim() : '';
+    setProfileData(prev => ({ ...prev, telefone: telCompleto }));
+  };
+
+  const handleTelefoneChange = (e) => {
+    const rawVal = e.target.value;
+    let formatted = rawVal;
+
+    if (ddiSelecionado === '+55') {
+      const numbers = rawVal.replace(/\D/g, '').slice(0, 11);
+      if (numbers.length <= 2) {
+        formatted = numbers.length > 0 ? `(${numbers}` : '';
+      } else if (numbers.length <= 7) {
+        formatted = `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+      } else {
+        formatted = `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
+      }
+    }
+
+    setTelefoneSemDdi(formatted);
+    const telCompleto = formatted ? `${ddiSelecionado} ${formatted}`.trim() : '';
+    setProfileData(prev => ({ ...prev, telefone: telCompleto }));
+  };
 
   // Password State
   const [passwordData, setPasswordData] = useState({
@@ -79,20 +174,69 @@ const Configuracoes = () => {
   ];
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      setMessage({ type: 'error', text: 'Por favor, selecione um arquivo de imagem válido (PNG, JPG, WEBP).' });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'A imagem deve ter no máximo 5MB.' });
+      return;
+    }
+
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+
     try {
-      setLoading(true);
-      const response = await userService.uploadAvatar(file);
-      if (response.success) {
-        setProfileData((prev) => ({ ...prev, avatar: response.data.avatarUrl }));
-        setMessage({ type: 'success', text: 'Foto enviada com sucesso!' });
+      let avatarUrl = '';
+
+      // 1. Tenta upload pelo backend
+      try {
+        const response = await userService.uploadAvatar(file);
+        if (response && (response.success || response.sucesso)) {
+          avatarUrl = response.data?.avatarUrl || response.dados?.avatarUrl || '';
+        }
+      } catch (errApi) {
+        console.warn('Upload via backend não retornou URL pública, aplicando leitura direta segura...', errApi);
+      }
+
+      // 2. Se backend não retornou URL ou deu erro (ex: storage local/supabase sem bucket), usa FileReader Data URL
+      if (!avatarUrl) {
+        avatarUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => resolve(ev.target.result);
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      setProfileData((prev) => ({ ...prev, avatar: avatarUrl }));
+
+      // 3. Salva imediatamente no perfil do usuário no banco para atualizar avatar em toda a aplicação
+      const telFinal = telefoneSemDdi ? `${ddiSelecionado} ${telefoneSemDdi}`.trim() : (profileData.telefone || '');
+      const responsePerfil = await userService.atualizarPerfil({
+        nome: profileData.nome,
+        avatar: avatarUrl,
+        email: profileData.email,
+        telefone: telFinal,
+        whatsapp: telFinal
+      });
+
+      if (responsePerfil && (responsePerfil.success || responsePerfil.sucesso)) {
+        updateUser(responsePerfil.data || responsePerfil.dados);
+        setMessage({ type: 'success', text: 'Foto de perfil atualizada com sucesso!' });
+      } else {
+        setMessage({ type: 'success', text: 'Foto carregada! Clique em "Salvar Alterações" para confirmar.' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Erro ao enviar foto' });
+      console.error('Erro ao enviar foto:', error);
+      setMessage({ type: 'error', text: 'Erro ao carregar foto: ' + (error.message || 'formato incompatível') });
     } finally {
       setLoading(false);
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -102,12 +246,13 @@ const Configuracoes = () => {
     setLoading(true);
 
     try {
+      const telFinal = telefoneSemDdi ? `${ddiSelecionado} ${telefoneSemDdi}`.trim() : (profileData.telefone || '');
       const response = await userService.atualizarPerfil({
         nome: profileData.nome,
         avatar: profileData.avatar,
         email: profileData.email,
-        telefone: profileData.telefone,
-        whatsapp: profileData.telefone
+        telefone: telFinal,
+        whatsapp: telFinal
       });
 
       if (response.success) {
@@ -285,27 +430,57 @@ const Configuracoes = () => {
                 </div>
               </div>
 
-              {/* Telefone / WhatsApp */}
-              <div>
-                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-green-400" />
-                  Telefone / WhatsApp
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={profileData.telefone}
-                    onChange={(e) => setProfileData({ ...profileData, telefone: e.target.value })}
-                    placeholder="+55 (11) 99999-9999"
-                    className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold transition-colors"
-                  />
+              {/* Bloco de País e Telefone com DDI idêntico à tela de Cadastro */}
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Seletor de País */}
+                <div>
+                  <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-blue-400" />
+                    País do Telefone
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={paisSelecionado}
+                      onChange={handlePaisChange}
+                      className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-2.5 text-xs text-custom-main focus:outline-none focus:border-custom-gold transition-colors cursor-pointer appearance-none"
+                    >
+                      {LISTA_PAISES.map((p) => (
+                        <option key={p.nome} value={p.nome} className="bg-custom-card text-custom-main">
+                          {p.flag} {p.nome} ({p.ddi})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-custom-main opacity-50">
+                      <span className="text-[10px]">▼</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* WhatsApp com DDD e Código do País acoplado */}
+                <div>
+                  <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-green-400" />
+                    Telefone / WhatsApp
+                  </label>
+                  <div className="relative flex rounded-xl border border-custom-color focus-within:border-custom-gold transition overflow-hidden bg-custom-primary/50">
+                    <span className="inline-flex items-center px-3.5 bg-custom-card text-custom-gold text-xs font-bold border-r border-custom-color select-none">
+                      {ddiSelecionado}
+                    </span>
+                    <input
+                      type="text"
+                      value={telefoneSemDdi}
+                      onChange={handleTelefoneChange}
+                      placeholder={ddiSelecionado === '+55' ? '(11) 99999-9999' : '99999-9999'}
+                      className="block w-full px-3 py-2.5 text-xs text-custom-main bg-transparent focus:outline-none placeholder-custom-main/40"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* URL do Avatar */}
-              <div>
+              {/* URL da Foto */}
+              <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
-                  URL da Foto (opcional)
+                  URL da Foto (opcional — você também pode clicar no ícone de câmera na foto acima para enviar direto do seu aparelho)
                 </label>
                 <input
                   type="text"
@@ -347,67 +522,216 @@ const Configuracoes = () => {
 
       {/* ABA 3: SEGURANÇA DA CONTA */}
       {activeTab === 'seguranca' && (
-        <div className="bg-custom-card border border-custom-color rounded-2xl p-6 shadow-custom transition-colors">
-          <h2 className="text-lg font-bold text-custom-main mb-2 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-amber-400" />
-            Segurança & Troca de Senha
-          </h2>
-          <p className="text-xs text-custom-main opacity-70 mb-6">
-            Mantenha sua conta protegida alterando periodicamente a sua senha de acesso.
-          </p>
+        <div className="space-y-6">
+          <div className="bg-custom-card border border-custom-color rounded-2xl p-6 shadow-custom transition-colors">
+            <h2 className="text-lg font-bold text-custom-main mb-2 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-amber-400" />
+              Segurança & Troca de Senha
+            </h2>
+            <p className="text-xs text-custom-main opacity-70 mb-6">
+              Mantenha sua conta protegida alterando periodicamente a sua senha de acesso.
+            </p>
 
-          <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
-                  Senha Atual
-                </label>
-                <input
-                  type="password"
-                  value={passwordData.senhaAtual}
-                  onChange={(e) => setPasswordData({ ...passwordData, senhaAtual: e.target.value })}
-                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
-                  required
-                />
+            <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
+                    Senha Atual
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.senhaAtual}
+                    onChange={(e) => setPasswordData({ ...passwordData, senhaAtual: e.target.value })}
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
+                    Nova Senha
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.novaSenha}
+                    onChange={(e) => setPasswordData({ ...passwordData, novaSenha: e.target.value })}
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
+                    Confirmar Nova
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.confirmarSenha}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmarSenha: e.target.value })}
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
+                    required
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
-                  Nova Senha
-                </label>
-                <input
-                  type="password"
-                  value={passwordData.novaSenha}
-                  onChange={(e) => setPasswordData({ ...passwordData, novaSenha: e.target.value })}
-                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
-                  required
-                  minLength={6}
-                />
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2.5 rounded-xl bg-custom-gold text-black font-bold text-xs hover:bg-yellow-400 disabled:opacity-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+              >
+                <Lock className="w-4 h-4" />
+                Atualizar Senha
+              </button>
+            </form>
+          </div>
+
+          {/* ZONA DE PERIGO: EXCLUSÃO PERMANENTE DE CONTA */}
+          <div className="bg-custom-card border-2 border-red-500/40 rounded-2xl p-6 shadow-custom transition-colors">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-base md:text-lg font-bold text-red-400">
+                    Zona de Perigo — Excluir Meu Cadastro
+                  </h2>
+                </div>
+                <p className="text-xs text-custom-main opacity-80 leading-relaxed">
+                  Ao excluir sua conta, todos os seus dados pessoais e registros financeiros (receitas, despesas, cartões, metas, categorias e viagens) serão apagados <strong>permanentemente</strong> do sistema. Esta ação é irreversível.
+                </p>
+                {user?.tipo === 'admin' && (
+                  <p className="text-xs text-amber-400 font-semibold pt-1 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 flex-shrink-0" />
+                    Sua conta possui perfil de Administrador e está protegida contra autoexclusão.
+                  </p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider mb-1.5">
-                  Confirmar Nova
-                </label>
-                <input
-                  type="password"
-                  value={passwordData.confirmarSenha}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmarSenha: e.target.value })}
-                  className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold"
-                  required
-                />
+              <div className="flex-shrink-0">
+                <button
+                  type="button"
+                  disabled={user?.tipo === 'admin' || loading}
+                  onClick={() => {
+                    setDeleteConfirmationText('');
+                    setDeleteError('');
+                    setShowDeleteAccountModal(true);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Excluir Meu Cadastro
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2.5 rounded-xl bg-custom-gold text-black font-bold text-xs hover:bg-yellow-400 disabled:opacity-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
-            >
-              <Lock className="w-4 h-4" />
-              Atualizar Senha
-            </button>
-          </form>
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE CONTA */}
+      {showDeleteAccountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-custom-card border-2 border-red-500/50 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-custom-main">
+            <div className="flex items-center justify-between pb-3 border-b border-custom-color">
+              <div className="flex items-center gap-2.5 text-red-400">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <h3 className="text-base font-bold">Excluir Conta Permanentemente</h3>
+              </div>
+              <button
+                type="button"
+                disabled={deletingAccount}
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="text-custom-main opacity-65 hover:opacity-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-custom-main opacity-85 leading-relaxed">
+              <p>
+                Tem certeza de que deseja encerrar e apagar sua conta (<strong className="text-amber-400">{user?.email}</strong>)?
+              </p>
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 space-y-1">
+                <p className="font-bold">O que será apagado imediatamente:</p>
+                <ul className="list-disc list-inside space-y-0.5 opacity-90">
+                  <li>Seu perfil, foto e credenciais de acesso</li>
+                  <li>Todas as receitas, despesas e histórico mensal</li>
+                  <li>Cartões de crédito, faturas, orçamentos e viagens</li>
+                </ul>
+              </div>
+
+              <div className="pt-1">
+                <label className="block text-xs font-bold text-custom-main uppercase tracking-wider mb-1.5">
+                  Para confirmar, digite <span className="text-red-400 select-all">EXCLUIR</span> abaixo:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmationText}
+                  onChange={(e) => {
+                    setDeleteConfirmationText(e.target.value);
+                    if (deleteError) setDeleteError('');
+                  }}
+                  placeholder="Digite EXCLUIR"
+                  autoFocus
+                  disabled={deletingAccount}
+                  className="w-full bg-custom-primary border border-red-500/40 focus:border-red-500 rounded-xl px-3.5 py-2.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none uppercase font-bold tracking-wider"
+                />
+              </div>
+
+              {deleteError && (
+                <div className="p-2.5 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 flex items-center gap-2 font-semibold">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span>{deleteError}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-custom-color">
+              <button
+                type="button"
+                disabled={deletingAccount}
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="px-4 py-2 rounded-xl border border-custom-color text-xs font-semibold text-custom-main opacity-80 hover:opacity-100 transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={deletingAccount || deleteConfirmationText.trim().toUpperCase() !== 'EXCLUIR'}
+                onClick={async () => {
+                  if (deleteConfirmationText.trim().toUpperCase() !== 'EXCLUIR') {
+                    setDeleteError('Por favor, digite EXCLUIR para confirmar.');
+                    return;
+                  }
+                  setDeletingAccount(true);
+                  setDeleteError('');
+                  try {
+                    const response = await userService.excluirConta('EXCLUIR');
+                    if (response && (response.success || response.sucesso)) {
+                      setShowDeleteAccountModal(false);
+                      logout();
+                      navigate('/login', { replace: true });
+                    } else {
+                      setDeleteError(response?.message || response?.mensagem || 'Erro ao excluir conta.');
+                    }
+                  } catch (err) {
+                    setDeleteError(err.message || 'Erro ao excluir sua conta. Tente novamente.');
+                  } finally {
+                    setDeletingAccount(false);
+                  }
+                }}
+                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+              >
+                {deletingAccount ? (
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                Confirmar Exclusão Definitiva
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

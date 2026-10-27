@@ -246,11 +246,7 @@ const Viagens = () => {
   const salvarViagensNoBackend = async (novasViagens) => {
     setSalvando(true);
     try {
-      const resGet = await api.get('/user/dados');
-      const dadosCompletos = resGet.data?.dados || resGet.data || {};
-      dadosCompletos.viagens = novasViagens;
-
-      await api.post('/user/dados', dadosCompletos);
+      await api.post('/user/dados', { viagens: novasViagens });
       setViagens(novasViagens);
       return true;
     } catch (error) {

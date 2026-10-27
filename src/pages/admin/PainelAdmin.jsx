@@ -389,7 +389,7 @@ const PainelAdmin = () => {
 
   if (carregando) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-950 text-slate-100">
+      <div className="flex flex-col items-center justify-center h-screen bg-custom-primary text-custom-main">
         <Loader2 className="w-10 h-10 animate-spin text-custom-gold mb-3" />
         <p className="text-lg font-medium text-custom-gold">Carregando Painel Administrativo & Analytics...</p>
       </div>
@@ -398,7 +398,7 @@ const PainelAdmin = () => {
 
   if (erro) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-950 p-6">
+      <div className="flex items-center justify-center h-screen bg-custom-primary p-6">
         <div className="bg-red-950/40 border border-red-500/40 text-red-300 p-6 rounded-custom max-w-md shadow-lg flex items-center gap-3">
           <AlertCircle className="w-8 h-8 text-red-400 shrink-0" />
           <p className="text-base font-medium">{erro}</p>
@@ -408,7 +408,7 @@ const PainelAdmin = () => {
   }
 
   return (
-    <div className="p-6 bg-transparent min-h-screen text-slate-100">
+    <div className="space-y-6 bg-transparent min-h-screen text-custom-main transition-colors duration-300">
       {/* Cabeçalho do Painel */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
@@ -416,7 +416,7 @@ const PainelAdmin = () => {
             <Shield className="w-9 h-9 text-custom-gold" />
             Painel Admin & Analytics de Produto
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-custom-main opacity-70 mt-1">
             Governança de usuários, métricas de retenção D1–D30, uso de funcionalidades e validação de hipóteses de PM.
           </p>
         </div>
@@ -450,13 +450,13 @@ const PainelAdmin = () => {
       {/* DASHBOARD GERAL - INDICADORES MACRO (PRIORIDADE 1) */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <div className="bg-custom-card p-4 rounded-custom shadow-custom border border-custom-color flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400">
+          <div className="flex items-center justify-between text-custom-main opacity-70">
             <span className="text-xs font-semibold uppercase">Total Usuários</span>
             <Users className="w-5 h-5 text-custom-gold" />
           </div>
           <div className="mt-2">
             <p className="text-2xl font-bold text-custom-main">{estatisticas?.totalUsuarios ?? 0}</p>
-            <span className="text-[11px] text-slate-400">Base cadastrada</span>
+            <span className="text-[11px] text-custom-main opacity-60">Base cadastrada</span>
           </div>
         </div>
 
@@ -523,7 +523,7 @@ const PainelAdmin = () => {
           className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
             abaAtiva === 'usuarios'
               ? 'border-custom-gold text-custom-gold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-custom-main opacity-60 hover:opacity-100'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -535,7 +535,7 @@ const PainelAdmin = () => {
           className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
             abaAtiva === 'retencao'
               ? 'border-custom-gold text-custom-gold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-custom-main opacity-60 hover:opacity-100'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
@@ -547,7 +547,7 @@ const PainelAdmin = () => {
           className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
             abaAtiva === 'features'
               ? 'border-custom-gold text-custom-gold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-custom-main opacity-60 hover:opacity-100'
           }`}
         >
           <Activity className="w-4 h-4" />
@@ -559,7 +559,7 @@ const PainelAdmin = () => {
           className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
             abaAtiva === 'feedbacks'
               ? 'border-custom-gold text-custom-gold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-custom-main opacity-60 hover:opacity-100'
           }`}
         >
           <MessageSquare className="w-4 h-4" />
@@ -571,7 +571,7 @@ const PainelAdmin = () => {
           className={`pb-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
             abaAtiva === 'backlog'
               ? 'border-custom-gold text-custom-gold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-transparent text-custom-main opacity-60 hover:opacity-100'
           }`}
         >
           <Sparkles className="w-4 h-4" />
@@ -590,7 +590,7 @@ const PainelAdmin = () => {
                 <input
                   type="text"
                   placeholder="Buscar por nome, e-mail ou ID..."
-                  className="pl-9 pr-3 py-2 text-sm bg-slate-900/60 border border-custom-color text-slate-100 placeholder-slate-400 rounded-custom focus:outline-none focus:ring-1 focus:ring-amber-500 w-full"
+                  className="pl-9 pr-3 py-2 text-xs bg-custom-card border border-custom-color text-custom-main placeholder-custom-main/40 rounded-custom focus:outline-none focus:border-custom-gold w-full"
                   value={filtroTexto}
                   onChange={(e) => {
                     setFiltroTexto(e.target.value);
@@ -600,12 +600,12 @@ const PainelAdmin = () => {
               </div>
 
               {/* Filtro Plano */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5 text-xs text-custom-main">
                 <Filter className="w-3.5 h-3.5 text-custom-gold" />
                 <select
                   value={filtroPlano}
                   onChange={(e) => { setFiltroPlano(e.target.value); setPaginaAtual(1); }}
-                  className="bg-slate-900/60 border border-custom-color text-slate-200 text-xs rounded-custom px-2.5 py-1.5 focus:outline-none"
+                  className="bg-custom-card border border-custom-color text-custom-main text-xs rounded-custom px-2.5 py-1.5 focus:outline-none focus:border-custom-gold cursor-pointer"
                 >
                   <option value="todos">Todos os Planos</option>
                   <option value="Gratuito">Gratuito</option>
@@ -617,7 +617,7 @@ const PainelAdmin = () => {
               <select
                 value={filtroStatus}
                 onChange={(e) => { setFiltroStatus(e.target.value); setPaginaAtual(1); }}
-                className="bg-slate-900/60 border border-custom-color text-slate-200 text-xs rounded-custom px-2.5 py-1.5 focus:outline-none"
+                className="bg-custom-card border border-custom-color text-custom-main text-xs rounded-custom px-2.5 py-1.5 focus:outline-none focus:border-custom-gold cursor-pointer"
               >
                 <option value="todos">Todos os Status</option>
                 <option value="Ativo">Ativos</option>
@@ -628,7 +628,7 @@ const PainelAdmin = () => {
               <select
                 value={filtroPais}
                 onChange={(e) => { setFiltroPais(e.target.value); setPaginaAtual(1); }}
-                className="bg-slate-900/60 border border-custom-color text-slate-200 text-xs rounded-custom px-2.5 py-1.5 focus:outline-none"
+                className="bg-custom-card border border-custom-color text-custom-main text-xs rounded-custom px-2.5 py-1.5 focus:outline-none focus:border-custom-gold cursor-pointer"
               >
                 <option value="todos">Todos os Países</option>
                 {PAISES_DISPONIVEIS.map(p => (
@@ -639,7 +639,7 @@ const PainelAdmin = () => {
 
             <button
               onClick={abrirModalCriar}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-custom-gold text-black font-bold text-sm rounded-custom hover:opacity-90 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-custom-gold hover:bg-yellow-400 text-black font-bold text-xs rounded-custom transition-all shadow-custom cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               Adicionar Novo Usuário
@@ -649,7 +649,7 @@ const PainelAdmin = () => {
           {/* Tabela de Usuários com TODOS os campos solicitados */}
           <div className="overflow-x-auto rounded-lg border border-custom-color">
             <table className="min-w-full divide-y divide-custom-color text-left text-xs">
-              <thead className="bg-slate-900/70 text-slate-300 font-semibold uppercase tracking-wider">
+              <thead className="bg-custom-primary/60 border-b border-custom-color text-custom-main opacity-80 font-bold uppercase tracking-wider text-[11px] select-none">
                 <tr>
                   <th className="px-4 py-3.5">Usuário</th>
                   <th className="px-4 py-3.5">País</th>
@@ -662,10 +662,10 @@ const PainelAdmin = () => {
                   <th className="px-4 py-3.5 text-center">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-custom-color bg-slate-950/40 text-slate-200">
+              <tbody className="divide-y divide-custom-color/40 bg-custom-card text-custom-main text-xs">
                 {usuariosAtuais.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="text-center py-8 text-slate-400">
+                    <td colSpan={9} className="text-center py-8 text-custom-main opacity-70">
                       Nenhum usuário encontrado com os filtros selecionados.
                     </td>
                   </tr>
@@ -675,11 +675,11 @@ const PainelAdmin = () => {
                     const isPremium = u.plano === 'Premium';
 
                     return (
-                      <tr key={u.id} className="hover:bg-slate-900/40 transition-colors">
+                      <tr key={u.id} className="hover:bg-custom-primary/30 transition-colors">
                         {/* Usuário (Nome + Email) */}
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 border border-custom-color flex items-center justify-center font-bold text-custom-gold overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-custom-primary border border-custom-color flex items-center justify-center font-bold text-custom-gold overflow-hidden">
                               {u.avatar ? (
                                 <img src={u.avatar} alt={u.nome} className="w-full h-full object-cover" />
                               ) : (
@@ -687,7 +687,7 @@ const PainelAdmin = () => {
                               )}
                             </div>
                             <div>
-                              <div className="font-semibold text-slate-100 flex items-center gap-1.5">
+                              <div className="font-semibold text-custom-main flex items-center gap-1.5">
                                 {u.nome}
                                 {u.tipo === 'admin' && (
                                   <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-custom-gold border border-amber-500/30">
@@ -695,7 +695,7 @@ const PainelAdmin = () => {
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-slate-400">{u.email}</div>
+                              <div className="text-[11px] text-custom-main opacity-70">{u.email}</div>
                               {(u.whatsapp || u.telefone) && (
                                 <a
                                   href={`https://wa.me/${String(u.whatsapp || u.telefone).replace(/\D/g, '')}`}
@@ -721,14 +721,14 @@ const PainelAdmin = () => {
 
                         {/* Idioma */}
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-slate-300 font-mono text-[11px]">
+                          <span className="px-2 py-0.5 rounded bg-custom-primary/80 border border-custom-color text-custom-main font-mono text-[11px]">
                             {u.idioma || 'pt-BR'}
                           </span>
                         </td>
 
                         {/* Moeda Selecionada */}
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700 text-amber-300 font-mono text-[11px] font-semibold">
+                          <span className="px-2 py-0.5 rounded bg-custom-gold/10 border border-custom-gold/30 text-custom-gold font-mono text-[11px] font-bold">
                             {u.moeda || 'BRL'}
                           </span>
                         </td>
@@ -739,7 +739,7 @@ const PainelAdmin = () => {
                             className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                               isPremium
                                 ? 'bg-amber-500/20 text-custom-gold border border-amber-500/40'
-                                : 'bg-slate-800 text-slate-300 border border-slate-700'
+                                : 'bg-custom-primary border border-custom-color text-custom-main opacity-80'
                             }`}
                           >
                             {u.plano || 'Gratuito'}
@@ -770,20 +770,20 @@ const PainelAdmin = () => {
                         </td>
 
                         {/* Data de Cadastro */}
-                        <td className="px-4 py-3 whitespace-nowrap text-slate-400">
+                        <td className="px-4 py-3 whitespace-nowrap text-custom-main opacity-70">
                           {u.dataCriacao
                             ? new Date(u.dataCriacao).toLocaleDateString('pt-BR')
                             : '—'}
                         </td>
 
                         {/* Último Acesso */}
-                        <td className="px-4 py-3 whitespace-nowrap text-slate-400">
+                        <td className="px-4 py-3 whitespace-nowrap text-custom-main opacity-70">
                           {u.ultimoAcesso ? (
                             <span title={new Date(u.ultimoAcesso).toLocaleString('pt-BR')}>
                               {new Date(u.ultimoAcesso).toLocaleDateString('pt-BR')} {new Date(u.ultimoAcesso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           ) : (
-                            <span className="text-slate-500 italic">Nunca</span>
+                            <span className="text-custom-main opacity-40 italic">Nunca</span>
                           )}
                         </td>
 
@@ -792,7 +792,7 @@ const PainelAdmin = () => {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => abrirModalEdicao(u)}
-                              className="p-1.5 rounded hover:bg-slate-800 text-sky-400 hover:text-sky-300 transition-colors"
+                              className="p-1.5 rounded hover:bg-custom-primary/60 text-sky-400 hover:text-sky-300 rounded-lg cursor-pointer transition-colors"
                               title="Editar Usuário"
                             >
                               <Edit className="w-4 h-4" />
@@ -800,7 +800,7 @@ const PainelAdmin = () => {
                             <button
                               onClick={() => excluirUsuario(u.id, u.nome)}
                               disabled={excluindo === u.id}
-                              className="p-1.5 rounded hover:bg-slate-800 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+                              className="p-1.5 rounded hover:bg-custom-primary/60 text-rose-400 hover:text-rose-300 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
                               title="Excluir Usuário"
                             >
                               {excluindo === u.id ? (
@@ -820,7 +820,7 @@ const PainelAdmin = () => {
           </div>
 
           {/* Paginação */}
-          <div className="flex items-center justify-between mt-4 text-xs text-slate-400">
+          <div className="flex items-center justify-between mt-4 text-xs text-custom-main opacity-75">
             <div>
               Mostrando {usuariosAtuais.length > 0 ? indicePrimeiroUsuario + 1 : 0} até{' '}
               {Math.min(indiceUltimoUsuario, usuariosFiltrados.length)} de {usuariosFiltrados.length} usuários
@@ -829,17 +829,17 @@ const PainelAdmin = () => {
               <button
                 onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
                 disabled={paginaAtual === 1}
-                className="px-3 py-1.5 rounded bg-slate-900 border border-custom-color hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                className="px-3 py-1.5 rounded-custom bg-custom-card border border-custom-color hover:bg-custom-primary text-custom-main disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition cursor-pointer"
               >
                 <ChevronLeft className="w-3.5 h-3.5" /> Anterior
               </button>
-              <span className="px-2 font-medium text-slate-200">
+              <span className="px-2 font-medium text-custom-main">
                 Pág. {paginaAtual} de {totalPaginas}
               </span>
               <button
                 onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
                 disabled={paginaAtual >= totalPaginas}
-                className="px-3 py-1.5 rounded bg-slate-900 border border-custom-color hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                className="px-3 py-1.5 rounded-custom bg-custom-card border border-custom-color hover:bg-custom-primary text-custom-main disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition cursor-pointer"
               >
                 Próximo <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -856,7 +856,7 @@ const PainelAdmin = () => {
               <BarChart3 className="w-5 h-5 text-custom-gold" />
               Coortes & Taxas de Retenção de Usuários
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-custom-main opacity-70 mt-1">
               Medição automática do retorno do usuário após o cadastro: D1 (1 dia), D3 (3 dias), D7 (1 semana), D15 (quinzena) e D30 (1 mês).
             </p>
           </div>
@@ -870,22 +870,22 @@ const PainelAdmin = () => {
               { id: 'D15', label: 'Retenção D15 (15 dias)', taxa: estatisticas?.retencao?.taxaD15 ?? 0, count: estatisticas?.retencao?.d15Count ?? 0, cor: 'text-emerald-400', bg: 'bg-emerald-500' },
               { id: 'D30', label: 'Retenção D30 (30 dias) ⭐', taxa: estatisticas?.retencao?.taxaD30 ?? 0, count: estatisticas?.retencao?.d30Count ?? 0, cor: 'text-custom-gold', bg: 'bg-custom-gold' },
             ].map(r => (
-              <div key={r.id} className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
-                <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-2">
+              <div key={r.id} className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
+                <div className="flex items-center justify-between text-xs text-custom-main opacity-70 font-semibold mb-2">
                   <span>{r.label}</span>
                   <span className={r.cor}>{r.count} usuários</span>
                 </div>
-                <div className="text-3xl font-extrabold text-slate-100 mb-2">
+                <div className="text-3xl font-extrabold text-custom-main mb-2">
                   {r.taxa}%
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-custom-primary rounded-full h-2 overflow-hidden">
                   <div className={`${r.bg} h-full transition-all duration-500`} style={{ width: `${Math.min(r.taxa, 100)}%` }}></div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="bg-slate-900/40 p-4 rounded-custom border border-custom-color text-xs text-slate-300">
+          <div className="bg-custom-primary/30 p-4 rounded-custom border border-custom-color text-xs text-custom-main">
             <span className="font-bold text-custom-gold">💡 Visão do Product Manager:</span> As coortes de <strong>D7</strong> e <strong>D30</strong> são os maiores termômetros se o produto está de fato ajudando a transformar o comportamento financeiro dos usuários ou se serviu apenas para um registro isolado.
           </div>
         </section>
@@ -902,113 +902,113 @@ const PainelAdmin = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Receitas */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center justify-between text-emerald-400 mb-2">
                   <span className="text-xs font-bold uppercase">Receitas</span>
                   <TrendingUp className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.receitas?.totalLancamentos ?? 0}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   Lançamentos realizados por {estatisticas?.funcionalidades?.receitas?.usuariosUtilizaram ?? 0} usuários
                 </p>
               </div>
 
               {/* Despesas */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center justify-between text-red-400 mb-2">
                   <span className="text-xs font-bold uppercase">Despesas</span>
                   <DollarSign className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.despesas?.totalLancamentos ?? 0}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   Lançamentos realizados por {estatisticas?.funcionalidades?.despesas?.usuariosUtilizaram ?? 0} usuários
                 </p>
               </div>
 
               {/* Budget / Orçamento */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center justify-between text-custom-gold mb-2">
                   <span className="text-xs font-bold uppercase">Budget / Metas</span>
                   <Wallet className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.budget?.usuariosCriaram ?? 0} usuários
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   {estatisticas?.funcionalidades?.budget?.totalOrcamentos ?? 0} orçamentos mensais configurados ({estatisticas?.funcionalidades?.budget?.taxaCriacao ?? 0}% da base)
                 </p>
               </div>
 
               {/* Cartões de Crédito */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center justify-between text-sky-400 mb-2">
                   <span className="text-xs font-bold uppercase">Cartões</span>
                   <CreditCard className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.cartoes?.totalCadastrados ?? 0}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   Cartões em uso por {estatisticas?.funcionalidades?.cartoes?.usuariosCadastraram ?? 0} usuários
                 </p>
               </div>
 
               {/* Módulo Viagens */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center justify-between text-amber-400 mb-2">
                   <span className="text-xs font-bold uppercase">Viagens</span>
                   <Plane className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.viagens?.totalCadastradas ?? 0}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   Viagens cadastradas por {estatisticas?.funcionalidades?.viagens?.usuariosUtilizaram ?? 0} usuários
                 </p>
               </div>
 
               {/* Assistente FIN */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
-                <div className="flex items-center justify-between text-indigo-400 mb-2">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
+                <div className="flex items-center justify-between text-sky-400 mb-2">
                   <span className="text-xs font-bold uppercase">Assistente FIN</span>
                   <Bot className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.fin?.perguntasRealizadas ?? 0}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   Perguntas realizadas ({estatisticas?.funcionalidades?.fin?.usuariosUtilizaram ?? 0} usuários)
                 </p>
               </div>
 
               {/* Quiz "Posso Gastar?" */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center justify-between text-emerald-400 mb-2">
                   <span className="text-xs font-bold uppercase">Quiz Posso Gastar?</span>
                   <HelpCircle className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.quiz?.consultasRealizadas ?? 0}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   Consultas com ticket médio de R$ {estatisticas?.funcionalidades?.quiz?.valorMedioConsultado?.toFixed(2) ?? '0.00'}
                 </p>
               </div>
 
               {/* Relatórios & DRE */}
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
-                <div className="flex items-center justify-between text-slate-300 mb-2">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
+                <div className="flex items-center justify-between text-custom-main mb-2">
                   <span className="text-xs font-bold uppercase">Relatórios</span>
                   <FileText className="w-4 h-4" />
                 </div>
-                <div className="text-2xl font-bold text-slate-100">
+                <div className="text-2xl font-bold text-custom-main">
                   {estatisticas?.funcionalidades?.relatorios?.visualizacoes ?? 0}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-custom-main opacity-70 mt-1">
                   Top: {estatisticas?.funcionalidades?.relatorios?.relatorioMaisAcessado ?? 'DRE Pessoal'}
                 </p>
               </div>
@@ -1022,50 +1022,50 @@ const PainelAdmin = () => {
               Validação das Hipóteses de Produto (Prioridade 5)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
                   <span>Hipótese 1:</span> Necessidade de organização financeira
                 </div>
-                <p className="text-xs text-slate-400 mb-3">
+                <p className="text-xs text-custom-main opacity-70 mb-3">
                   <strong>Medição:</strong> Uso do Budget e dos relatórios analíticos.
                 </p>
-                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                <div className="text-xs bg-custom-card p-2.5 rounded border border-custom-color text-custom-main">
                   Status: <strong>Em validação</strong> ({estatisticas?.funcionalidades?.budget?.usuariosCriaram ?? 0} usuários criaram teto de gastos no Budget e geraram relatórios).
                 </div>
               </div>
 
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
                   <span>Hipótese 2:</span> Ajuda para tomada de decisão de compras
                 </div>
-                <p className="text-xs text-slate-400 mb-3">
+                <p className="text-xs text-custom-main opacity-70 mb-3">
                   <strong>Medição:</strong> Consultas ao Quiz "Posso Gastar?".
                 </p>
-                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                <div className="text-xs bg-custom-card p-2.5 rounded border border-custom-color text-custom-main">
                   Status: <strong>Validando</strong> ({estatisticas?.funcionalidades?.quiz?.consultasRealizadas ?? 0} consultas realizadas com taxa de {estatisticas?.funcionalidades?.quiz?.resultadoRecomendacao ?? 'recomendações'}).
                 </div>
               </div>
 
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
                   <span>Hipótese 3:</span> Dificuldade para interpretar dados financeiros
                 </div>
-                <p className="text-xs text-slate-400 mb-3">
+                <p className="text-xs text-custom-main opacity-70 mb-3">
                   <strong>Medição:</strong> Perguntas e engajamento no assistente FIN.
                 </p>
-                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                <div className="text-xs bg-custom-card p-2.5 rounded border border-custom-color text-custom-main">
                   Status: <strong>Validando</strong> (Perguntas mais frequentes: "guardar com salário mínimo", "parcelamento sem juros").
                 </div>
               </div>
 
-              <div className="p-4 rounded-custom bg-slate-900/60 border border-custom-color">
+              <div className="p-4 rounded-custom bg-custom-primary/40 border border-custom-color">
                 <div className="flex items-center gap-2 text-custom-gold font-bold text-sm mb-1">
                   <span>Hipótese 4:</span> Usuários valorizam personalização
                 </div>
-                <p className="text-xs text-slate-400 mb-3">
+                <p className="text-xs text-custom-main opacity-70 mb-3">
                   <strong>Medição:</strong> Alterações em categorias, subcategorias e personalização de moedas.
                 </p>
-                <div className="text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800 text-slate-300">
+                <div className="text-xs bg-custom-card p-2.5 rounded border border-custom-color text-custom-main">
                   Status: <strong>Validado</strong> (Categorias personalizadas ativas em 100% dos usuários testadores).
                 </div>
               </div>
@@ -1083,7 +1083,7 @@ const PainelAdmin = () => {
                 <MessageSquare className="w-5 h-5 text-custom-gold" />
                 Feedbacks Coletados e Avaliação Geral (NPS / CSAT)
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-custom-main opacity-70 mt-1">
                 Perguntas de 1 a 10: Facilidade de Uso, Organização Financeira, Tomada de Decisão, Intenção e Recomendação.
               </p>
             </div>
@@ -1097,37 +1097,37 @@ const PainelAdmin = () => {
 
           {/* Cards de Médias de Notas */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
-              <span className="text-[11px] text-slate-400 font-semibold block">Facilidade de Uso</span>
+            <div className="p-3 rounded-custom bg-custom-primary/40 border border-custom-color text-center">
+              <span className="text-[11px] text-custom-main opacity-70 font-semibold block">Facilidade de Uso</span>
               <span className="text-2xl font-bold text-custom-gold">9.2</span>
-              <span className="text-[10px] text-slate-500 block">Média de 1 a 10</span>
+              <span className="text-[10px] text-custom-main opacity-50 block">Média de 1 a 10</span>
             </div>
-            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
-              <span className="text-[11px] text-slate-400 font-semibold block">Organização Financeira</span>
+            <div className="p-3 rounded-custom bg-custom-primary/40 border border-custom-color text-center">
+              <span className="text-[11px] text-custom-main opacity-70 font-semibold block">Organização Financeira</span>
               <span className="text-2xl font-bold text-emerald-400">9.5</span>
-              <span className="text-[10px] text-slate-500 block">"Ajudou a organizar?"</span>
+              <span className="text-[10px] text-custom-main opacity-50 block">"Ajudou a organizar?"</span>
             </div>
-            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
-              <span className="text-[11px] text-slate-400 font-semibold block">Tomada de Decisão</span>
+            <div className="p-3 rounded-custom bg-custom-primary/40 border border-custom-color text-center">
+              <span className="text-[11px] text-custom-main opacity-70 font-semibold block">Tomada de Decisão</span>
               <span className="text-2xl font-bold text-sky-400">8.8</span>
-              <span className="text-[10px] text-slate-500 block">"Melhores decisões?"</span>
+              <span className="text-[10px] text-custom-main opacity-50 block">"Melhores decisões?"</span>
             </div>
-            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center">
-              <span className="text-[11px] text-slate-400 font-semibold block">Intenção de Uso</span>
+            <div className="p-3 rounded-custom bg-custom-primary/40 border border-custom-color text-center">
+              <span className="text-[11px] text-custom-main opacity-70 font-semibold block">Intenção de Uso</span>
               <span className="text-2xl font-bold text-amber-400">9.7</span>
-              <span className="text-[10px] text-slate-500 block">"Continuaria usando?"</span>
+              <span className="text-[10px] text-custom-main opacity-50 block">"Continuaria usando?"</span>
             </div>
-            <div className="p-3 rounded-custom bg-slate-900/60 border border-custom-color text-center col-span-2 md:col-span-1">
-              <span className="text-[11px] text-slate-400 font-semibold block">NPS (Recomendação)</span>
+            <div className="p-3 rounded-custom bg-custom-primary/40 border border-custom-color text-center col-span-2 md:col-span-1">
+              <span className="text-[11px] text-custom-main opacity-70 font-semibold block">NPS (Recomendação)</span>
               <span className="text-2xl font-bold text-custom-gold">9.6</span>
-              <span className="text-[10px] text-slate-500 block">"Indicaria a outros?"</span>
+              <span className="text-[10px] text-custom-main opacity-50 block">"Indicaria a outros?"</span>
             </div>
           </div>
 
           {/* Tabela de Feedbacks */}
           <div className="overflow-x-auto rounded-lg border border-custom-color">
             <table className="min-w-full divide-y divide-custom-color text-left text-xs">
-              <thead className="bg-slate-900/70 text-slate-300 font-semibold uppercase">
+              <thead className="bg-custom-card/70 text-custom-main font-semibold uppercase">
                 <tr>
                   <th className="px-4 py-3">Usuário</th>
                   <th className="px-4 py-3">País</th>
@@ -1138,14 +1138,14 @@ const PainelAdmin = () => {
                   <th className="px-4 py-3">Comentário</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-custom-color bg-slate-950/40 text-slate-200">
+              <tbody className="divide-y divide-custom-color bg-custom-primary/40 text-custom-main">
                 {feedbacks.map((fb) => (
-                  <tr key={fb.id} className="hover:bg-slate-900/40 transition-colors">
+                  <tr key={fb.id} className="hover:bg-custom-primary/30 transition-colors">
                     <td className="px-4 py-3 font-semibold">{fb.usuario}</td>
                     <td className="px-4 py-3">{obterBandeiraPais(fb.pais)} {fb.pais}</td>
-                    <td className="px-4 py-3 text-slate-400">{new Date(fb.data).toLocaleDateString('pt-BR')}</td>
+                    <td className="px-4 py-3 text-custom-main opacity-70">{new Date(fb.data).toLocaleDateString('pt-BR')}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">
+                      <span className="px-2 py-0.5 rounded bg-custom-primary text-custom-main border border-custom-color">
                         {fb.funcionalidade}
                       </span>
                     </td>
@@ -1155,7 +1155,7 @@ const PainelAdmin = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-bold text-custom-gold">{fb.recomendacao ?? 10}/10</td>
-                    <td className="px-4 py-3 text-slate-300 max-w-xs">{fb.comentario}</td>
+                    <td className="px-4 py-3 text-custom-main max-w-xs">{fb.comentario}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1173,7 +1173,7 @@ const PainelAdmin = () => {
                 <Sparkles className="w-5 h-5 text-custom-gold" />
                 Backlog de Produto & Melhorias das Entrevistas (Prioridade 7)
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-custom-main opacity-70 mt-1">
                 Rastreamento de qual feedback gerou melhoria, impacto vs esforço e status de implementação.
               </p>
             </div>
@@ -1187,7 +1187,7 @@ const PainelAdmin = () => {
 
           <div className="overflow-x-auto rounded-lg border border-custom-color">
             <table className="min-w-full divide-y divide-custom-color text-left text-xs">
-              <thead className="bg-slate-900/70 text-slate-300 font-semibold uppercase">
+              <thead className="bg-custom-card/70 text-custom-main font-semibold uppercase">
                 <tr>
                   <th className="px-4 py-3">Sugestão / Melhoria</th>
                   <th className="px-4 py-3">Sugerido Por</th>
@@ -1198,19 +1198,19 @@ const PainelAdmin = () => {
                   <th className="px-4 py-3">Motivo da Priorização</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-custom-color bg-slate-950/40 text-slate-200">
+              <tbody className="divide-y divide-custom-color bg-custom-primary/40 text-custom-main">
                 {backlogPM.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-slate-100 max-w-xs">{item.sugestao}</td>
-                    <td className="px-4 py-3 text-slate-300">{item.usuarioSugeriu}</td>
+                  <tr key={item.id} className="hover:bg-custom-primary/30 transition-colors">
+                    <td className="px-4 py-3 font-semibold text-custom-main max-w-xs">{item.sugestao}</td>
+                    <td className="px-4 py-3 text-custom-main">{item.usuarioSugeriu}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
-                        item.impacto === 'Alto' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-300'
+                        item.impacto === 'Alto' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-custom-primary text-custom-main'
                       }`}>
                         {item.impacto}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-300">{item.esforco}</td>
+                    <td className="px-4 py-3 text-custom-main">{item.esforco}</td>
                     <td className="px-4 py-3">
                       <span className="font-bold text-custom-gold">{item.prioridade}</span>
                     </td>
@@ -1218,12 +1218,12 @@ const PainelAdmin = () => {
                       <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
                         item.status === 'Concluído' ? 'bg-emerald-500/20 text-emerald-400' :
                         item.status === 'Em desenvolvimento' ? 'bg-sky-500/20 text-sky-400' :
-                        item.status === 'Planejado' ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'
+                        item.status === 'Planejado' ? 'bg-amber-500/20 text-amber-400' : 'bg-custom-primary text-custom-main opacity-70'
                       }`}>
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-400 max-w-xs">{item.motivoPriorizacao || '—'}</td>
+                    <td className="px-4 py-3 text-custom-main opacity-70 max-w-xs">{item.motivoPriorizacao || '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1235,13 +1235,13 @@ const PainelAdmin = () => {
       {/* MODAL: CRIAR / EDITAR USUÁRIO COM TODOS OS NOVOS CAMPOS */}
       {(modalCriarAberto || modalEditarAberto) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-custom-color rounded-custom shadow-2xl w-full max-w-lg overflow-hidden text-slate-100 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-5 border-b border-custom-color bg-slate-950/50">
+          <div className="bg-custom-card border border-custom-color rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden text-custom-main animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-custom-color bg-custom-card/80">
               <h3 className="text-lg font-bold text-custom-gold flex items-center gap-2">
                 {modalCriarAberto ? <UserPlus className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
                 {modalCriarAberto ? 'Cadastrar Novo Usuário' : `Editar Usuário: ${formData.nome}`}
               </h3>
-              <button onClick={fecharModais} className="p-1 text-slate-400 hover:text-slate-100 rounded">
+              <button onClick={fecharModais} className="p-1 text-custom-main opacity-70 hover:opacity-100 rounded">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1250,26 +1250,26 @@ const PainelAdmin = () => {
               {/* Nome e E-mail */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Nome Completo *</label>
+                  <label className="block font-semibold text-custom-main mb-1">Nome Completo *</label>
                   <input
                     type="text"
                     name="nome"
                     value={formData.nome}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-3 py-2 text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-3 py-2 text-custom-main focus:outline-none focus:ring-1 focus:ring-amber-500"
                     placeholder="Ex: Diogo Silva"
                   />
                   {errosForm.nome && <span className="text-red-400 text-[10px] mt-0.5 block">{errosForm.nome}</span>}
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">E-mail *</label>
+                  <label className="block font-semibold text-custom-main mb-1">E-mail *</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-3 py-2 text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-3 py-2 text-custom-main focus:outline-none focus:ring-1 focus:ring-amber-500"
                     placeholder="usuario@email.com"
                   />
                   {errosForm.email && <span className="text-red-400 text-[10px] mt-0.5 block">{errosForm.email}</span>}
@@ -1278,7 +1278,7 @@ const PainelAdmin = () => {
 
               {/* Senha (Obrigatória na criação, opcional na edição) */}
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">
+                <label className="block font-semibold text-custom-main mb-1">
                   {modalCriarAberto ? 'Senha Provisória *' : 'Nova Senha (deixe em branco para manter a atual)'}
                 </label>
                 <input
@@ -1286,7 +1286,7 @@ const PainelAdmin = () => {
                   name="senha"
                   value={formData.senha}
                   onChange={handleFormChange}
-                  className="w-full bg-slate-950 border border-custom-color rounded px-3 py-2 text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded px-3 py-2 text-custom-main focus:outline-none focus:ring-1 focus:ring-amber-500"
                   placeholder="Mínimo de 6 caracteres"
                 />
                 {errosForm.senha && <span className="text-red-400 text-[10px] mt-0.5 block">{errosForm.senha}</span>}
@@ -1295,12 +1295,12 @@ const PainelAdmin = () => {
               {/* País, Idioma e Moeda */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">País *</label>
+                  <label className="block font-semibold text-custom-main mb-1">País *</label>
                   <select
                     name="pais"
                     value={formData.pais}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-2.5 py-2 text-custom-main focus:outline-none"
                   >
                     {PAISES_DISPONIVEIS.map(p => (
                       <option key={p.nome} value={p.nome}>{p.flag} {p.nome}</option>
@@ -1309,12 +1309,12 @@ const PainelAdmin = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Idioma *</label>
+                  <label className="block font-semibold text-custom-main mb-1">Idioma *</label>
                   <select
                     name="idioma"
                     value={formData.idioma}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-2.5 py-2 text-custom-main focus:outline-none"
                   >
                     <option value="pt-BR">Português (BR)</option>
                     <option value="en">English (US)</option>
@@ -1328,12 +1328,12 @@ const PainelAdmin = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Moeda *</label>
+                  <label className="block font-semibold text-custom-main mb-1">Moeda *</label>
                   <select
                     name="moeda"
                     value={formData.moeda}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-2.5 py-2 text-custom-main focus:outline-none"
                   >
                     <option value="BRL">BRL (R$)</option>
                     <option value="USD">USD ($)</option>
@@ -1346,12 +1346,12 @@ const PainelAdmin = () => {
               {/* Plano, Status e Tipo de Usuário */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Plano *</label>
+                  <label className="block font-semibold text-custom-main mb-1">Plano *</label>
                   <select
                     name="plano"
                     value={formData.plano}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-2.5 py-2 text-custom-main focus:outline-none"
                   >
                     <option value="Gratuito">Gratuito</option>
                     <option value="Premium">Premium</option>
@@ -1359,12 +1359,12 @@ const PainelAdmin = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Status *</label>
+                  <label className="block font-semibold text-custom-main mb-1">Status *</label>
                   <select
                     name="status"
                     value={formData.status}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-2.5 py-2 text-custom-main focus:outline-none"
                   >
                     <option value="Ativo">Ativo</option>
                     <option value="Inativo">Inativo</option>
@@ -1372,12 +1372,12 @@ const PainelAdmin = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Nível de Acesso *</label>
+                  <label className="block font-semibold text-custom-main mb-1">Nível de Acesso *</label>
                   <select
                     name="tipo"
                     value={formData.tipo}
                     onChange={handleFormChange}
-                    className="w-full bg-slate-950 border border-custom-color rounded px-2.5 py-2 text-slate-100 focus:outline-none"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded px-2.5 py-2 text-custom-main focus:outline-none"
                   >
                     <option value="usuario">Usuário Comum</option>
                     <option value="admin">Administrador</option>
@@ -1389,7 +1389,7 @@ const PainelAdmin = () => {
                 <button
                   type="button"
                   onClick={fecharModais}
-                  className="px-4 py-2 rounded bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  className="px-4 py-2 rounded bg-custom-primary text-custom-main hover:bg-white/10"
                 >
                   Cancelar
                 </button>
@@ -1411,36 +1411,36 @@ const PainelAdmin = () => {
       {/* MODAL: REGISTRAR FEEDBACK ADMINISTRATIVO (PRIORIDADE 4) */}
       {modalFeedbackAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-custom-color rounded-custom shadow-2xl w-full max-w-md p-5 text-slate-100 animate-in fade-in zoom-in-95">
+          <div className="bg-custom-card border border-custom-color rounded-2xl shadow-2xl w-full max-w-md p-5 text-custom-main animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-custom-color mb-4">
               <h3 className="font-bold text-custom-gold flex items-center gap-2 text-base">
                 <MessageSquare className="w-4 h-4" /> Registrar Feedback de Usuário
               </h3>
-              <button onClick={fecharModais} className="text-slate-400 hover:text-slate-100">
+              <button onClick={fecharModais} className="text-custom-main opacity-70 hover:opacity-100">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={salvarNovoFeedback} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Nome do Usuário</label>
+                <label className="block text-custom-main font-semibold mb-1">Nome do Usuário</label>
                 <input
                   type="text"
                   required
                   value={feedbackForm.usuario}
                   onChange={(e) => setFeedbackForm(f => ({ ...f, usuario: e.target.value }))}
                   placeholder="Ex: João Silva"
-                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Funcionalidade</label>
+                  <label className="block text-custom-main font-semibold mb-1">Funcionalidade</label>
                   <select
                     value={feedbackForm.funcionalidade}
                     onChange={(e) => setFeedbackForm(f => ({ ...f, funcionalidade: e.target.value }))}
-                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main"
                   >
                     <option value="Dashboard">Dashboard</option>
                     <option value="Receitas">Receitas</option>
@@ -1455,11 +1455,11 @@ const PainelAdmin = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Tipo de Feedback</label>
+                  <label className="block text-custom-main font-semibold mb-1">Tipo de Feedback</label>
                   <select
                     value={feedbackForm.tipo}
                     onChange={(e) => setFeedbackForm(f => ({ ...f, tipo: e.target.value }))}
-                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main"
                   >
                     <option value="Sugestão">Sugestão</option>
                     <option value="Bug">Bug</option>
@@ -1472,42 +1472,42 @@ const PainelAdmin = () => {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Recomendação (NPS 0 a 10)</label>
+                  <label className="block text-custom-main font-semibold mb-1">Recomendação (NPS 0 a 10)</label>
                   <input
                     type="number"
                     min="0"
                     max="10"
                     value={feedbackForm.recomendacao}
                     onChange={(e) => setFeedbackForm(f => ({ ...f, recomendacao: Number(e.target.value) }))}
-                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Facilidade (1 a 10)</label>
+                  <label className="block text-custom-main font-semibold mb-1">Facilidade (1 a 10)</label>
                   <input
                     type="number"
                     min="1"
                     max="10"
                     value={feedbackForm.facilidadeUso}
                     onChange={(e) => setFeedbackForm(f => ({ ...f, facilidadeUso: Number(e.target.value) }))}
-                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Comentário ou Relato</label>
+                <label className="block text-custom-main font-semibold mb-1">Comentário ou Relato</label>
                 <textarea
                   rows={3}
                   value={feedbackForm.comentario}
                   onChange={(e) => setFeedbackForm(f => ({ ...f, comentario: e.target.value }))}
                   placeholder="Descreva o feedback do usuário..."
-                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main focus:outline-none"
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-custom-color">
-                <button type="button" onClick={fecharModais} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">
+                <button type="button" onClick={fecharModais} className="px-4 py-2 rounded-xl border border-custom-color bg-custom-card hover:bg-white/5 text-custom-main text-xs font-semibold cursor-pointer">
                   Cancelar
                 </button>
                 <button type="submit" disabled={salvando} className="px-4 py-1.5 rounded bg-custom-gold text-black font-bold">
@@ -1522,47 +1522,47 @@ const PainelAdmin = () => {
       {/* MODAL: REGISTRAR MELHORIA DO BACKLOG PM (PRIORIDADE 7) */}
       {modalBacklogAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-custom-color rounded-custom shadow-2xl w-full max-w-md p-5 text-slate-100 animate-in fade-in zoom-in-95">
+          <div className="bg-custom-card border border-custom-color rounded-2xl shadow-2xl w-full max-w-md p-5 text-custom-main animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-custom-color mb-4">
               <h3 className="font-bold text-custom-gold flex items-center gap-2 text-base">
                 <Sparkles className="w-4 h-4" /> Nova Melhoria / Backlog PM
               </h3>
-              <button onClick={fecharModais} className="text-slate-400 hover:text-slate-100">
+              <button onClick={fecharModais} className="text-custom-main opacity-70 hover:opacity-100">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={salvarNovoBacklog} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Sugestão / Funcionalidade</label>
+                <label className="block text-custom-main font-semibold mb-1">Sugestão / Funcionalidade</label>
                 <input
                   type="text"
                   required
                   value={backlogForm.sugestao}
                   onChange={(e) => setBacklogForm(b => ({ ...b, sugestao: e.target.value }))}
                   placeholder="Ex: Alerta de vencimento da fatura no WhatsApp"
-                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Usuário / Origem da Sugestão</label>
+                <label className="block text-custom-main font-semibold mb-1">Usuário / Origem da Sugestão</label>
                 <input
                   type="text"
                   value={backlogForm.usuarioSugeriu}
                   onChange={(e) => setBacklogForm(b => ({ ...b, usuarioSugeriu: e.target.value }))}
                   placeholder="Ex: Entrevista com usuário Beta"
-                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Impacto</label>
+                  <label className="block text-custom-main font-semibold mb-1">Impacto</label>
                   <select
                     value={backlogForm.impacto}
                     onChange={(e) => setBacklogForm(b => ({ ...b, impacto: e.target.value }))}
-                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main"
                   >
                     <option value="Alto">Alto</option>
                     <option value="Médio">Médio</option>
@@ -1570,11 +1570,11 @@ const PainelAdmin = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Esforço</label>
+                  <label className="block text-custom-main font-semibold mb-1">Esforço</label>
                   <select
                     value={backlogForm.esforco}
                     onChange={(e) => setBacklogForm(b => ({ ...b, esforco: e.target.value }))}
-                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main"
                   >
                     <option value="Baixo">Baixo</option>
                     <option value="Médio">Médio</option>
@@ -1582,11 +1582,11 @@ const PainelAdmin = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Status</label>
+                  <label className="block text-custom-main font-semibold mb-1">Status</label>
                   <select
                     value={backlogForm.status}
                     onChange={(e) => setBacklogForm(b => ({ ...b, status: e.target.value }))}
-                    className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100"
+                    className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main"
                   >
                     <option value="Backlog">Backlog</option>
                     <option value="Em análise">Em análise</option>
@@ -1599,18 +1599,18 @@ const PainelAdmin = () => {
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Motivo da Priorização</label>
+                <label className="block text-custom-main font-semibold mb-1">Motivo da Priorização</label>
                 <textarea
                   rows={2}
                   value={backlogForm.motivoPriorizacao}
                   onChange={(e) => setBacklogForm(b => ({ ...b, motivoPriorizacao: e.target.value }))}
                   placeholder="Por que priorizar essa melhoria?"
-                  className="w-full bg-slate-950 border border-custom-color rounded p-2 text-slate-100 focus:outline-none"
+                  className="w-full bg-custom-primary/50 border border-custom-color rounded p-2 text-custom-main focus:outline-none"
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-custom-color">
-                <button type="button" onClick={fecharModais} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">
+                <button type="button" onClick={fecharModais} className="px-4 py-2 rounded-xl border border-custom-color bg-custom-card hover:bg-white/5 text-custom-main text-xs font-semibold cursor-pointer">
                   Cancelar
                 </button>
                 <button type="submit" disabled={salvando} className="px-4 py-1.5 rounded bg-custom-gold text-black font-bold">
