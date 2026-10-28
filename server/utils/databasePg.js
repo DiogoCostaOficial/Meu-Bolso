@@ -393,16 +393,24 @@ const buscarDadosUsuario = async (userId) => {
                     mesFatura: r.mes_fatura || null
                 };
             }),
-            categorias: categoriasRes.rows.map(c => ({
-                id: c.id,
-                nome: c.nome,
-                tipo: c.tipo,
-                subcategorias: c.subcategorias,
-                cor: c.cor,
-                icone: c.icone,
-                tipoMeta: c.tipo_meta || null,
-                valorMeta: c.valor_meta !== null && c.valor_meta !== undefined ? parseFloat(c.valor_meta) : null
-            })),
+            categorias: categoriasRes.rows.length > 0
+                ? categoriasRes.rows.map(c => ({
+                    id: c.id,
+                    nome: c.nome,
+                    tipo: c.tipo,
+                    subcategorias: c.subcategorias,
+                    cor: c.cor,
+                    icone: c.icone,
+                    tipoMeta: c.tipo_meta || null,
+                    valorMeta: c.valor_meta !== null && c.valor_meta !== undefined ? parseFloat(c.valor_meta) : null
+                }))
+                : [
+                    { id: `cat-${userId}-fixas`, nome: 'Despesas Fixas', cor: '#3B82F6', tipoMeta: 'percentual', valorMeta: 50, subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
+                    { id: `cat-${userId}-lazer`, nome: 'Lazer', cor: '#10B981', tipoMeta: 'percentual', valorMeta: 20, subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'] },
+                    { id: `cat-${userId}-educacao`, nome: 'Educação', cor: '#F59E0B', tipoMeta: 'percentual', valorMeta: 20, subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'] },
+                    { id: `cat-${userId}-invest`, nome: 'Investimentos', cor: '#EF4444', tipoMeta: 'percentual', valorMeta: 0, subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'] },
+                    { id: `cat-${userId}-reserva`, nome: 'Reserva de Emergência', cor: '#EC4899', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] }
+                ],
             orcamentos: finalOrcamentos,
             cartoes: cartoesRes.rows.map(c => ({
                 id: c.id,

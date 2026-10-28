@@ -5,6 +5,7 @@ import { useTheme } from "./theme-provider";
 import { useEdu } from '../contexts/EduContext';
 import EduMascot from './EduMascot';
 import VideoPopup from './VideoPopup';
+import PageTutorialVideo from './PageTutorialVideo';
 import CurrencyUpdateAnnouncer from './CurrencyUpdateAnnouncer';
 import LanguageSelector from './LanguageSelector';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -350,6 +351,8 @@ const LayoutNovo = ({ children }) => {
             <div className="hidden md:flex items-center justify-end mb-4">
               <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
             </div>
+            {/* Vídeo Explicativo Exclusivo da Tela Atual */}
+            <PageTutorialVideo />
             {children}
           </div>
         </main>

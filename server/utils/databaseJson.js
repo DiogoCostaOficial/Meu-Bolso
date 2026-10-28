@@ -159,7 +159,50 @@ const deletarUsuario = async (userId) => {
     return data.usuarios.length < initialLength;
 };
 
-// USER DATA SPECIFIC FUNCTIONS
+// USER DATA SPECIFIC FUNCTIONS (Princípio Inicial 50-20-20-0-10)
+const CATEGORIAS_INICIAIS_PADRAO = [
+    {
+        id: 'cat-default-fixas',
+        nome: 'Despesas Fixas',
+        cor: '#3B82F6',
+        tipoMeta: 'percentual',
+        valorMeta: 50,
+        subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos']
+    },
+    {
+        id: 'cat-default-lazer',
+        nome: 'Lazer',
+        cor: '#10B981',
+        tipoMeta: 'percentual',
+        valorMeta: 20,
+        subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer']
+    },
+    {
+        id: 'cat-default-educacao',
+        nome: 'Educação',
+        cor: '#F59E0B',
+        tipoMeta: 'percentual',
+        valorMeta: 20,
+        subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação']
+    },
+    {
+        id: 'cat-default-investimentos',
+        nome: 'Investimentos',
+        cor: '#EF4444',
+        tipoMeta: 'percentual',
+        valorMeta: 0,
+        subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos']
+    },
+    {
+        id: 'cat-default-reserva',
+        nome: 'Reserva de Emergência',
+        cor: '#EC4899',
+        tipoMeta: 'percentual',
+        valorMeta: 10,
+        subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva']
+    }
+];
+
 const getUserDataFile = (userId) => path.join(DATA_DIR, `USER_DATA_${userId}.json`);
 
 const buscarDadosUsuario = async (userId) => {
@@ -177,13 +220,16 @@ const buscarDadosUsuario = async (userId) => {
         if (!parsed.viagens) {
             parsed.viagens = [];
         }
+        if (!Array.isArray(parsed.categorias) || parsed.categorias.length === 0) {
+            parsed.categorias = CATEGORIAS_INICIAIS_PADRAO.map(c => ({ ...c }));
+        }
         return parsed;
     } catch (error) {
-        // Return empty structure if no data found
+        // Return default 50-20-20-0-10 categories if no data found for new user
         return {
             receitas: [],
             despesas: [],
-            categorias: [],
+            categorias: CATEGORIAS_INICIAIS_PADRAO.map(c => ({ ...c })),
             orcamentos: [],
             cartoes: [],
             viagens: []

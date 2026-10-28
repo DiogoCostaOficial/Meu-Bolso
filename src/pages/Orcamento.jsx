@@ -15,12 +15,47 @@ import api from '../services/api';
 import { removeDuplicates } from '../utils/arrayUtils';
 
 const CATEGORIAS_PADRAO = [
-  { nome: 'Despesas Fixas', percentual: 30.00, cor: '#3B82F6', gastoAtual: 0 },
-  { nome: 'Lazer', percentual: 8.00, cor: '#10B981', gastoAtual: 0 },
-  { nome: 'Educação', percentual: 15.00, cor: '#F59E0B', gastoAtual: 0 },
-  { nome: 'Investimentos', percentual: 40.00, cor: '#EF4444', gastoAtual: 0 },
-  { nome: 'Reserva de Emergência', percentual: 7.00, cor: '#EC4899', gastoAtual: 0 }
+  { nome: 'Despesas Fixas', percentual: 50.00, cor: '#3B82F6', gastoAtual: 0 },
+  { nome: 'Lazer', percentual: 20.00, cor: '#10B981', gastoAtual: 0 },
+  { nome: 'Educação', percentual: 20.00, cor: '#F59E0B', gastoAtual: 0 },
+  { nome: 'Investimentos', percentual: 0.00, cor: '#EF4444', gastoAtual: 0 },
+  { nome: 'Reserva de Emergência', percentual: 10.00, cor: '#EC4899', gastoAtual: 0 }
 ];
+
+const obterPercentualPadrao50202010 = (nomeCategoria) => {
+  const nome = String(nomeCategoria || '').trim().toLowerCase();
+  if (nome === 'despesas fixas') return 50;
+  if (nome === 'lazer') return 20;
+  if (nome === 'educação' || nome === 'educacao') return 20;
+  if (nome === 'investimentos') return 0;
+  if (nome === 'reserva de emergência' || nome === 'reserva de emergencia' || nome === 'reserva') return 10;
+  return null;
+};
+
+const ehDistribuicaoLegadaOuZerada = (lista) => {
+  if (!Array.isArray(lista) || lista.length === 0) return true;
+  const valores = lista.map(c => parseFloat(c.valorMeta ?? c.percentual ?? 0) || 0);
+  const soma = valores.reduce((a, b) => a + b, 0);
+  if (soma === 0) return true;
+
+  // Detecta se está exatamente com os parâmetros antigos (30-10-15-35-10 ou 30-8-15-40-7)
+  const mapCat = {};
+  lista.forEach(c => {
+    mapCat[String(c.nome || '').trim().toLowerCase()] = parseFloat(c.valorMeta ?? c.percentual ?? 0) || 0;
+  });
+  const ehAntigoConfig =
+    mapCat['despesas fixas'] === 30 &&
+    mapCat['lazer'] === 10 &&
+    (mapCat['educação'] === 15 || mapCat['educacao'] === 15) &&
+    mapCat['investimentos'] === 35;
+  const ehAntigoOrc =
+    mapCat['despesas fixas'] === 30 &&
+    mapCat['lazer'] === 8 &&
+    (mapCat['educação'] === 15 || mapCat['educacao'] === 15) &&
+    mapCat['investimentos'] === 40;
+
+  return ehAntigoConfig || ehAntigoOrc;
+};
 
 const Orcamento = () => {
   const { user } = useAuth();
@@ -59,13 +94,24 @@ const Orcamento = () => {
   const inicializarCategoriasSemOrcamento = (categoriasDoUsuario, real) => {
     const realNum = parseFloat(real) || 0;
     if (categoriasDoUsuario.length > 0) {
-      const categoriasUnicasUsuario = removeDuplicates(categoriasDoUsuario, 'nome');
+      const categoriasUnicasUsuario = removeDuplicates(categoriasDoUsuario, 'nome').filter(cat => {
+        const nomeLimpo = String(cat.nome || '').trim().toLowerCase();
+        // Não inclui 'Viagens' na tabela inicial de orçamento se ela não tiver meta configurada
+        if (nomeLimpo === 'viagens' && (cat.valorMeta === null || cat.valorMeta === undefined || cat.valorMeta === '')) {
+          return false;
+        }
+        return true;
+      });
+
+      const usarPadrao50202010 = ehDistribuicaoLegadaOuZerada(categoriasUnicasUsuario);
+
       setCategorias(categoriasUnicasUsuario.map(cat => {
-        const tipoMeta = cat.tipoMeta || 'percentual';
+        const pctPadrao = obterPercentualPadrao50202010(cat.nome);
+        const tipoMeta = usarPadrao50202010 && pctPadrao !== null ? 'percentual' : (cat.tipoMeta || 'percentual');
         let valorPlanejado = 0;
         let percentual = 0;
 
-        if (cat.valorMeta !== undefined && cat.valorMeta !== null && cat.valorMeta !== '') {
+        if (!usarPadrao50202010 && cat.valorMeta !== undefined && cat.valorMeta !== null && cat.valorMeta !== '') {
           if (tipoMeta === 'valor') {
             valorPlanejado = parseFloat(cat.valorMeta);
             percentual = realNum > 0 ? parseFloat(((valorPlanejado / realNum) * 100).toFixed(2)) : 0;
@@ -73,10 +119,18 @@ const Orcamento = () => {
             percentual = parseFloat(cat.valorMeta);
             valorPlanejado = realNum > 0 ? (realNum * percentual) / 100 : 0;
           }
+        } else if (pctPadrao !== null) {
+          percentual = pctPadrao;
+          valorPlanejado = realNum > 0 ? (realNum * percentual) / 100 : 0;
         }
 
+        const nomeNormalizado =
+          String(cat.nome || '').trim().toLowerCase() === 'reserva'
+            ? 'Reserva de Emergência'
+            : cat.nome;
+
         return {
-          nome: cat.nome,
+          nome: nomeNormalizado,
           cor: cat.cor || '#3B82F6',
           tipoMeta,
           valorPlanejado,
@@ -114,6 +168,9 @@ const Orcamento = () => {
 
         if (categoriasDoOrcamento.length > 0) {
           const categoriasUnicas = removeDuplicates(categoriasDoOrcamento, 'nome');
+          const somaPlanejado = categoriasUnicas.reduce((acc, c) => acc + (parseFloat(c.valorPlanejado) || 0), 0);
+          const usarPadrao50202010 = somaPlanejado === 0 && ehDistribuicaoLegadaOuZerada(categoriasUnicas);
+
           setCategorias(categoriasUnicas.map(cat => {
             const matchUser = categoriasDoUsuario.find(c => c.nome === cat.nome);
             let cor = cat.cor;
@@ -123,11 +180,17 @@ const Orcamento = () => {
             }
             if (!cor) cor = '#3B82F6';
 
-            const tipoMeta = cat.tipoMeta || (matchUser && matchUser.tipoMeta ? matchUser.tipoMeta : 'percentual');
+            const pctPadrao = obterPercentualPadrao50202010(cat.nome);
+            const tipoMeta = usarPadrao50202010 && pctPadrao !== null
+              ? 'percentual'
+              : (cat.tipoMeta || (matchUser && matchUser.tipoMeta ? matchUser.tipoMeta : 'percentual'));
             let valorPlanejado = cat.valorPlanejado !== undefined && cat.valorPlanejado !== null ? parseFloat(cat.valorPlanejado) : 0;
             let percentual = cat.percentual !== undefined && cat.percentual !== null ? parseFloat(cat.percentual) : 0;
 
-            if (tipoMeta === 'valor' && valorPlanejado > 0 && real > 0 && !percentual) {
+            if (usarPadrao50202010 && pctPadrao !== null) {
+              percentual = pctPadrao;
+              valorPlanejado = real > 0 ? (real * percentual) / 100 : 0;
+            } else if (tipoMeta === 'valor' && valorPlanejado > 0 && real > 0 && !percentual) {
               percentual = parseFloat(((valorPlanejado / real) * 100).toFixed(2));
             } else if (tipoMeta === 'percentual' && percentual > 0 && real > 0 && !valorPlanejado) {
               valorPlanejado = (real * percentual) / 100;

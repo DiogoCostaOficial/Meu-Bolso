@@ -1,5 +1,6 @@
 import { FIN_WISDOM_QA_ENTRIES } from './finBooksKnowledge.js';
 import { FIN_MANUAL_QA_ENTRIES } from './finManualKnowledge.js';
+import { detectQuestionLanguage, translateFinParagraph } from './finI18n.js';
 
 /**
  * Lógica de processamento de perguntas em linguagem natural para o FIN.
@@ -121,17 +122,73 @@ const KNOWLEDGE_BASE = [
   }
 ];
 
-export const getFallbackResponse = ({ vocativo = 'amigo' } = {}) =>
-  `Ih, ${vocativo}, cocei minha cabecinha aqui dentro da tela e não entendi! 😅 Que tal clicar no botão dourado **'🎮 Quiz: Posso Gastar?'** aqui embaixo antes de fazer uma compra, ou me perguntar coisas como **'O que é dar nome ao dinheiro?'** ou **'Qual a diferença entre necessidade e desejo?'**!`;
+// Mapeamento de termos em outros idiomas para equivalentes em Português para busca na base do Manual
+const MULTILINGUAL_QUERY_SYNONYMS = [
+  ['real income', 'renda real'],
+  ['expected income', 'renda prevista'],
+  ['budget', 'orcamento'],
+  ['presupuesto', 'orcamento'],
+  ['income', 'receita'],
+  ['ingresos', 'receita'],
+  ['expense', 'despesa'],
+  ['expenses', 'despesas'],
+  ['gastos', 'despesas'],
+  ['credit card', 'cartao de credito'],
+  ['tarjeta de credito', 'cartao de credito'],
+  ['closing day', 'dia de fechamento'],
+  ['due date', 'dia de vencimento'],
+  ['installment', 'parcelado'],
+  ['heatmap', 'mapa de calor'],
+  ['mapa de calor', 'mapa de calor'],
+  ['import spreadsheet', 'importar planilha'],
+  ['emergency fund', 'reserva de emergencia'],
+  ['fondo de emergencia', 'reserva de emergencia'],
+  ['investment', 'investimentos'],
+  ['inversiones', 'investimentos'],
+  ['trip', 'viagens'],
+  ['trips', 'viagens'],
+  ['viajes', 'viagens'],
+  ['report', 'relatorios'],
+  ['reports', 'relatorios'],
+  ['informes', 'relatorios'],
+  ['settings', 'configuracoes'],
+  ['configuracion', 'configuracoes'],
+  ['delete account', 'excluir meu cadastro'],
+  ['need', 'necessidade'],
+  ['want', 'desejo'],
+  ['snowball', 'bola de neve'],
+  ['name to money', 'dar nome ao dinheiro'],
+  ['manual', 'manual de uso']
+];
 
-export const askFinAboutSystem = (question, { primeiroNome = '', vocativo = 'amigo' } = {}) => {
+export const getFallbackResponse = ({ vocativo = 'amigo', language = 'pt-BR', t = (x) => x } = {}) => {
+  if (language === 'en') {
+    return `Hmm, ${vocativo}, I scratched my head inside the screen and didn't quite catch that! 😅 Try clicking **'🎮 Quiz: Can I Spend?'** or **'🎬 Manual Videos'** below, or ask me about any field like **'What is Real Income?'**, **'How does the Budget work?'**, or **'What is the Heatmap?'**!`;
+  }
+  if (language === 'es') {
+    return `¡Uy, ${vocativo}, me rasqué la cabeza aquí en la pantalla y no entendí bien! 😅 ¡Prueba hacer clic en **'🎮 Quiz: ¿Puedo Gastar?'** o **'🎬 Videos del Manual'** aquí abajo, o pregúntame cosas como **'¿Para qué sirve Renta Real?'** o **'¿Cómo funciona el Presupuesto?'**!`;
+  }
+  const basePt = `Ih, ${vocativo}, cocei minha cabecinha aqui dentro da tela e não entendi! 😅 Que tal clicar no botão dourado **'🎮 Quiz: Posso Gastar?'** aqui embaixo antes de fazer uma compra, ou me perguntar coisas como **'O que é dar nome ao dinheiro?'** ou **'Qual a diferença entre necessidade e desejo?'**!`;
+  return translateFinParagraph(basePt, language, t);
+};
+
+export const askFinAboutSystem = (question, { primeiroNome = '', vocativo = 'amigo', language = 'pt-BR', t = (x) => x } = {}) => {
+  const targetLang = detectQuestionLanguage(question, language);
+
   if (!question || typeof question !== 'string') {
-    return getFallbackResponse({ vocativo });
+    return getFallbackResponse({ vocativo, language: targetLang, t });
   }
 
-  const normalized = question.toLowerCase()
+  let normalized = question.toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, ""); // Remove acentos
+
+  // Expandir sinônimos multilíngues na consulta para encontrar o tópico exato no Manual
+  for (const [foreignTerm, ptTerm] of MULTILINGUAL_QUERY_SYNONYMS) {
+    if (normalized.includes(foreignTerm)) {
+      normalized += ` ${ptTerm}`;
+    }
+  }
 
   // Pontuação de correspondência
   let bestMatch = null;
@@ -162,10 +219,10 @@ export const askFinAboutSystem = (question, { primeiroNome = '', vocativo = 'ami
     }
   }
 
-  // Retorna a melhor resposta se houver relevância suficiente (score >= 2)
+  // Retorna a melhor resposta se houver relevância suficiente (score >= 2), traduzida para o idioma alvo
   if (bestMatch && highestScore >= 2) {
-    return bestMatch.response;
+    return translateFinParagraph(bestMatch.response, targetLang, t);
   }
 
-  return getFallbackResponse({ vocativo });
+  return getFallbackResponse({ vocativo, language: targetLang, t });
 };

@@ -71,11 +71,11 @@ function extrairPaisEDdi(telCompleto) {
 }
 
 const categoriasDefault = [
-  { nome: 'Despesas Fixas', cor: '#ef4444', tipoMeta: 'percentual', valorMeta: 30, subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
-  { nome: 'Lazer', cor: '#3b82f6', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'] },
-  { nome: 'Educação', cor: '#10b981', tipoMeta: 'percentual', valorMeta: 15, subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'] },
-  { nome: 'Investimentos', cor: '#f59e0b', tipoMeta: 'percentual', valorMeta: 35, subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'] },
-  { nome: 'Reserva', cor: '#eab308', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] },
+  { nome: 'Despesas Fixas', cor: '#ef4444', tipoMeta: 'percentual', valorMeta: 50, subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
+  { nome: 'Lazer', cor: '#3b82f6', tipoMeta: 'percentual', valorMeta: 20, subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'] },
+  { nome: 'Educação', cor: '#10b981', tipoMeta: 'percentual', valorMeta: 20, subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'] },
+  { nome: 'Investimentos', cor: '#f59e0b', tipoMeta: 'percentual', valorMeta: 0, subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'] },
+  { nome: 'Reserva de Emergência', cor: '#eab308', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] },
   { nome: 'Viagens', cor: '#0ea5e9', tipoMeta: 'valor', valorMeta: null, subcategorias: ['Passagens e Deslocamento', 'Hospedagem', 'Alimentação em Viagem', 'Passeios e Ingressos', 'Documentação e Seguros', 'Compras e Lembranças', 'Câmbio e Taxas', 'Imprevistos e Emergências'] }
 ];
 
@@ -768,12 +768,25 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
       const response = await userService.obterDados();
       let listaCategorias = [];
       if (response.success && response.data && Array.isArray(response.data.categorias) && response.data.categorias.length > 0) {
-        listaCategorias = removeDuplicates(response.data.categorias, 'nome').map((c) => {
-          const defaultCat = categoriasDefault.find((dc) => dc.nome === c.nome);
+        const rawCats = removeDuplicates(response.data.categorias, 'nome');
+        const mapOld = {};
+        rawCats.forEach((c) => {
+          mapOld[String(c.nome || '').trim().toLowerCase()] = parseFloat(c.valorMeta ?? 0) || 0;
+        });
+        const ehLegado30101535 =
+          mapOld['despesas fixas'] === 30 &&
+          (mapOld['lazer'] === 10 || mapOld['lazer'] === 8) &&
+          (mapOld['educação'] === 15 || mapOld['educacao'] === 15);
+
+        listaCategorias = rawCats.map((c) => {
+          const nomeNormalizado = c.nome === 'Reserva' ? 'Reserva de Emergência' : c.nome;
+          const defaultCat = categoriasDefault.find((dc) => dc.nome === nomeNormalizado);
+          const usarValorPadrao = ehLegado30101535 || c.valorMeta === undefined || c.valorMeta === null;
           return {
             ...c,
+            nome: nomeNormalizado,
             tipoMeta: c.tipoMeta || (defaultCat ? defaultCat.tipoMeta : 'percentual'),
-            valorMeta: c.valorMeta !== undefined && c.valorMeta !== null ? c.valorMeta : (defaultCat ? defaultCat.valorMeta : null),
+            valorMeta: !usarValorPadrao ? c.valorMeta : (defaultCat ? defaultCat.valorMeta : null),
             subcategorias: c.subcategorias && c.subcategorias.length > 0 ? c.subcategorias : defaultCat ? defaultCat.subcategorias : []
           };
         });

@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { X, Minus, Lightbulb, GraduationCap, Send, RotateCcw, Maximize2, Minimize2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { X, Minus, Lightbulb, GraduationCap, Send, RotateCcw, Maximize2, Minimize2, Film } from 'lucide-react';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { askFinAboutSystem } from '../utils/finChatbot';
 import { evaluatePurchaseQuiz } from '../utils/finBooksKnowledge';
+import { translateFinParagraph } from '../utils/finI18n';
+import FinVideoPlayer from './FinVideoPlayer';
 import api from '../services/api';
 
 const MASCOT_IMAGES = {
@@ -68,10 +71,14 @@ const CATEGORIAS_PADRAO_QUIZ = [
 
 const EduMascot = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { isVisible, hideMascot, toggleMascot, isDocked, dockMascot, getLessonContent, mascotState, primeiroNome, vocativo, tratamento } = useEdu();
     const { formatCurrency } = useCurrency();
+    const { language, t } = useLanguage();
     const [userQuestion, setUserQuestion] = useState('');
     const [chatbotResponse, setChatbotResponse] = useState(null);
+    const [isVideoOpen, setIsVideoOpen] = useState(false);
+    const [videoTopicId, setVideoTopicId] = useState(null);
 
     // Acessibilidade: Escala de fonte (0 a 3, padrão 1 = maior e mais legível) e Expansão da Janela
     const [fontScale, setFontScale] = useState(() => {
@@ -129,6 +136,8 @@ const EduMascot = () => {
     const [quizCategoria, setQuizCategoria] = useState('Lazer');
     const [quizTipoEscolha, setQuizTipoEscolha] = useState('desejo');
     const [quizResult, setQuizResult] = useState(null);
+    const [quizFormError, setQuizFormError] = useState('');
+    const contentScrollRef = useRef(null);
 
     // Posição customizada (quando o usuário arrasta o mascote)
     const [position, setPosition] = useState(null);
@@ -150,6 +159,8 @@ const EduMascot = () => {
     const openQuiz = async () => {
         setChatbotResponse(null);
         setQuizResult(null);
+        setQuizFormError('');
+        setIsVideoOpen(false);
         setIsQuizOpen(true);
         setLoadingQuizData(true);
 
@@ -186,21 +197,56 @@ const EduMascot = () => {
 
     const handleRunQuiz = (e) => {
         e.preventDefault();
-        const valorNum = parseFloat(String(quizValor).replace(',', '.'));
-        if (!valorNum || valorNum <= 0) return;
+        setQuizFormError('');
 
-        const resultado = evaluatePurchaseQuiz(
-            userDataQuiz,
-            {
-                valor: valorNum,
-                item: quizItem || 'essa compra',
-                categoria: quizCategoria,
-                tipoEscolha: quizTipoEscolha
-            },
-            formatCurrency,
-            tratamento
-        );
-        setQuizResult(resultado);
+        const itemTrimmed = String(quizItem || '').trim();
+        const valorNum = parseFloat(String(quizValor).replace(',', '.'));
+
+        if (!itemTrimmed && (!valorNum || valorNum <= 0)) {
+            setQuizFormError('⚠️ Falta preencher o campo 1 (onde você quer gastar) e o campo 2 (quantas moedas custa)!');
+            return;
+        }
+        if (!itemTrimmed) {
+            setQuizFormError('⚠️ Falta preencher o campo 1: me conta onde ou com o quê você quer gastar!');
+            return;
+        }
+        if (!valorNum || valorNum <= 0) {
+            setQuizFormError('⚠️ Falta preencher o campo 2: informe um valor maior que zero (ex: 30)!');
+            return;
+        }
+
+        try {
+            const rawResult = evaluatePurchaseQuiz(
+                userDataQuiz,
+                {
+                    valor: valorNum,
+                    item: itemTrimmed,
+                    categoria: quizCategoria,
+                    tipoEscolha: quizTipoEscolha
+                },
+                formatCurrency,
+                tratamento
+            );
+            const resultado = language === 'pt-BR' ? rawResult : {
+                ...rawResult,
+                badge: translateFinParagraph(rawResult.badge, language, t),
+                headline: translateFinParagraph(rawResult.headline, language, t),
+                missingItems: Array.isArray(rawResult.missingItems)
+                    ? rawResult.missingItems.map((m) => translateFinParagraph(m, language, t))
+                    : [],
+                numbersSummary: Array.isArray(rawResult.numbersSummary)
+                    ? rawResult.numbersSummary.map((line) => translateFinParagraph(line, language, t))
+                    : [],
+                kidExplanation: translateFinParagraph(rawResult.kidExplanation, language, t)
+            };
+            setQuizResult(resultado);
+            setTimeout(() => {
+                contentScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 30);
+        } catch (err) {
+            console.error('Erro ao calcular Quiz do FIN:', err);
+            setQuizFormError(translateFinParagraph('⚠️ Ocorreu um problema ao consultar seu Orçamento. Tente novamente!', language, t));
+        }
     };
 
     // Determinar qual imagem usar
@@ -271,7 +317,25 @@ const EduMascot = () => {
     // Se estiver minimizado para a barra lateral, não renderiza flutuante
     if (isDocked) return null;
 
-    const content = getLessonContent();
+    const rawContent = getLessonContent();
+    const content = !rawContent || language === 'pt-BR' ? rawContent : {
+        ...rawContent,
+        title: translateFinParagraph(rawContent.title, language, t),
+        explanation: translateFinParagraph(rawContent.explanation, language, t),
+        analogy: rawContent.analogy ? translateFinParagraph(rawContent.analogy, language, t) : null,
+        tips: Array.isArray(rawContent.tips) ? rawContent.tips.map((tip) => translateFinParagraph(tip, language, t)) : [],
+        analysis: rawContent.analysis ? {
+            ...rawContent.analysis,
+            status: translateFinParagraph(rawContent.analysis.status, language, t),
+            analogy: translateFinParagraph(rawContent.analysis.analogy, language, t),
+            explanation: rawContent.analysis.explanation ? translateFinParagraph(rawContent.analysis.explanation, language, t) : null,
+            tip: rawContent.analysis.tip ? translateFinParagraph(rawContent.analysis.tip, language, t) : null
+        } : null,
+        cta: rawContent.cta ? {
+            ...rawContent.cta,
+            label: translateFinParagraph(rawContent.cta.label, language, t)
+        } : null
+    };
 
     const handleMascotClick = (e) => {
         e.stopPropagation();
@@ -289,8 +353,9 @@ const EduMascot = () => {
         if (!userQuestion.trim()) return;
 
         setIsQuizOpen(false);
+        setIsVideoOpen(false);
         setQuizResult(null);
-        const response = askFinAboutSystem(userQuestion, { primeiroNome, vocativo });
+        const response = askFinAboutSystem(userQuestion, { primeiroNome, vocativo, language, t });
         setChatbotResponse({
             question: userQuestion,
             answer: response
@@ -298,9 +363,18 @@ const EduMascot = () => {
         setUserQuestion('');
     };
 
+    const openVideoManual = (topicOverride = null) => {
+        setIsQuizOpen(false);
+        setQuizResult(null);
+        setChatbotResponse(null);
+        setVideoTopicId(topicOverride || location.pathname || 'orcamento');
+        setIsVideoOpen(true);
+    };
+
     const clearChat = () => {
         setChatbotResponse(null);
         setIsQuizOpen(false);
+        setIsVideoOpen(false);
         setQuizResult(null);
     };
 
@@ -371,10 +445,18 @@ const EduMascot = () => {
                             </div>
                             <div className="min-w-0">
                                 <h3 className={`${currentFont.title} font-bold leading-tight`}>
-                                    {isQuizOpen ? '🍬 Quiz: Posso Gastar?' : content.title}
+                                    {isVideoOpen
+                                        ? '🎬 Vídeos Curtos do Manual (IA)'
+                                        : isQuizOpen
+                                        ? '🍬 Quiz: Posso Gastar?'
+                                        : content.title}
                                 </h3>
                                 <p className={`${currentFont.subtitle} text-amber-500 font-semibold mt-0.5`}>
-                                    {isQuizOpen ? 'O FIN calcula o impacto no seu pote na hora!' : 'FIN • Seu Conselheiro Financeiro'}
+                                    {isVideoOpen
+                                        ? 'O FIN explica o Manual de Uso em vídeo passo a passo!'
+                                        : isQuizOpen
+                                        ? 'O FIN calcula o impacto no seu pote na hora!'
+                                        : 'FIN • Seu Conselheiro Financeiro'}
                                 </p>
                             </div>
                         </div>
@@ -459,8 +541,18 @@ const EduMascot = () => {
                     </div>
 
                     {/* Conteúdo da Mensagem / Quiz / Chatbot */}
-                    <div className={`mt-3.5 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3.5 ${currentFont.body}`}>
-                        {isQuizOpen ? (
+                    <div ref={contentScrollRef} className={`mt-3.5 flex-1 min-h-0 overflow-y-auto pr-1 space-y-3.5 ${currentFont.body}`}>
+                        {isVideoOpen ? (
+                            <FinVideoPlayer
+                                initialTopicId={videoTopicId || location.pathname}
+                                currentFont={currentFont}
+                                onClose={clearChat}
+                                onNavigateToRoute={(targetRoute) => {
+                                    navigate(targetRoute);
+                                    hideMascot();
+                                }}
+                            />
+                        ) : isQuizOpen ? (
                             quizResult ? (
                                 <div className="space-y-3.5">
                                     <div className={`p-4 rounded-xl border ${statusColors[quizResult.status] || statusColors.amarelo}`}>
@@ -471,6 +563,20 @@ const EduMascot = () => {
                                             {quizResult.headline}
                                         </p>
                                     </div>
+
+                                    {Array.isArray(quizResult.missingItems) && quizResult.missingItems.length > 0 && (
+                                        <div className={`bg-red-500/10 p-3.5 rounded-xl border border-red-500/35 space-y-1.5 ${currentFont.secondary}`}>
+                                            <p className="font-extrabold text-red-400 mb-1">
+                                                📋 O que falta preencher para o cálculo completo:
+                                            </p>
+                                            {quizResult.missingItems.map((missing, idx) => (
+                                                <p key={idx} className="leading-relaxed flex items-start gap-2">
+                                                    <span className="text-red-400 font-bold flex-shrink-0">•</span>
+                                                    <span>{missing}</span>
+                                                </p>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     <div className={`bg-custom-primary/30 p-3.5 rounded-xl border border-custom-color space-y-1.5 ${currentFont.secondary}`}>
                                         <p className="font-bold text-amber-500 mb-1">🍬 Contando as Balinhas do seu Pote:</p>
@@ -488,6 +594,7 @@ const EduMascot = () => {
                                             type="button"
                                             onClick={() => {
                                                 setQuizResult(null);
+                                                setQuizFormError('');
                                                 setQuizItem('');
                                                 setQuizValor('');
                                             }}
@@ -503,7 +610,9 @@ const EduMascot = () => {
                                             }}
                                             className={`flex-1 py-2.5 px-3 bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/40 rounded-lg transition font-bold ${currentFont.chip} cursor-pointer`}
                                         >
-                                            🏷️ Ir ao Orçamento
+                                            {Array.isArray(quizResult.missingItems) && quizResult.missingItems.length > 0
+                                                ? '🏷️ Preencher Orçamento'
+                                                : '🏷️ Ir ao Orçamento'}
                                         </button>
                                         <button
                                             type="button"
@@ -515,10 +624,16 @@ const EduMascot = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <form onSubmit={handleRunQuiz} className="space-y-3.5">
+                                <form onSubmit={handleRunQuiz} noValidate className="space-y-3.5">
                                     <p className={`${currentFont.secondary} opacity-90 leading-relaxed`}>
                                         Psst! Eu vi você pegando a carteira aí fora da tela! 👀 Me conta aqui, <strong>{vocativo}</strong>, o que você quer comprar que eu olho o seu <strong>Orçamento</strong> pra ver se sobram moedinhas no cofre! 👇
                                     </p>
+
+                                    {quizFormError && (
+                                        <div className={`p-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-400 font-bold ${currentFont.secondary}`}>
+                                            {quizFormError}
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className={`block ${currentFont.secondary} font-bold mb-1.5 text-amber-500`}>
@@ -526,9 +641,11 @@ const EduMascot = () => {
                                         </label>
                                         <input
                                             type="text"
-                                            required
                                             value={quizItem}
-                                            onChange={(e) => setQuizItem(e.target.value)}
+                                            onChange={(e) => {
+                                                setQuizItem(e.target.value);
+                                                if (quizFormError) setQuizFormError('');
+                                            }}
                                             placeholder="Ex: Balinha, Pizza de sábado, Tênis novo..."
                                             className={`w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-custom-color rounded-lg ${currentFont.input} text-custom-main focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
                                         />
@@ -543,9 +660,11 @@ const EduMascot = () => {
                                                 type="number"
                                                 step="0.01"
                                                 min="0.01"
-                                                required
                                                 value={quizValor}
-                                                onChange={(e) => setQuizValor(e.target.value)}
+                                                onChange={(e) => {
+                                                    setQuizValor(e.target.value);
+                                                    if (quizFormError) setQuizFormError('');
+                                                }}
                                                 placeholder="Ex: 50.00"
                                                 className={`w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-custom-color rounded-lg ${currentFont.input} text-custom-main focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
                                             />
@@ -628,7 +747,15 @@ const EduMascot = () => {
                                 <div className={`bg-custom-primary/20 p-4 rounded-xl border border-custom-color leading-relaxed ${currentFont.body} whitespace-pre-line`}>
                                     {chatbotResponse.answer}
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => openVideoManual(location.pathname)}
+                                        className={`flex-1 py-2.5 px-3 bg-amber-500 text-black rounded-lg hover:bg-amber-400 transition font-extrabold ${currentFont.chip} cursor-pointer shadow-sm flex items-center justify-center gap-1.5`}
+                                    >
+                                        <Film className="w-4 h-4" />
+                                        <span>🎬 Ver Vídeo Explicativo</span>
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={openQuiz}
@@ -639,7 +766,7 @@ const EduMascot = () => {
                                     <button
                                         type="button"
                                         onClick={clearChat}
-                                        className={`flex-1 py-2.5 px-3 bg-custom-gold text-black rounded-lg hover:opacity-90 transition font-bold ${currentFont.chip} cursor-pointer shadow-sm`}
+                                        className={`w-full py-2 px-3 bg-custom-primary/30 hover:bg-custom-primary/50 border border-custom-color rounded-lg transition font-semibold ${currentFont.chip} cursor-pointer`}
                                     >
                                         Voltar à Dica da Tela
                                     </button>
@@ -691,23 +818,33 @@ const EduMascot = () => {
                                     </div>
                                 ) : null}
 
-                                {content.cta && (
+                                <div className="flex flex-col sm:flex-row gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            navigate(content.cta.path);
-                                            hideMascot();
-                                        }}
-                                        className={`w-full py-2.5 px-3.5 bg-custom-gold text-black rounded-xl hover:opacity-95 transition font-bold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-1.5`}
+                                        onClick={() => openVideoManual(location.pathname)}
+                                        className={`flex-1 py-2.5 px-3.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/40 rounded-xl transition font-extrabold ${currentFont.secondary} cursor-pointer flex items-center justify-center gap-1.5`}
                                     >
-                                        {content.cta.label}
+                                        <Film className="w-4 h-4" />
+                                        <span>🎬 Ver Vídeo Explicativo</span>
                                     </button>
-                                )}
+                                    {content.cta && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                navigate(content.cta.path);
+                                                hideMascot();
+                                            }}
+                                            className={`flex-1 py-2.5 px-3.5 bg-custom-gold text-black rounded-xl hover:opacity-95 transition font-bold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-1.5`}
+                                        >
+                                            {content.cta.label}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Atalhos Rápidos do FIN (Quiz + Sabedoria sem citar livros) */}
+                    {/* Atalhos Rápidos do FIN (Quiz + Vídeos do Manual + Sabedoria) */}
                     <div className="mt-3 pt-2.5 border-t border-custom-color/40 flex flex-wrap gap-1.5 flex-shrink-0">
                         <button
                             type="button"
@@ -716,6 +853,15 @@ const EduMascot = () => {
                             title="Brinque no Quiz antes de gastar: diga quanto e onde quer gastar e veja se cabe na sua meta!"
                         >
                             🎮 Quiz: Posso Gastar?
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => openVideoManual(location.pathname)}
+                            className={`px-3.5 py-1.5 ${currentFont.chip} font-bold rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/40 transition cursor-pointer shadow-sm flex items-center gap-1`}
+                            title="Assista a um vídeo curto do FIN explicando como usar esta tela e todos os capítulos do Manual!"
+                        >
+                            <Film className="w-3.5 h-3.5" />
+                            <span>🎬 Vídeos do Manual</span>
                         </button>
                         {[
                             { label: "🏷️ Dar nome ao dinheiro", query: "O que é dar nome ao dinheiro?" },
@@ -727,10 +873,11 @@ const EduMascot = () => {
                                 type="button"
                                 onClick={() => {
                                     setIsQuizOpen(false);
+                                    setIsVideoOpen(false);
                                     setQuizResult(null);
-                                    const response = askFinAboutSystem(chip.query, { primeiroNome, vocativo });
+                                    const response = askFinAboutSystem(chip.query, { primeiroNome, vocativo, language, t });
                                     setChatbotResponse({
-                                        question: chip.query,
+                                        question: translateFinParagraph(chip.query, language, t),
                                         answer: response
                                     });
                                 }}

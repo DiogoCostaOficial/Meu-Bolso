@@ -185,7 +185,7 @@ export const FIN_WISDOM_QA_ENTRIES = [
  * @param {Object} quizInput { valor: number, item: string, categoria: string, tipoEscolha: 'necessidade' | 'desejo' }
  * @param {Function} formatCurrency Função para formatar valores na moeda ativa
  */
-export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
+export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency, tratamento = {}) => {
   const fmt = formatCurrency || ((v) => `R$ ${Number(v || 0).toFixed(2)}`);
   const valorCompra = parseFloat(String(quizInput.valor).replace(',', '.')) || 0;
   const nomeItem = (quizInput.item || 'essa balinha').trim();
@@ -210,10 +210,12 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
 
   // Encontrar meta da categoria escolhida
   let metaCategoria = 0;
+  let catObjEncontrada = null;
   if (orcamentoMes && Array.isArray(orcamentoMes.categorias)) {
     const catObj = orcamentoMes.categorias.find(
       (c) => c.nome?.toLowerCase() === nomeCategoria.toLowerCase()
     );
+    catObjEncontrada = catObj || null;
     if (catObj) {
       if (catObj.tipoMeta === 'valor' && parseFloat(catObj.valorPlanejado) > 0) {
         metaCategoria = parseFloat(catObj.valorPlanejado);
@@ -235,32 +237,51 @@ export const evaluatePurchaseQuiz = (userData, quizInput, formatCurrency) => {
   const {
     primeiroNome = '',
     vocativo = 'amigo',
-    genero = 'masculino',
-    itemColecao = 'figurinhas',
-    recipienteColecao = 'álbum de figurinhas',
-    emojiColecao = '🃏'
-  } = tratamento;
+    genero = 'masculino'
+  } = tratamento || {};
 
   const isFeminino = genero === 'feminino';
-  const nomeRecipiente = isFeminino ? 'caixinha' : 'pote';
 
-  // Caso 1: Usuário ainda não definiu meta de orçamento para esta categoria
+  // Caso 1: Falta preencher o Orçamento, a Renda Mensal ou a Meta desta categoria
   if (metaCategoria <= 0) {
+    const missingItems = [];
+    if (!orcamentoMes) {
+      missingItems.push('Falta preencher o seu Orçamento Mensal deste mês (menu Orçamento).');
+    }
+    if (rendaBase <= 0) {
+      missingItems.push('Falta preencher a sua Renda Mensal (Renda Prevista/Real no Orçamento ou cadastrar suas Receitas do mês).');
+    }
+    if (catObjEncontrada && parseFloat(catObjEncontrada.percentual) > 0 && rendaBase <= 0) {
+      missingItems.push(`A categoria "${nomeCategoria}" está com meta de ${catObjEncontrada.percentual}%, mas precisa da Renda Mensal preenchida para calcular o limite em reais.`);
+    } else {
+      missingItems.push(`Falta definir a Meta de gastos (em % ou R$) para o pote "${nomeCategoria}" lá na tela de Orçamento.`);
+    }
+
     const saldoRestanteGeral = rendaBase - (totalDespesasMes + valorCompra);
+    const resumoPrincipalFaltante = !orcamentoMes
+      ? 'Falta preencher o seu Orçamento Mensal!'
+      : rendaBase <= 0
+      ? `Falta preencher a sua Renda Mensal e a Meta de "${nomeCategoria}" no Orçamento!`
+      : `Falta preencher a Meta da categoria "${nomeCategoria}" lá no seu Orçamento!`;
+
     return {
       status: rendaBase > 0 && saldoRestanteGeral >= 0 ? 'amarelo' : 'vermelho',
-      badge: isFeminino ? '✨ Eita! Caixinha sem Etiqueta de Meta!' : '🃏 Eita! Pote sem Etiqueta de Meta!',
-      headline: `Psst! Olha pra mim aqui na tela: eu fui olhar ${nomeCategoria} e ela tá SEM META definida!`,
+      badge: isFeminino ? '⚠️ Ops! Falta Preencher Dados no Orçamento!' : '⚠️ Ops! Falta Preencher Dados no Orçamento!',
+      headline: `Psst, ${vocativo}! ${resumoPrincipalFaltante}`,
+      missingItems,
       numbersSummary: [
         `🛍️ O que você quer comprar: ${nomeItem} (${fmt(valorCompra)})`,
-        `📦 Quanto você já gastou em ${nomeCategoria} este mês: ${fmt(gastoAtualCategoria)}`,
+        `📦 Quanto você já gastou em "${nomeCategoria}" neste mês: ${fmt(gastoAtualCategoria)}`,
+        rendaBase > 0
+          ? `💰 Sua Renda Base do mês: ${fmt(rendaBase)} (Saldo geral após a compra: ${fmt(saldoRestanteGeral)})`
+          : `💰 Sua Renda Base do mês: Não informada (R$ 0,00)`,
         horasDeSuor ? `⏱️ Suor de trabalho: Isso vale ${horasDeSuor} horas inteirinhas do seu esforço lá fora!` : null
       ].filter(Boolean),
       kidExplanation:
-        `Ei, ${vocativo}, tira a mão da carteira por 1 segundinho! ✋ Eu dei um pulo lá nos bastidores do seu aplicativo pra conferir a sua reserva de **${nomeCategoria}**, mas você ainda não colou o adesivo dizendo quanto pode gastar aqui!\n\n` +
+        `Ei, ${vocativo}, segura a carteira por 1 segundinho! ✋ Eu corri lá nos bastidores do sistema pra calcular se **"${nomeItem}" (${fmt(valorCompra)})** cabe no pote de **${nomeCategoria}**, mas encontrei campos vazios no seu **Orçamento**!\n\n` +
         (ehDesejo
-          ? `💡 **Papo reto aqui entre nós:** Você mesmo me confessou aqui no botão que "${nomeItem}" é só um **Desejo passageiro**! Se a gente comprar no escuro, pode faltar moeda pro almoço depois! Clica no botão aqui embaixo, vamos lá no *Orçamento* dar nome pro seu dinheiro primeiro e faz o **Teste dos 3 Dias**!`
-          : `💡 **Papo reto aqui entre nós:** Eu sei que "${nomeItem}" é importante (**Necessidade**), mas não deixa a nossa dupla voar de olhos vendados! Clica aqui embaixo pra gente colar a etiqueta de meta no pote de **${nomeCategoria}** lá no *Orçamento*!`)
+          ? `💡 **Papo reto aqui entre nós:** Você me contou que "${nomeItem}" é um **Desejo (Balinha)**! Comprar sem ter o Orçamento preenchido é como andar no escuro: pode faltar moeda pro almoço depois! Clica em **"🏷️ Preencher Orçamento"** aqui embaixo, coloca a meta de **${nomeCategoria}** e volta aqui que eu faço a conta na hora!`
+          : `💡 **Papo reto aqui entre nós:** Eu vi que "${nomeItem}" é uma **Necessidade (Almoço)**! Mesmo sendo importante, precisamos preencher a meta de **${nomeCategoria}** lá no **Orçamento** pra nossa dupla saber exatamente quanto ainda pode gastar no mês. Clica no botão **"🏷️ Preencher Orçamento"** aqui embaixo!`)
     };
   }
 

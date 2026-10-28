@@ -17,7 +17,8 @@
     "release": "semantic-release",
     "cap:sync": "npx cap sync",
     "cap:open": "npx cap open android",
-    "cap:add": "npx cap add android"
+    "cap:add": "npx cap add android",
+    "generate:videos": "node server/scripts/generateManualVideos.js"
   },
   "dependencies": {
     "@capacitor/core": "^8.4.2",

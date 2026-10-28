@@ -30,36 +30,48 @@ import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import CurrencySelector from '../components/CurrencySelector';
 
-// Categorias padrão com cores (Fallback)
+// Categorias padrão com cores e metas iniciais (Princípio 50-20-20-0-10)
 const categoriasDefault = [
   {
     nome: 'Despesas Fixas',
     cor: '#EF4444',
+    tipoMeta: 'percentual',
+    valorMeta: 50,
     subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos']
   },
   {
     nome: 'Lazer',
     cor: '#3B82F6',
+    tipoMeta: 'percentual',
+    valorMeta: 20,
     subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer']
   },
   {
     nome: 'Educação',
     cor: '#10B981',
+    tipoMeta: 'percentual',
+    valorMeta: 20,
     subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação']
   },
   {
     nome: 'Investimentos',
     cor: '#8B5CF6',
+    tipoMeta: 'percentual',
+    valorMeta: 0,
     subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos']
   },
   {
     nome: 'Reserva de Emergência',
     cor: '#F59E0B',
+    tipoMeta: 'percentual',
+    valorMeta: 10,
     subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva']
   },
   {
     nome: 'Viagens',
     cor: '#0EA5E9',
+    tipoMeta: 'valor',
+    valorMeta: null,
     subcategorias: [
       'Passagens e Deslocamento',
       'Hospedagem',
