@@ -120,8 +120,8 @@ const Despesas = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState('');
   const [filtroDataFim, setFiltroDataFim] = useState('');
   const [filtroDescricao, setFiltroDescricao] = useState('');
-  const [filtroMes, setFiltroMes] = useState('');
-  const [filtroAno, setFiltroAno] = useState(''); // Padrão: Todos os Anos (sem filtro)
+  const [filtroMes, setFiltroMes] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
+  const [filtroAno, setFiltroAno] = useState(String(new Date().getFullYear()));
   const [filtroStatus, setFiltroStatus] = useState(''); // Estado para o filtro de status
   const [isCategoriasMinimized, setIsCategoriasMinimized] = useState(false); // Não usado no código atual, mas mantido
   const [isFiltrosMinimized, setIsFiltrosMinimized] = useState(false);

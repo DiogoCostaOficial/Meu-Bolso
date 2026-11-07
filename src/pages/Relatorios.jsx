@@ -105,9 +105,9 @@ const Relatorios = () => {
     });
   };
   const [periodoSelecionado, setPeriodoSelecionado] = useState('mensal');
-  const [mesSelecionado, setMesSelecionado] = useState(new Date().getMonth() + 1 < 10 ? `0${new Date().getMonth() + 1}` : `${new Date().getMonth() + 1}`);
-  const [trimestreSelecionado, setTrimestreSelecionado] = useState('1');
-  const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
+  const [mesSelecionado, setMesSelecionado] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
+  const [trimestreSelecionado, setTrimestreSelecionado] = useState(String(Math.floor(new Date().getMonth() / 3) + 1));
+  const [anoSelecionado, setAnoSelecionado] = useState(String(new Date().getFullYear()));
   const [totalReceitas, setTotalReceitas] = useState(0);
   const [totalDespesas, setTotalDespesas] = useState(0);
   const [saldo, setSaldo] = useState(0);

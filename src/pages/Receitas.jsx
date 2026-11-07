@@ -49,8 +49,8 @@ const Receitas = () => {
   const [filtros, setFiltros] = useState({
     categoria: '',
     subcategoria: '',
-    mes: '',
-    ano: '', // Padrão: Todos os Anos (sem filtro)
+    mes: String(new Date().getMonth() + 1).padStart(2, '0'),
+    ano: String(new Date().getFullYear()),
     dataInicio: '',
     dataFim: '',
     descricao: ''
