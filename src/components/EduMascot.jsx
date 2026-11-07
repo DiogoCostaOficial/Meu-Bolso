@@ -680,7 +680,7 @@ const EduMascot = () => {
                                                 navigate('/orcamento');
                                                 hideMascot();
                                             }}
-                                            className={`flex-1 py-2.5 px-3 bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/40 rounded-lg transition font-bold ${currentFont.chip} cursor-pointer`}
+                                            className={`flex-1 py-2.5 px-3 bg-amber-400 hover:bg-amber-300 text-black border border-amber-500 rounded-lg transition font-extrabold ${currentFont.chip} cursor-pointer shadow-sm`}
                                         >
                                             {Array.isArray(quizResult.missingItems) && quizResult.missingItems.length > 0
                                                 ? '🏷️ Preencher Orçamento'
@@ -831,9 +831,9 @@ const EduMascot = () => {
                                     <button
                                         type="button"
                                         onClick={openQuiz}
-                                        className={`flex-1 py-2.5 px-3 bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/40 rounded-lg transition font-bold ${currentFont.chip} cursor-pointer`}
+                                        className={`flex-1 py-2.5 px-3 bg-amber-400 hover:bg-amber-300 text-black border border-amber-500 rounded-lg transition font-extrabold ${currentFont.chip} cursor-pointer shadow-sm`}
                                     >
-                                        🎮 Quiz: Posso Gastar?
+                                        🍬 Posso Gastar?
                                     </button>
                                     <button
                                         type="button"
@@ -983,21 +983,28 @@ const EduMascot = () => {
                                             Quer saber se pode comprar alguma coisa hoje sem se endividar?
                                         </p>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                                             <button
                                                 type="button"
                                                 onClick={openQuiz}
-                                                className={`py-3 px-4 bg-custom-gold text-black rounded-xl hover:opacity-95 transition font-extrabold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-2`}
+                                                className={`py-3 px-3 bg-custom-gold text-black border border-amber-500 rounded-xl hover:opacity-95 transition font-extrabold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-1.5`}
                                             >
-                                                <span>🎮 Quiz: Posso Gastar?</span>
+                                                <span>🍬 Posso Gastar?</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => window.dispatchEvent(new CustomEvent('open-fin-flashcards'))}
+                                                className={`py-3 px-3 bg-emerald-400 hover:bg-emerald-300 text-black border border-emerald-500 rounded-xl transition font-extrabold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-1.5`}
+                                            >
+                                                <span>🃏 Jogo de Cards</span>
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => openVideoManual(location.pathname)}
-                                                className={`py-3 px-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/40 rounded-xl transition font-extrabold ${currentFont.secondary} cursor-pointer flex items-center justify-center gap-2`}
+                                                className={`py-3 px-3 bg-amber-300 hover:bg-amber-200 text-black border border-amber-500 rounded-xl transition font-extrabold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-1.5`}
                                             >
                                                 <Film className="w-4 h-4" />
-                                                <span>🎬 Vídeo desta Tela</span>
+                                                <span>🎬 Vídeo da Tela</span>
                                             </button>
                                         </div>
 
@@ -1026,24 +1033,34 @@ const EduMascot = () => {
                                 )}
 
                                 {/* BOTÕES GRANDES DE NAVEGAÇÃO ENTRE AS PARTES DO FIN */}
-                                <div className="pt-3 border-t border-custom-color/50 flex items-center justify-between gap-2">
+                                <div className="pt-3 border-t border-custom-color/50 flex flex-wrap items-center justify-between gap-2">
                                     <button
                                         type="button"
                                         onClick={() => setFinSlide((prev) => Math.max(0, prev - 1))}
                                         disabled={finSlide === 0}
-                                        className={`px-3.5 py-2 rounded-xl border border-custom-color font-bold ${currentFont.chip} flex items-center gap-1 transition cursor-pointer disabled:opacity-35 disabled:pointer-events-none hover:bg-custom-primary/40`}
+                                        className={`px-3.5 py-2 rounded-xl border border-custom-color font-bold ${currentFont.chip} flex items-center gap-1 transition cursor-pointer disabled:opacity-35 disabled:pointer-events-none hover:bg-custom-primary/40 text-custom-main`}
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                         <span>Anterior</span>
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={openQuiz}
-                                        className={`px-3 py-2 rounded-xl bg-amber-500/15 text-amber-500 border border-amber-500/30 font-extrabold ${currentFont.chip} hover:bg-amber-500/25 transition cursor-pointer`}
-                                    >
-                                        🍬 Posso Gastar?
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={openQuiz}
+                                            className={`px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black border border-amber-500 font-extrabold ${currentFont.chip} transition cursor-pointer shadow-sm`}
+                                        >
+                                            🍬 Posso Gastar?
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => window.dispatchEvent(new CustomEvent('open-fin-flashcards'))}
+                                            className={`px-3.5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black border border-emerald-500 font-extrabold ${currentFont.chip} transition cursor-pointer shadow-sm`}
+                                        >
+                                            🃏 Jogo de Cards
+                                        </button>
+                                    </div>
 
                                     <button
                                         type="button"

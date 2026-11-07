@@ -14,6 +14,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import NivelExperienciaModal from './NivelExperienciaModal';
 import OnboardingInicianteModal from './OnboardingInicianteModal';
 import WelcomeGuideModal from './WelcomeGuideModal';
+import FinFlashcardsModal from './FinFlashcardsModal';
 import {
   LayoutDashboard,
   Wallet,
@@ -125,6 +126,7 @@ const LayoutNovo = ({ children }) => {
         <NivelExperienciaModal />
         <OnboardingInicianteModal />
         <WelcomeGuideModal />
+        <FinFlashcardsModal />
 
         {/* Sidebar Desktop */}
         <aside className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-custom-card border-r border-custom-color fixed h-full z-10 transition-all duration-300 ease-in-out`}>
@@ -448,7 +450,7 @@ const LayoutNovo = ({ children }) => {
           }}
         >
           <div className="p-4 md:p-8">
-            {/* Barra superior global com Guia Inicial, Vídeo-Aula, Seletor de Nível e Idioma */}
+            {/* Barra superior global com Guia Inicial, Jogo de Cards, Vídeo-Aula, Seletor de Nível e Idioma */}
             <div className="flex flex-wrap items-center justify-end gap-2 mb-4">
               <button
                 type="button"
@@ -458,6 +460,15 @@ const LayoutNovo = ({ children }) => {
               >
                 <Sparkles className="w-3.5 h-3.5 text-custom-gold shrink-0" />
                 <span>{t('Guia Inicial')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-fin-flashcards'))}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer shadow-xs bg-amber-400 hover:bg-amber-300 text-black border-amber-500"
+                title="Abrir o Jogo de Cards de Perguntas e Respostas sobre Finanças Pessoais"
+              >
+                <span>🃏</span>
+                <span>{t('Jogo de Cards')}</span>
               </button>
               <PageTutorialVideo />
               <button
