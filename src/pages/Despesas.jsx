@@ -258,15 +258,19 @@ const Despesas = () => {
         // Se for cartão "sem dia fixo" (PIX, débito, ticket):
         // 1. Ajusta para a data de lançamento caso estivesse no mês seguinte
         // 2. Define o status como pago automaticamente
+        // 3. Remove o campo mesFatura (não é fatura, pagamento direto da conta)
         if (cardObj && !temDiaFixo) {
           if (d.dataLancamento && d.dataLancamento !== d.data) {
             dataEfetiva = d.dataLancamento;
-            mesFatura = d.dataLancamento.slice(0, 7);
             dataVenc = '';
             precisouAjustar = true;
           }
           if (statusFinal !== 'pago') {
             statusFinal = 'pago';
+            precisouAjustar = true;
+          }
+          if (mesFatura) {
+            mesFatura = '';
             precisouAjustar = true;
           }
         }
@@ -451,9 +455,9 @@ const Despesas = () => {
               mesFaturaParcela = dataVencParcela.slice(0, 7);
             }
           } else {
-            // Cartão/forma sem dia fixo (ex: PIX, Débito, Ticket): assume a data da despesa
+            // Cartão/forma sem dia fixo (ex: PIX, Débito, Ticket): NÃO É FATURA!
             dataVencParcela = formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '';
-            mesFaturaParcela = dataParcela.slice(0, 7);
+            mesFaturaParcela = '';
           }
         }
 
@@ -494,8 +498,8 @@ const Despesas = () => {
             mesFaturaFinal = dataVencFinal.slice(0, 7);
           }
         } else {
-          // Sem dia fixo (ex: PIX, Débito, Ticket): assume exclusivamente a data de lançamento da despesa
-          mesFaturaFinal = dataDesp.slice(0, 7);
+          // Sem dia fixo (ex: PIX, Débito, Ticket): NÃO É FATURA, é débito direto na conta!
+          mesFaturaFinal = '';
           dataVencFinal = formulario.dataVencimento || '';
         }
       }
@@ -662,8 +666,8 @@ const Despesas = () => {
                 mesFatura = adicionarMeses(dataRef, 1).slice(0, 7);
               }
             } else {
-              // Sem dia fixo: assume exclusivamente a data de lançamento da despesa
-              mesFatura = dataLanc.slice(0, 7);
+              // Sem dia fixo: NÃO É FATURA, é débito direto!
+              mesFatura = '';
             }
           } else {
             mesFatura = '';
@@ -2019,19 +2023,23 @@ const Despesas = () => {
                               {despesa.observacoes && (
                                 <p className="text-xs text-gray-500 italic mt-1">Obs: {despesa.observacoes}</p>
                               )}
-                              {despesa.cartao && (
-                                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-semibold rounded-full border border-blue-200">
-                                    <CreditCard size={11} className="text-blue-500" />
-                                    {despesa.cartao}
-                                  </span>
-                                  {despesa.mesFatura && (
-                                    <span className="text-[10px] text-blue-600 bg-blue-50/60 px-1.5 py-0.5 rounded border border-blue-100">
-                                      Fatura: {despesa.mesFatura}
+                              {despesa.cartao && (() => {
+                                const cartaoObj = cartoes.find(c => c.nome === despesa.cartao || c.id === despesa.cartaoId);
+                                const temDiaFixo = Boolean(cartaoObj && (cartaoObj.diaVencimento || cartaoObj.valores?._diaVencimento));
+                                return (
+                                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-semibold rounded-full border border-blue-200">
+                                      <CreditCard size={11} className="text-blue-500" />
+                                      {despesa.cartao}
                                     </span>
-                                  )}
-                                </div>
-                              )}
+                                    {temDiaFixo && despesa.mesFatura && (
+                                      <span className="text-[10px] text-blue-600 bg-blue-50/60 px-1.5 py-0.5 rounded border border-blue-100">
+                                        Fatura: {despesa.mesFatura}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                               {despesa.dataVencimento && (
                                 <p className="text-xs text-red-500 mt-1">Vencimento: {formatarData(despesa.dataVencimento)}</p>
                               )}

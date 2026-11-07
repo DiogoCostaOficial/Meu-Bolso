@@ -67,12 +67,15 @@ const Cartoes = () => {
                             let novoD = { ...d };
                             if (d.dataLancamento && d.dataLancamento !== d.data) {
                                 novoD.data = d.dataLancamento;
-                                novoD.mesFatura = d.dataLancamento.slice(0, 7);
                                 novoD.dataVencimento = '';
                                 alterou = true;
                             }
                             if (d.statusPagamento !== 'pago') {
                                 novoD.statusPagamento = 'pago';
+                                alterou = true;
+                            }
+                            if (d.mesFatura) {
+                                novoD.mesFatura = '';
                                 alterou = true;
                             }
                             if (alterou) {
