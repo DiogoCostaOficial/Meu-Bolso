@@ -253,18 +253,27 @@ const Despesas = () => {
         let dataEfetiva = d.data;
         let mesFatura = d.mesFatura || d.mes_fatura || '';
         let dataVenc = d.dataVencimento || '';
+        let statusFinal = d.statusPagamento || d.status_pagamento || 'pendente';
 
-        // Se for cartão "sem dia fixo" e a data estava jogada para a frente, ajusta para a data de lançamento
-        if (cardObj && !temDiaFixo && d.dataLancamento && d.dataLancamento !== d.data) {
-          dataEfetiva = d.dataLancamento;
-          mesFatura = d.dataLancamento.slice(0, 7);
-          dataVenc = '';
-          precisouAjustar = true;
+        // Se for cartão "sem dia fixo" (PIX, débito, ticket):
+        // 1. Ajusta para a data de lançamento caso estivesse no mês seguinte
+        // 2. Define o status como pago automaticamente
+        if (cardObj && !temDiaFixo) {
+          if (d.dataLancamento && d.dataLancamento !== d.data) {
+            dataEfetiva = d.dataLancamento;
+            mesFatura = d.dataLancamento.slice(0, 7);
+            dataVenc = '';
+            precisouAjustar = true;
+          }
+          if (statusFinal !== 'pago') {
+            statusFinal = 'pago';
+            precisouAjustar = true;
+          }
         }
 
         return {
           ...d,
-          statusPagamento: d.statusPagamento || d.status_pagamento || 'pendente',
+          statusPagamento: statusFinal,
           observacoes: d.observacoes || d.observacao || '',
           dataVencimento: dataVenc,
           dataCompra: d.dataCompra || '',
@@ -355,8 +364,14 @@ const Despesas = () => {
       }
       // Quando o usuário seleciona um cartão (ou altera a data com cartão selecionado), preenche automaticamente Data de Vencimento (opcional)
       if (name === 'cartao') {
+        const cartaoObj = cartoes.find(c => c.nome === value || c.id === value);
+        const temDiaFixo = Boolean(cartaoObj && (cartaoObj.diaVencimento || cartaoObj.valores?._diaVencimento));
         const dataVencAuto = calcularDataVencimentoPorCartao(value, newState.dataCompra || newState.data);
         newState.dataVencimento = dataVencAuto || '';
+        // Se o cartão for sem dia fixo (ex: PIX, Débito, Ticket), define status de pagamento automaticamente como "pago"
+        if (value && cartaoObj && !temDiaFixo) {
+          newState.statusPagamento = 'pago';
+        }
       } else if ((name === 'data' || name === 'dataCompra') && newState.cartao) {
         const dataVencAuto = calcularDataVencimentoPorCartao(newState.cartao, newState.dataCompra || newState.data);
         if (dataVencAuto) {
@@ -453,7 +468,7 @@ const Despesas = () => {
           observacoes: formulario.observacoes,
           parcelado: formulario.parcelado,
           numeroParcelas: formulario.numeroParcelas,
-          statusPagamento: formulario.statusPagamento || 'pendente', // Status definido pelo usuário
+          statusPagamento: (cartaoNome && !temDiaFixo) ? 'pago' : (formulario.statusPagamento || 'pendente'),
           dataVencimento: dataVencParcela, // Data de vencimento para parcelas
           dataCompra: formulario.dataCompra || '', // Data de compra para parcelas
           somarNoOrcamento: formulario.somarNoOrcamento,
@@ -496,7 +511,7 @@ const Despesas = () => {
         observacoes: formulario.observacoes,
         parcelado: formulario.parcelado,
         numeroParcelas: formulario.numeroParcelas,
-        statusPagamento: formulario.statusPagamento || 'pendente', // Status definido pelo usuário
+        statusPagamento: (cartaoNome && !temDiaFixo) ? 'pago' : (formulario.statusPagamento || 'pendente'),
         dataVencimento: dataVencFinal, // Data de vencimento para despesa única
         dataCompra: formulario.dataCompra || '', // Data da compra para despesa única
         somarNoOrcamento: formulario.somarNoOrcamento,
@@ -574,8 +589,13 @@ const Despesas = () => {
           availableSubs.length > 0 ? availableSubs[0] : '';
       }
       if (name === 'cartao') {
+        const cartaoObj = cartoes.find(c => c.nome === value || c.id === value);
+        const temDiaFixo = Boolean(cartaoObj && (cartaoObj.diaVencimento || cartaoObj.valores?._diaVencimento));
         const dataVencAuto = calcularDataVencimentoPorCartao(value, newState.dataCompra || newState.dataLancamento);
         newState.dataVencimento = dataVencAuto || '';
+        if (value && cartaoObj && !temDiaFixo) {
+          newState.statusPagamento = 'pago';
+        }
       }
       return newState;
     });
@@ -648,9 +668,13 @@ const Despesas = () => {
           } else {
             mesFatura = '';
           }
+          const statusPagamentoFinal = (cartaoNome && !temDiaFixo)
+            ? 'pago'
+            : (inlineEditForm.statusPagamento || d.statusPagamento || 'pendente');
           return {
             ...d,
             ...inlineEditForm,
+            statusPagamento: statusPagamentoFinal,
             cartao: cartaoNome,
             cartaoId: cartaoObj?.id || '',
             mesFatura,

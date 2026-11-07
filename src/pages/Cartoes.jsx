@@ -62,14 +62,23 @@ const Cartoes = () => {
                         const cId = d.cartaoId || d.cartao_id || '';
                         const cardObj = cartoesFormatados.find(c => (cId && c.id === cId) || (cNome && c.nome === cNome));
                         const temDiaFixo = Boolean(cardObj && (cardObj.diaVencimento || cardObj.valores?._diaVencimento));
-                        if (cardObj && !temDiaFixo && d.dataLancamento && d.dataLancamento !== d.data) {
-                            precisouAjustar = true;
-                            return {
-                                ...d,
-                                data: d.dataLancamento,
-                                mesFatura: d.dataLancamento.slice(0, 7),
-                                dataVencimento: ''
-                            };
+                        if (cardObj && !temDiaFixo) {
+                            let alterou = false;
+                            let novoD = { ...d };
+                            if (d.dataLancamento && d.dataLancamento !== d.data) {
+                                novoD.data = d.dataLancamento;
+                                novoD.mesFatura = d.dataLancamento.slice(0, 7);
+                                novoD.dataVencimento = '';
+                                alterou = true;
+                            }
+                            if (d.statusPagamento !== 'pago') {
+                                novoD.statusPagamento = 'pago';
+                                alterou = true;
+                            }
+                            if (alterou) {
+                                precisouAjustar = true;
+                                return novoD;
+                            }
                         }
                         return d;
                     });
