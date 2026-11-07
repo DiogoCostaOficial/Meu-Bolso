@@ -7,7 +7,12 @@ const dbPath = path.join(__dirname, '../data/database.json');
 const now = new Date().toISOString();
 
 async function resetAdmin() {
-  const senhaPlana = 'admin123';
+  // Sem senha padrão: usa ADMIN_NEW_PASSWORD (mín. 12 caracteres) ou gera uma senha aleatória exibida uma única vez.
+  const senhaInformada = process.env.ADMIN_NEW_PASSWORD;
+  if (senhaInformada && senhaInformada.length < 12) {
+    throw new Error('ADMIN_NEW_PASSWORD deve ter no mínimo 12 caracteres.');
+  }
+  const senhaPlana = senhaInformada || require('crypto').randomBytes(12).toString('base64url');
   const salt = bcrypt.genSaltSync(10);
   const senhaHash = bcrypt.hashSync(senhaPlana, salt);
 
@@ -44,7 +49,11 @@ async function resetAdmin() {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
     console.log('✅ Banco local (JSON) atualizado:');
     console.log('   - Usuário: admin / admin@admin.com');
-    console.log(`   - Senha: ${senhaPlana}`);
+    if (!senhaInformada) {
+      console.log(`   - Senha gerada (anote agora, não será exibida novamente): ${senhaPlana}`);
+    } else {
+      console.log('   - Senha: definida via ADMIN_NEW_PASSWORD');
+    }
     console.log('   - Primeiro Acesso: false (login direto)');
   }
 

@@ -1,5 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
+const crypto = require('crypto');
 
 // Simple UUID generator since 'uuid' package is missing
 const uuidv4 = () => {
@@ -146,6 +147,15 @@ const deletarUsuario = async (userId) => {
     if (!data.usuarios) return false;
     const initialLength = data.usuarios.length;
     data.usuarios = data.usuarios.filter(u => u.id !== userId);
+
+    // LGPD: remove feedbacks do titular e anonimiza o histórico de consentimentos
+    if (Array.isArray(data.feedbacks)) {
+        data.feedbacks = data.feedbacks.filter(f => f.usuarioId !== userId && f.usuario_id !== userId);
+    }
+    if (Array.isArray(data.consentimentos)) {
+        const anon = 'excluido:' + crypto.createHash('sha256').update(String(userId)).digest('hex').slice(0, 16);
+        data.consentimentos = data.consentimentos.map(c => (c.userId === userId ? { ...c, userId: anon } : c));
+    }
 
     // Also delete user specific data file if exists
     const userFile = path.join(DATA_DIR, `USER_DATA_${userId}.json`);
@@ -408,7 +418,59 @@ const deletarTransacao = async (userId, transacaoId) => {
     }
 };
 
+const registrarConsentimento = async ({ userId, finalidade, versao, concedido, ip }) => {
+    const data = await readData();
+    if (!data.consentimentos) data.consentimentos = [];
+    data.consentimentos.push({
+        id: crypto.randomUUID(),
+        userId,
+        finalidade,
+        versao: versao || null,
+        concedido: Boolean(concedido),
+        ip: ip || null,
+        data: new Date().toISOString()
+    });
+    await writeData(data);
+    return true;
+};
+
+const listarConsentimentos = async (userId) => {
+    const data = await readData();
+    return (data.consentimentos || [])
+        .filter(c => c.userId === userId)
+        .map(({ userId: _omit, ...resto }) => resto)
+        .sort((a, b) => b.data.localeCompare(a.data));
+};
+
+const registrarAuditoria = async ({ atorId, atorTipo, acao, alvoId, ip, detalhes }) => {
+    const data = await readData();
+    if (!data.auditoria) data.auditoria = [];
+    data.auditoria.push({
+        id: crypto.randomUUID(),
+        atorId: atorId || null,
+        atorTipo: atorTipo || null,
+        acao,
+        alvoId: alvoId || null,
+        ip: ip || null,
+        detalhes: detalhes || {},
+        data: new Date().toISOString()
+    });
+    if (data.auditoria.length > 5000) data.auditoria = data.auditoria.slice(-5000);
+    await writeData(data);
+    return true;
+};
+
+const listarAuditoria = async (limite = 200) => {
+    const data = await readData();
+    const n = Math.min(Math.max(parseInt(limite, 10) || 200, 1), 1000);
+    return (data.auditoria || []).slice(-n).reverse();
+};
+
 module.exports = {
+    registrarConsentimento,
+    listarConsentimentos,
+    registrarAuditoria,
+    listarAuditoria,
     inicializarDB,
     getUsuarios,
     adicionarUsuario,

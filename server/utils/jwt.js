@@ -1,18 +1,18 @@
-const jwt = require('jsonwebtoken');
+﻿const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_change_in_production';
+const { getJwtSecret } = require('./jwtSecret');
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
 
 const gerarToken = (payload) => {
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJwtSecret(), {
     expiresIn: JWT_EXPIRE
   });
 };
 
 const verificarToken = (token) => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, getJwtSecret());
   } catch (error) {
     console.error('Erro ao verificar token:', error.message);
     return null;
@@ -32,3 +32,4 @@ module.exports = {
   verificarToken,
   decodificarToken
 };
+

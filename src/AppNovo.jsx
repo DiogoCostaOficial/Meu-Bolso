@@ -27,14 +27,20 @@ import Backup from './pages/Backup';
 import SystemRestore from './pages/SystemRestore';
 import Configuracoes from './pages/Configuracoes';
 import Viagens from './pages/Viagens';
+import { Termos, Privacidade } from './pages/LegalDocumentos';
+import AceiteModal from './components/lgpd/AceiteModal';
 
 const isHomologacao = import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
 
 function AppNovo() {
   return (
+    <>
+    <AceiteModal />
     <Routes>
       {/* Landing Page - Rota Pública */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/termos" element={<Termos />} />
+      <Route path="/privacidade" element={<Privacidade />} />
 
       {/* Rotas de Autenticação - Públicas */}
       <Route path="/login" element={<LoginNovo />} />
@@ -156,6 +162,7 @@ function AppNovo() {
       {/* Rota 404 - Redireciona para Landing Page */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 

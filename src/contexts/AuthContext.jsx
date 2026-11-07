@@ -127,7 +127,8 @@ export const AuthProvider = ({ children }) => {
           senha,
           pais: extras.pais,
           whatsapp: extras.whatsapp,
-          telefone: extras.whatsapp
+          telefone: extras.whatsapp,
+          aceiteTermos: extras.aceiteTermos === true
         }),
       });
 
@@ -286,7 +287,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginOutlookOTP = async (email, nome = '') => {
+  const loginOutlookOTP = async (email, nome = '', aceiteTermos = false) => {
     try {
       const API_URL = import.meta.env.PROD
         ? '/api'
@@ -294,7 +295,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch(`${API_URL}/auth/outlook-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, nome })
+        body: JSON.stringify({ email, nome, aceiteTermos })
       });
       const data = await response.json();
       if (!response.ok || !data.success) {

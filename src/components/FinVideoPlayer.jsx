@@ -16,7 +16,13 @@ import {
 import { FIN_MANUAL_VIDEOS, getVideoForRouteOrId, getVideosForRoute } from '../utils/finManualVideos';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getLocalizedVideo } from '../utils/finI18n';
-import { speakWithFinChildVoice, stopFinChildVoice } from '../utils/finChildVoice';
+import {
+  speakWithFinChildVoice,
+  stopFinChildVoice,
+  FIN_VOICE_OPTIONS,
+  getSavedFinVoiceType,
+  saveFinVoiceType
+} from '../utils/finChildVoice';
 import FinScreenReplica from './FinScreenReplica';
 import api from '../services/api';
 
@@ -45,6 +51,7 @@ const FinVideoPlayer = ({
   const [sceneIndex, setSceneIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
+  const [voiceType, setVoiceType] = useState(() => getSavedFinVoiceType());
   const [sceneProgressPct, setSceneProgressPct] = useState(0);
   const [typedCharsCount, setTypedCharsCount] = useState(0);
 
@@ -187,6 +194,7 @@ const FinVideoPlayer = ({
       const voiceCtrl = speakWithFinChildVoice({
         text: narrationText,
         language,
+        voiceType,
         onProgress: (pct) => {
           setSceneProgressPct(pct);
         },
@@ -242,11 +250,19 @@ const FinVideoPlayer = ({
     sceneIndex,
     isPlaying,
     isMuted,
+    voiceType,
     hasMp4ForCurrentTopic,
     preferMp4Mode,
     language,
     currentScene?.narration
   ]);
+
+  const handleChangeVoiceType = (newVoice) => {
+    setVoiceType(newVoice);
+    saveFinVoiceType(newVoice);
+    setIsMuted(false);
+    setIsPlaying(true);
+  };
 
   const handleSelectTopic = (id) => {
     setSelectedTopicId(id);
@@ -525,6 +541,28 @@ const FinVideoPlayer = ({
                 {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                 <span>{isMuted ? 'Sem Som' : 'Voz IA'}</span>
               </button>
+
+              {/* Seletor de Voz: Homem (Padrão), Mulher ou Criança */}
+              <div className="inline-flex items-center rounded-lg bg-white/10 p-0.5 border border-white/15">
+                {FIN_VOICE_OPTIONS.map((opt) => {
+                  const isSelected = voiceType === opt.id && !isMuted;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleChangeVoiceType(opt.id)}
+                      title={opt.title}
+                      className={`px-2 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-amber-400 text-black shadow-xs'
+                          : 'text-gray-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="flex items-center gap-1.5">

@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const lgpdController = require('../controllers/lgpdController');
 const { verificarToken, verificarAdmin } = require('../middleware/auth');
+const { auditarAdmin } = require('../utils/audit');
+
+// Toda rota administrativa exige admin autenticado e é registrada na trilha de auditoria
+router.use(verificarToken, verificarAdmin, auditarAdmin);
 
 // Estatísticas e Usuários (Prioridade 1 & 2)
 router.get('/estatisticas', verificarToken, verificarAdmin, adminController.obterEstatisticas);
@@ -20,5 +25,8 @@ router.post('/feedbacks', verificarToken, verificarAdmin, adminController.adicio
 router.get('/backlog', verificarToken, verificarAdmin, adminController.listarBacklogPM);
 router.post('/backlog', verificarToken, verificarAdmin, adminController.adicionarBacklogPM);
 router.put('/backlog/:id', verificarToken, verificarAdmin, adminController.atualizarBacklogPM);
+
+// Trilha de auditoria (LGPD art. 37 e 46)
+router.get('/auditoria', lgpdController.listarAuditoria);
 
 module.exports = router;

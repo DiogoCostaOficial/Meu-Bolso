@@ -6,7 +6,13 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config();
 
+const { verificarToken, verificarAdmin } = require('./middleware/auth');
+const { securityHeaders } = require('./middleware/security');
+
 const app = express();
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+app.use(securityHeaders);
 
 // Middleware
 const allowedOrigins = [
@@ -65,7 +71,9 @@ const router = express.Router();
 router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
 router.use('/user', userRoutes);
-router.use('/debug', debugRoutes);
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/debug', verificarToken, verificarAdmin, debugRoutes);
+}
 
 // Monta as rotas tanto em /api quanto na raiz para garantir compatibilidade
 app.use('/api', router);

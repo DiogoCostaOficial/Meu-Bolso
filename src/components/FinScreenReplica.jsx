@@ -178,8 +178,11 @@ const FinScreenReplica = ({
 
             {/* Linha 2 - Col 1: Data da Despesa */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-700 mb-1">
-                Data da Despesa
+              <label className="block text-[11px] font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <span>Data despesa (sistema)</span>
+                <span className="w-3.5 h-3.5 rounded-full bg-amber-500/15 text-amber-700 border border-amber-500/40 font-bold text-[9px] inline-flex items-center justify-center">
+                  ?
+                </span>
               </label>
               <div
                 className={`w-full py-1.5 px-2.5 rounded-lg border text-gray-700 min-h-[30px] flex items-center justify-between ${fieldRingClass(
@@ -191,27 +194,29 @@ const FinScreenReplica = ({
               </div>
             </div>
 
-            {/* Linha 2 - Col 2: Data de Vencimento (opcional) */}
+            {/* Linha 2 - Col 2: Cartão (opcional) */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-700 mb-1">
-                Data de Vencimento (opcional)
+              <label className="block text-[11px] font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <CreditCard className="w-3.5 h-3.5 text-amber-500" />
+                <span>Cartão (opcional)</span>
               </label>
               <div
-                className={`w-full py-1.5 px-2.5 rounded-lg border text-gray-700 min-h-[30px] flex items-center justify-between ${fieldRingClass(
+                className={`w-full py-1.5 px-2.5 rounded-lg border text-gray-800 min-h-[30px] flex items-center justify-between ${fieldRingClass(
                   'data_despesa'
                 )}`}
               >
-                <span className={sceneIndex >= 2 ? 'text-gray-800' : 'text-gray-500'}>
-                  {dataVencVal}
-                </span>
-                <Calendar className="w-3.5 h-3.5 text-gray-500" />
+                <span>{cartaoVal}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
               </div>
             </div>
 
-            {/* Linha 3 - Col 1: Data da Compra (opcional) */}
+            {/* Linha 3 - Col 1: Data compra retroativo (opcional) */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-700 mb-1">
-                Data da Compra (opcional)
+              <label className="block text-[11px] font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <span>Data compra retroativo (opcional)</span>
+                <span className="w-3.5 h-3.5 rounded-full bg-amber-500/15 text-amber-700 border border-amber-500/40 font-bold text-[9px] inline-flex items-center justify-center">
+                  ?
+                </span>
               </label>
               <div
                 className={`w-full py-1.5 px-2.5 rounded-lg border text-gray-700 min-h-[30px] flex items-center justify-between ${fieldRingClass(
@@ -270,19 +275,20 @@ const FinScreenReplica = ({
               </div>
             </div>
 
-            {/* Linha 5 - Col 1: Cartão (opcional) */}
+            {/* Linha 5 - Col 1: Data de Vencimento (opcional) */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-700 mb-1 flex items-center gap-1">
-                <CreditCard className="w-3.5 h-3.5 text-amber-500" />
-                <span>Cartão (opcional)</span>
+              <label className="block text-[11px] font-medium text-gray-700 mb-1">
+                Data de Vencimento (opcional)
               </label>
               <div
-                className={`w-full py-1.5 px-2.5 rounded-lg border text-gray-800 min-h-[30px] flex items-center justify-between ${fieldRingClass(
-                  'cartao_obs'
+                className={`w-full py-1.5 px-2.5 rounded-lg border text-gray-700 min-h-[30px] flex items-center justify-between ${fieldRingClass(
+                  'data_despesa'
                 )}`}
               >
-                <span>{cartaoVal}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
+                <span className={sceneIndex >= 2 ? 'text-gray-800' : 'text-gray-500'}>
+                  {dataVencVal}
+                </span>
+                <Calendar className="w-3.5 h-3.5 text-gray-500" />
               </div>
             </div>
           </div>
@@ -1532,7 +1538,7 @@ const FinScreenReplica = ({
   };
 
   return (
-    <div className="rounded-xl border-2 border-gray-300 bg-gray-50 shadow-xl overflow-hidden relative select-none">
+    <div data-fin-replica="true" className="rounded-xl border-2 border-gray-300 bg-gray-50 shadow-xl overflow-hidden relative select-none">
       {/* Barra superior da janela simulando a tela real do sistema */}
       <div className="px-3 py-1.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">

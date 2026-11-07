@@ -1,5 +1,6 @@
-// server/middleware/auth.js
+﻿// server/middleware/auth.js
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../utils/jwtSecret');
 require('dotenv').config();
 
 // Middleware para verificar token JWT
@@ -29,7 +30,7 @@ const verificarToken = (req, res, next) => {
     }
 
     // Verifica e decodifica o token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key_change_in_production');
+    const decoded = jwt.verify(token, getJwtSecret());
 
     // Adiciona dados do usuário na requisição
     req.usuario = {
@@ -119,7 +120,7 @@ const verificarTokenOpcional = (req, res, next) => {
       return next();
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
     req.usuario = {
       id: decoded.id,
       email: decoded.email,
@@ -142,3 +143,4 @@ module.exports = {
   verificarAdmin,
   verificarTokenOpcional
 };
+

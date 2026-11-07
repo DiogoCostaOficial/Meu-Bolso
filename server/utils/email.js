@@ -146,7 +146,7 @@ const enviarCodigoOTP = async (email, nome, codigo) => {
   // Verifica se as credenciais de e-mail estão configuradas
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.warn('⚠️ Credenciais de e-mail não configuradas. O e-mail não será enviado.');
-    console.log(`🔑 CÓDIGO OTP (SIMULADO): ${codigo}`);
+    if (process.env.NODE_ENV !== 'production') console.log(`🔑 CÓDIGO OTP (SIMULADO): ${codigo}`);
     return { success: true, simulado: true };
   }
 

@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEdu } from '../contexts/EduContext';
 import { useTheme } from '../components/theme-provider';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useLayoutVariant } from '../contexts/LayoutVariantContext';
+import { useLevel } from '../contexts/LevelContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { Link } from 'react-router-dom';
 import CurrencySelector from '../components/CurrencySelector';
 import {
   Wallet, TrendingUp, TrendingDown, CreditCard,
   ArrowUpRight, ArrowDownRight, DollarSign, Calendar,
-  GraduationCap, PiggyBank, Target, FileSpreadsheet
+  GraduationCap, PiggyBank, Target, FileSpreadsheet,
+  Sprout, PlusCircle, MinusCircle, Sparkles, Sliders, Check, Bell, X
 } from 'lucide-react';
 import api from '../services/api';
 import { removeDuplicates } from '../utils/arrayUtils';
@@ -24,6 +28,8 @@ const Dashboard = () => {
   const { formatCurrency } = useCurrency();
   const { showLesson, updateFinancialData } = useEdu();
   const { layoutVariant } = useLayoutVariant();
+  const { currentLevel, openOnboardingModal, openLevelModal } = useLevel();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] = useState({
     receitas: [],
@@ -49,6 +55,39 @@ const Dashboard = () => {
     { valor: '11', nome: 'Novembro' },
     { valor: '12', nome: 'Dezembro' }
   ];
+
+  // Lembrete Diário In-App (se ativado nas preferências)
+  const hojeChave = new Date().toISOString().split('T')[0];
+  const [lembreteDispensado, setLembreteDispensado] = useState(() => {
+    return localStorage.getItem(`financas_lembrete_dispensado_${hojeChave}`) === 'true';
+  });
+
+  const dispensarLembrete = () => {
+    setLembreteDispensado(true);
+    localStorage.setItem(`financas_lembrete_dispensado_${hojeChave}`, 'true');
+  };
+
+  const deveExibirLembreteDiario = useMemo(() => {
+    if (lembreteDispensado) return false;
+    let configAtiva = true;
+    try {
+      const saved = localStorage.getItem('financas_notificacoes_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.lembreteDiarioInApp === false) configAtiva = false;
+      }
+    } catch (e) {
+      // usa true como padrão
+    }
+
+    if (!configAtiva) return false;
+
+    // Se houver receitas ou despesas já registradas na data de hoje, não incomoda
+    const temReceitaHoje = (financialData?.receitas || []).some(r => r.data && String(r.data).startsWith(hojeChave));
+    const temDespesaHoje = (financialData?.despesas || []).some(d => d.data && String(d.data).startsWith(hojeChave));
+
+    return !temReceitaHoje && !temDespesaHoje;
+  }, [financialData, lembreteDispensado, hojeChave]);
 
   useEffect(() => {
     loadData();
@@ -187,23 +226,25 @@ const Dashboard = () => {
     { name: 'Saldo', value: saldoFinal > 0 ? saldoFinal : 0, color: 'var(--accent-gold)' }
   ].filter(item => item.value > 0);
 
+  const isIniciante = currentLevel === 'iniciante';
+
   const cards = [
     {
-      title: 'Receitas',
+      title: isIniciante ? 'Entrou (Receitas)' : 'Receitas',
       value: totalReceitas,
       icon: TrendingUp,
       color: 'text-green-600',
       bgColor: 'bg-green-100'
     },
     {
-      title: 'Despesas',
+      title: isIniciante ? 'Saiu (Despesas)' : 'Despesas',
       value: totalDespesas,
       icon: TrendingDown,
       color: 'text-red-600',
       bgColor: 'bg-red-100'
     },
     {
-      title: 'Saldo Final',
+      title: isIniciante ? 'Saldo Atual' : 'Saldo Final',
       value: saldoFinal,
       icon: Wallet,
       color: saldoFinal >= 0 ? 'text-green-600' : 'text-red-600',
@@ -307,7 +348,7 @@ const Dashboard = () => {
               className="py-1 border-0 focus:ring-0 bg-transparent font-medium text-custom-main text-sm cursor-pointer capitalize"
             >
               {meses.map(mes => (
-                <option key={mes.valor} value={mes.valor} className="bg-custom-card text-custom-main">{mes.nome}</option>
+                <option key={mes.valor} value={mes.valor} className="bg-custom-card text-custom-main">{t(mes.nome)}</option>
               ))}
             </select>
             <span className="text-custom-main opacity-30 select-none">|</span>
@@ -323,6 +364,101 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Lembrete Diário In-App (Configurável e sem custo) */}
+      {deveExibirLembreteDiario && (
+        <div className="bg-sky-500/10 border border-sky-500/30 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-500 flex items-center justify-center flex-shrink-0">
+              <Bell className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-custom-main flex items-center gap-2">
+                Lembrete do Dia
+                <span className="text-[10px] bg-sky-500/20 text-sky-600 dark:text-sky-400 px-2 py-0.5 rounded-full font-semibold">
+                  Registro Rápido
+                </span>
+              </p>
+              <p className="text-xs text-gray-600 dark:text-slate-400 mt-0.5">
+                Você teve alguma entrada ou saída hoje? Anotar agora leva menos de 30 segundos!
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <Link
+              to="/receitas"
+              className="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+            >
+              + Entrada
+            </Link>
+            <Link
+              to="/despesas"
+              className="px-3 py-1.5 rounded-lg bg-custom-gold text-black hover:bg-yellow-400 text-xs font-bold transition-colors shadow-xs"
+            >
+              - Saída
+            </Link>
+            <button
+              type="button"
+              onClick={dispensarLembrete}
+              className="p-1.5 text-gray-400 hover:text-custom-main rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Dispensar lembrete por hoje"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Banner de Boas-Vindas & Ações Rápidas do Modo Iniciante */}
+      {isIniciante && (
+        <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 rounded-2xl p-5 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 flex items-center justify-center font-bold text-lg flex-shrink-0 mt-0.5">
+                🌱
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-custom-main">Modo Iniciante Ativo</h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold uppercase">
+                    Foco no Essencial
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-slate-300 mt-1 max-w-xl">
+                  Seu controle começa simples: registre o que <strong>Entrou</strong> e o que <strong>Saiu</strong>. O sistema calcula seu saldo instantaneamente sem termos complicados.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                to="/receitas"
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Registrar Entrada
+              </Link>
+              <Link
+                to="/despesas"
+                className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <MinusCircle className="w-4 h-4" />
+                Registrar Saída
+              </Link>
+              <button
+                type="button"
+                onClick={openOnboardingModal}
+                className="px-3 py-2 rounded-xl border border-custom-color hover:bg-gray-100 dark:hover:bg-slate-800 text-custom-main text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Configurar estimativa de renda e metas"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-custom-gold" />
+                Questionário
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cards de Resumo — 2 cols mobile, 4 cols desktop */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">

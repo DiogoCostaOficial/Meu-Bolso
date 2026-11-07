@@ -3,16 +3,17 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { verificarToken } = require('../middleware/auth');
+const { authLimiter, otpLimiter } = require('../middleware/security');
 
 // Rotas públicas (não precisam de autenticação)
-router.post('/registrar', authController.registrar);
-router.post('/login', authController.login);
-router.post('/google', authController.googleLogin);
-router.post('/outlook-otp', authController.outlookLoginOTP);
-router.post('/validar-otp', authController.validarOTP);
-router.post('/reenviar-otp', authController.reenviarOTP);
-router.post('/solicitar-recuperacao', authController.solicitarRecuperacaoSenha);
-router.post('/redefinir-senha', authController.redefinirSenha);
+router.post('/registrar', authLimiter, authController.registrar);
+router.post('/login', authLimiter, authController.login);
+router.post('/google', authLimiter, authController.googleLogin);
+router.post('/outlook-otp', otpLimiter, authController.outlookLoginOTP);
+router.post('/validar-otp', otpLimiter, authController.validarOTP);
+router.post('/reenviar-otp', otpLimiter, authController.reenviarOTP);
+router.post('/solicitar-recuperacao', otpLimiter, authController.solicitarRecuperacaoSenha);
+router.post('/redefinir-senha', otpLimiter, authController.redefinirSenha);
 
 // Rotas protegidas (precisam de token JWT)
 router.post('/alterar-senha', verificarToken, authController.alterarSenha);

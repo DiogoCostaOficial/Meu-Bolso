@@ -168,25 +168,25 @@ export const FIN_MANUAL_VIDEOS = [
       {
         step: 3,
         viewMode: 'form',
-        badge: 'Linha 2: Data da Despesa vs. Data de Vencimento (opcional)',
+        badge: 'Linha 2: Data despesa (sistema) e Cartão (opcional)',
         activeFieldId: 'data_despesa',
         cursorPos: { x: 52, y: 36 },
-        visualTitle: '📅 Campo 3: Data da Despesa  |  📅 Campo 4: Data de Vencimento (opcional)',
-        visualDetail: 'A Data da Despesa define em qual mês o gasto entra nos relatórios. Já a Data de Vencimento serve para anotar o dia em que o boleto vence.',
+        visualTitle: '📅 Campo 3: Data despesa (sistema)  |  💳 Campo 4: Cartão (opcional)',
+        visualDetail: 'A Data despesa (sistema) registra o lançamento no sistema. Ao lado, em Cartão (opcional), escolha o cartão para preencher o vencimento automaticamente.',
         narration:
-          'Na segunda linha ficam duas datas importantes: à esquerda está a Data da Despesa, que já vem preenchida com o dia de hoje e define em qual mês esse gasto vai aparecer no seu controle. Ao lado direito está a Data de Vencimento opcional: se for um boleto ou conta de luz que só vence mais para frente, coloque o vencimento aqui para acompanhar os prazos!',
+          'Na segunda linha, à esquerda está a Data despesa no sistema, que vem com o dia de hoje e registra quando você está lançando o gasto. Ao lado direito fica o Cartão opcional: se você selecionar o seu cartão aqui, o sistema já preenche automaticamente a Data de Vencimento da fatura lá embaixo!',
         pose: 'wallet'
       },
       {
         step: 4,
         viewMode: 'form',
-        badge: 'Linha 3: Data da Compra (opcional) e Categoria',
+        badge: 'Linha 3: Data compra retroativo (opcional) e Categoria',
         activeFieldId: 'data_compra_cat',
         cursorPos: { x: 70, y: 48 },
-        visualTitle: '🛍️ Campo 5: Data da Compra (opcional)  |  🏷️ Campo 6: Categoria',
-        visualDetail: 'Anote o dia exato em que fez a compra na loja e escolha a Categoria correspondente ao seu Orçamento.',
+        visualTitle: '🛍️ Campo 5: Data compra retroativo (opcional)  |  🏷️ Campo 6: Categoria',
+        visualDetail: 'Se a compra foi feita em um dia anterior ao lançamento de hoje, informe em Data compra retroativo (opcional). Ao lado, escolha a Categoria.',
         narration:
-          'Na terceira linha, à esquerda temos a Data da Compra opcional, que serve para registrar o dia exato em que você passou o cartão na loja. E à direita temos o campo Categoria: clique nele para escolher de qual pote do seu Orçamento esse dinheiro vai sair, como Despesas Fixas, Lazer ou Educação.',
+          'Na terceira linha, à esquerda temos a Data compra retroativo opcional, com um botãozinho de ajuda: use esse campo quando você estiver lançando hoje uma compra que fez dias atrás, para guardar o dia exato da compra. E à direita escolha a Categoria do seu Orçamento, como Despesas Fixas, Lazer ou Educação.',
         pose: 'coin'
       },
       {
@@ -204,14 +204,14 @@ export const FIN_MANUAL_VIDEOS = [
       {
         step: 6,
         viewMode: 'form',
-        badge: 'Linha 5 e 6: Cartão (opcional) e Observações (opcional)',
+        badge: 'Linha 5 e 6: Data de Vencimento (opcional) e Observações (opcional)',
         activeFieldId: 'cartao_obs',
         typedValue: 'Compra mensal da família no supermercado',
         cursorPos: { x: 30, y: 74 },
-        visualTitle: '💳 Campo 9: Cartão (opcional)  |  🗒️ Campo 10: Observações (opcional)',
-        visualDetail: 'Se pagou no cartão de crédito, selecione-o em Cartão (opcional). Se pagou em Pix ou dinheiro, deixe Nenhum. Abaixo, anote qualquer detalhe em Observações.',
+        visualTitle: '📅 Campo 9: Data de Vencimento (opcional)  |  🗒️ Campo 10: Observações (opcional)',
+        visualDetail: 'A Data de Vencimento é preenchida sozinha pelo cartão ou pode ser informada para boletos e outros débitos. Abaixo, anote detalhes em Observações.',
         narration:
-          'Na quinta linha fica o campo Cartão opcional: se essa compra foi feita no cartão de crédito, selecione o seu cartão aqui para o valor ir direto para a fatura dele! Se você pagou no Pix, Débito ou Dinheiro, basta deixar como Nenhum. E logo abaixo você tem a caixa Observações opcional para escrever qualquer lembrete ou detalhe sobre a compra.',
+          'Na quinta linha fica a Data de Vencimento opcional, que já vem preenchida se você escolheu um cartão acima, ou pode ser usada para anotar o vencimento de boletos e outros débitos. E logo abaixo você tem a caixa Observações opcional para escrever qualquer lembrete importante.',
         pose: 'wallet'
       },
       {

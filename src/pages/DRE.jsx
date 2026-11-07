@@ -3,10 +3,12 @@ import { TrendingUp, TrendingDown, DollarSign, Calendar, GraduationCap } from 'l
 import api from '../services/api';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import CurrencySelector from '../components/CurrencySelector';
 
 const DRE = () => {
   const { showLesson } = useEdu();
+  const { t } = useLanguage();
   const { formatCurrency: formatarMoeda } = useCurrency();
   // Estados
   const [receitas, setReceitas] = useState([]);
@@ -253,7 +255,7 @@ const DRE = () => {
                 >
                   {meses.map(mes => (
                     <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">
-                      {mes.nome}
+                      {t(mes.nome)}
                     </option>
                   ))}
                 </select>

@@ -16,6 +16,7 @@ import { useEdu } from '../contexts/EduContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../components/theme-provider';
+import { useLanguage } from '../contexts/LanguageContext';
 import CurrencySelector from '../components/CurrencySelector';
 
 // Helper functions and constants defined outside the component
@@ -88,6 +89,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 const Relatorios = () => {
   const { showLesson } = useEdu();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const { formatCurrency: formatarMoeda } = useCurrency();
   const [isFiltrosMinimized, setIsFiltrosMinimized] = useState(false);
   const [isPersonalizarMinimized, setIsPersonalizarMinimized] = useState(() => {
@@ -1946,7 +1948,7 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
                   onChange={(e) => setMesSelecionado(e.target.value)}
                 >
                   {meses.map(mes => (
-                    <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">{mes.nome}</option>
+                    <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">{t(mes.nome)}</option>
                   ))}
                 </select>
               </div>

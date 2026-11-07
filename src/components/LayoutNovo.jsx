@@ -3,12 +3,16 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from "./theme-provider";
 import { useEdu } from '../contexts/EduContext';
+import { useLevel } from '../contexts/LevelContext';
 import EduMascot from './EduMascot';
 import VideoPopup from './VideoPopup';
 import PageTutorialVideo from './PageTutorialVideo';
 import CurrencyUpdateAnnouncer from './CurrencyUpdateAnnouncer';
 import LanguageSelector from './LanguageSelector';
+import { GlobalFieldHelpEnhancer } from './FieldHelpTooltip';
 import { useLanguage } from '../contexts/LanguageContext';
+import NivelExperienciaModal from './NivelExperienciaModal';
+import OnboardingInicianteModal from './OnboardingInicianteModal';
 import {
   LayoutDashboard,
   Wallet,
@@ -30,6 +34,8 @@ import {
   ChevronRight,
   Check,
   Plane,
+  Sparkles,
+  Compass
 } from 'lucide-react';
 
 const LayoutNovo = ({ children }) => {
@@ -41,6 +47,14 @@ const LayoutNovo = ({ children }) => {
   const { theme, setTheme } = useTheme();
   const { isDocked, undockMascot } = useEdu();
   const { t } = useLanguage();
+  const {
+    currentLevel,
+    levelInfo,
+    isPathAllowed,
+    getPathLabelOverride,
+    openLevelModal,
+    openOnboardingModal
+  } = useLevel();
 
   const handleLogout = () => {
     logout();
@@ -52,7 +66,7 @@ const LayoutNovo = ({ children }) => {
   // Exibir Restauração/Restore APENAS em modo de Homologação (Local/Dev)
   const isHomologacao = import.meta.env.DEV || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
 
-  const menuItems = [
+  const rawMenuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/orcamento', icon: Wallet, label: 'Orçamento' },
     { path: '/receitas', icon: TrendingUp, label: 'Receitas' },
@@ -67,8 +81,16 @@ const LayoutNovo = ({ children }) => {
   ];
 
   if (user?.tipo === 'admin') {
-    menuItems.unshift({ path: '/admin', icon: LayoutDashboard, label: 'Painel Admin' });
+    rawMenuItems.unshift({ path: '/admin', icon: LayoutDashboard, label: 'Painel Admin' });
   }
+
+  // Filtragem dinâmica de acordo com o Nível de Experiência selecionado
+  const menuItems = rawMenuItems
+    .filter(item => isPathAllowed(item.path))
+    .map(item => ({
+      ...item,
+      label: getPathLabelOverride(item.path, item.label)
+    }));
 
   const NavLink = ({ item, onClick }) => {
     const Icon = item.icon;
@@ -98,6 +120,9 @@ const LayoutNovo = ({ children }) => {
     <div className="min-h-screen bg-custom-primary text-custom-main flex transition-custom">
         <VideoPopup />
         <CurrencyUpdateAnnouncer />
+        <GlobalFieldHelpEnhancer />
+        <NivelExperienciaModal />
+        <OnboardingInicianteModal />
 
         {/* Sidebar Desktop */}
         <aside className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-custom-card border-r border-custom-color fixed h-full z-10 transition-all duration-300 ease-in-out`}>
@@ -127,7 +152,8 @@ const LayoutNovo = ({ children }) => {
             )}
           </div>
 
-          <div className={`p-4 border-b border-custom-color bg-custom-gold/5 ${isSidebarCollapsed ? 'flex justify-center' : ''}`}>
+          {/* User Card + Nível de Experiência */}
+          <div className={`p-4 border-b border-custom-color bg-custom-gold/5 ${isSidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-custom bg-custom-gold text-black flex items-center justify-center font-bold shadow-custom flex-shrink-0">
                 {user?.nome?.charAt(0).toUpperCase() || 'U'}
@@ -143,6 +169,44 @@ const LayoutNovo = ({ children }) => {
                 </div>
               )}
             </div>
+
+            {/* Seletor de Nível no Sidebar Desktop */}
+            {!isSidebarCollapsed ? (
+              <div className="mt-3 pt-2.5 border-t border-custom-color/40 flex items-center justify-between gap-1">
+                <button
+                  type="button"
+                  onClick={openLevelModal}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${levelInfo.colorBg} ${levelInfo.colorText} ${levelInfo.colorBorder} hover:scale-[1.02] shadow-2xs`}
+                  title="Clique para alternar o modo de uso (Iniciante, Fácil, Intermediário, Avançado)"
+                >
+                  <span>{levelInfo.badge}</span>
+                  <span className="text-[10px] font-bold opacity-75 underline decoration-dotted">Trocar</span>
+                </button>
+
+                {currentLevel === 'iniciante' && (
+                  <button
+                    type="button"
+                    onClick={openOnboardingModal}
+                    className="text-[11px] text-custom-gold hover:underline font-semibold cursor-pointer"
+                    title="Configuração rápida para iniciantes"
+                  >
+                    Questionário
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={openLevelModal}
+                className={`mt-2 p-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${levelInfo.colorBg} ${levelInfo.colorText} ${levelInfo.colorBorder}`}
+                title={`Nível: ${levelInfo.name} - Clique para alternar`}
+              >
+                {currentLevel === 'iniciante' && '🌱'}
+                {currentLevel === 'facil' && '🟢'}
+                {currentLevel === 'intermediario' && '🟡'}
+                {currentLevel === 'avancado' && '👑'}
+              </button>
+            )}
           </div>
 
           <nav className="flex-1 overflow-y-auto p-4 space-y-1">
@@ -150,7 +214,7 @@ const LayoutNovo = ({ children }) => {
               <NavLink key={item.path} item={item} />
             ))}
 
-            {/* Item fixo de Ajuda FIN logo abaixo de Configurações */}
+            {/* Item fixo de Ajuda FIN logo abaixo dos itens */}
             <button
               type="button"
               onClick={() => undockMascot()}
@@ -234,6 +298,14 @@ const LayoutNovo = ({ children }) => {
               <h1 className="text-xl font-bold text-custom-gold">Meu Bolso</h1>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={openLevelModal}
+                className={`px-2 py-1 rounded-lg text-xs font-bold border ${levelInfo.colorBg} ${levelInfo.colorText} ${levelInfo.colorBorder}`}
+                title="Modo de Uso"
+              >
+                {levelInfo.badge}
+              </button>
               <LanguageSelector variant="compact" align="right" showQuickFeatured={false} />
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -270,13 +342,13 @@ const LayoutNovo = ({ children }) => {
             </button>
           </div>
 
-          {/* Perfil do usuário */}
+          {/* Perfil do usuário Mobile */}
           <div className="px-5 py-4 bg-custom-gold/5 border-b border-custom-color">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-custom bg-custom-gold text-black flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-custom">
                 {user?.nome?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="font-semibold text-custom-main truncate">
                   {user?.nome || 'Usuário'}
                 </p>
@@ -284,6 +356,33 @@ const LayoutNovo = ({ children }) => {
                   {user?.email}
                 </p>
               </div>
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-custom-color/40 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMenu();
+                  openLevelModal();
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${levelInfo.colorBg} ${levelInfo.colorText} ${levelInfo.colorBorder}`}
+              >
+                <span>{levelInfo.badge}</span>
+                <span className="text-[10px] font-bold opacity-80 underline">Trocar</span>
+              </button>
+
+              {currentLevel === 'iniciante' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMobileMenu();
+                    openOnboardingModal();
+                  }}
+                  className="text-xs text-custom-gold font-semibold hover:underline"
+                >
+                  🚀 Questionário
+                </button>
+              )}
             </div>
           </div>
 
@@ -347,8 +446,17 @@ const LayoutNovo = ({ children }) => {
           }}
         >
           <div className="p-4 md:p-8">
-            {/* Barra superior global de idioma em todas as telas internas */}
-            <div className="hidden md:flex items-center justify-end mb-4">
+            {/* Barra superior global com Seletor de Nível e Idioma */}
+            <div className="hidden md:flex items-center justify-end gap-3 mb-4">
+              <button
+                type="button"
+                onClick={openLevelModal}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs transition-all cursor-pointer ${levelInfo.colorBg} ${levelInfo.colorText} ${levelInfo.colorBorder} hover:scale-[1.02]`}
+                title="Clique para alternar o nível de experiência do sistema"
+              >
+                <span>{levelInfo.badge}</span>
+                <span className="text-[10px] font-bold opacity-75 uppercase">Trocar</span>
+              </button>
               <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
             </div>
             {/* Vídeo Explicativo Exclusivo da Tela Atual */}
@@ -356,8 +464,6 @@ const LayoutNovo = ({ children }) => {
             {children}
           </div>
         </main>
-
-
 
         {/* MASCOTE GLOBAL */}
         <EduMascot />

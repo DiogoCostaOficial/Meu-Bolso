@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const pool = new Pool({
@@ -104,6 +105,30 @@ const inicializarDB = async () => {
                         ADD COLUMN IF NOT EXISTS cartao TEXT,
                         ADD COLUMN IF NOT EXISTS cartao_id TEXT,
                         ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20);
+                    `);
+                    await client.query(`
+                        CREATE TABLE IF NOT EXISTS lgpd_consents (
+                            id TEXT PRIMARY KEY,
+                            user_id TEXT,
+                            finalidade TEXT NOT NULL,
+                            versao_documento TEXT,
+                            concedido BOOLEAN NOT NULL,
+                            ip TEXT,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                        );
+                        CREATE INDEX IF NOT EXISTS idx_lgpd_consents_user ON lgpd_consents(user_id);
+
+                        CREATE TABLE IF NOT EXISTS audit_log (
+                            id TEXT PRIMARY KEY,
+                            ator_id TEXT,
+                            ator_tipo TEXT,
+                            acao TEXT NOT NULL,
+                            alvo_id TEXT,
+                            ip TEXT,
+                            detalhes JSONB DEFAULT '{}'::jsonb,
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                        );
+                        CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC);
                     `);
                     console.log('✅ Migração de colunas e tabelas concluída com sucesso no PostgreSQL!');
                 } catch (colErr) {
@@ -412,11 +437,15 @@ const buscarDadosUsuario = async (userId) => {
                     { id: `cat-${userId}-reserva`, nome: 'Reserva de Emergência', cor: '#EC4899', tipoMeta: 'percentual', valorMeta: 10, subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'] }
                 ],
             orcamentos: finalOrcamentos,
-            cartoes: cartoesRes.rows.map(c => ({
-                id: c.id,
-                nome: c.nome,
-                valores: typeof c.valores === 'string' ? JSON.parse(c.valores) : (c.valores || {})
-            })),
+            cartoes: cartoesRes.rows.map(c => {
+                const valoresObj = typeof c.valores === 'string' ? JSON.parse(c.valores) : (c.valores || {});
+                return {
+                    id: c.id,
+                    nome: c.nome,
+                    diaVencimento: valoresObj._diaVencimento || null,
+                    valores: valoresObj
+                };
+            }),
             viagens: tripsRes.rows.map(t => (typeof t.dados === 'string' ? JSON.parse(t.dados) : (t.dados || {})))
         };
     } catch (err) {
@@ -704,7 +733,13 @@ const salvarDadosUsuario = async (userId, dados) => {
                 const cIds = dados.cartoes.map(c => String(c.id));
                 const cUserIds = dados.cartoes.map(() => String(userId));
                 const cNomes = dados.cartoes.map(c => String(c.nome || 'Cartão'));
-                const cValores = dados.cartoes.map(c => typeof c.valores === 'object' ? JSON.stringify(c.valores) : '{}');
+                const cValores = dados.cartoes.map(c => {
+                    const valObj = (typeof c.valores === 'object' && c.valores !== null) ? { ...c.valores } : {};
+                    if (c.diaVencimento !== undefined) {
+                        valObj._diaVencimento = c.diaVencimento;
+                    }
+                    return JSON.stringify(valObj);
+                });
 
                 await client.query(`
           INSERT INTO cards (id, user_id, nome, valores)
@@ -786,6 +821,19 @@ const salvarDadosUsuario = async (userId, dados) => {
     }
 };
 
+const anonimizarId = (id) => 'excluido:' + crypto.createHash('sha256').update(String(id)).digest('hex').slice(0, 16);
+
+const removerBackupLocalUsuario = (userId) => {
+    try {
+        const fs = require('fs');
+        const path = require('path');
+        const file = path.join(__dirname, '..', 'data', `USER_DATA_${userId}.json`);
+        if (fs.existsSync(file)) fs.unlinkSync(file);
+    } catch (e) {
+        console.warn('Aviso: não foi possível remover cópia local do usuário excluído.');
+    }
+};
+
 const deletarUsuario = async (userId) => {
     const client = await pool.connect();
     try {
@@ -795,8 +843,11 @@ const deletarUsuario = async (userId) => {
         await client.query('DELETE FROM categories WHERE user_id = $1', [userId]);
         await client.query('DELETE FROM cards WHERE user_id = $1', [userId]);
         await client.query('DELETE FROM trips WHERE user_id = $1', [userId]).catch(() => {});
+        await client.query('DELETE FROM feedbacks WHERE usuario_id = $1', [userId]).catch(() => {});
+        await client.query('UPDATE lgpd_consents SET user_id = $2 WHERE user_id = $1', [userId, anonimizarId(userId)]).catch(() => {});
         await client.query('DELETE FROM users WHERE id = $1', [userId]);
         await client.query('COMMIT');
+        removerBackupLocalUsuario(userId);
         return true;
     } catch (err) {
         await client.query('ROLLBACK');
@@ -1017,7 +1068,87 @@ const salvarBacklogPM = async (item) => {
     }
 };
 
+const novoId = () => crypto.randomUUID();
+
+const registrarConsentimento = async ({ userId, finalidade, versao, concedido, ip }) => {
+    await inicializarDB();
+    try {
+        await pool.query(
+            `INSERT INTO lgpd_consents (id, user_id, finalidade, versao_documento, concedido, ip)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [novoId(), userId, finalidade, versao || null, Boolean(concedido), ip || null]
+        );
+        return true;
+    } catch (err) {
+        console.error('Erro ao registrar consentimento:', err.message);
+        return false;
+    }
+};
+
+const listarConsentimentos = async (userId) => {
+    await inicializarDB();
+    try {
+        const res = await pool.query(
+            'SELECT id, finalidade, versao_documento, concedido, ip, created_at FROM lgpd_consents WHERE user_id = $1 ORDER BY created_at DESC',
+            [userId]
+        );
+        return res.rows.map(r => ({
+            id: r.id,
+            finalidade: r.finalidade,
+            versao: r.versao_documento,
+            concedido: r.concedido,
+            ip: r.ip,
+            data: new Date(r.created_at).toISOString()
+        }));
+    } catch (err) {
+        console.error('Erro ao listar consentimentos:', err.message);
+        return [];
+    }
+};
+
+const registrarAuditoria = async ({ atorId, atorTipo, acao, alvoId, ip, detalhes }) => {
+    await inicializarDB();
+    try {
+        await pool.query(
+            `INSERT INTO audit_log (id, ator_id, ator_tipo, acao, alvo_id, ip, detalhes)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [novoId(), atorId || null, atorTipo || null, acao, alvoId || null, ip || null, JSON.stringify(detalhes || {})]
+        );
+        return true;
+    } catch (err) {
+        console.error('Erro ao registrar auditoria:', err.message);
+        return false;
+    }
+};
+
+const listarAuditoria = async (limite = 200) => {
+    await inicializarDB();
+    try {
+        const res = await pool.query(
+            'SELECT * FROM audit_log ORDER BY created_at DESC LIMIT $1',
+            [Math.min(Math.max(parseInt(limite, 10) || 200, 1), 1000)]
+        );
+        return res.rows.map(r => ({
+            id: r.id,
+            atorId: r.ator_id,
+            atorTipo: r.ator_tipo,
+            acao: r.acao,
+            alvoId: r.alvo_id,
+            ip: r.ip,
+            detalhes: r.detalhes || {},
+            data: new Date(r.created_at).toISOString()
+        }));
+    } catch (err) {
+        console.error('Erro ao listar auditoria:', err.message);
+        return [];
+    }
+};
+
 module.exports = {
+    registrarConsentimento,
+    listarConsentimentos,
+    registrarAuditoria,
+    listarAuditoria,
     inicializarDB,
     getUsuarios,
     adicionarUsuario,

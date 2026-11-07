@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import CurrencySelector from '../components/CurrencySelector';
+import FieldHelpTooltip from '../components/FieldHelpTooltip';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
 } from 'recharts';
@@ -60,6 +62,7 @@ const ehDistribuicaoLegadaOuZerada = (lista) => {
 const Orcamento = () => {
   const { user } = useAuth();
   const { showLesson } = useEdu();
+  const { t } = useLanguage();
   const { formatCurrency: formatarMoeda } = useCurrency();
   const [rendaPrevista, setRendaPrevista] = useState('');
   const [dividas, setDividas] = useState('');
@@ -389,7 +392,8 @@ const Orcamento = () => {
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
-    return `${nomes[mesNum - 1] || mesStr}/${anoStr}`;
+    const nomeTraduzido = nomes[mesNum - 1] ? t(nomes[mesNum - 1]) : mesStr;
+    return `${nomeTraduzido}/${anoStr}`;
   };
 
   const copiarDoMesAnterior = async () => {
@@ -476,7 +480,7 @@ const Orcamento = () => {
       const chave = `${anoAtual}-${String(m).padStart(2, '0')}`;
       lista.push({
         chave,
-        label: `${nomes[m - 1]} / ${anoAtual}`,
+        label: `${t(nomes[m - 1])} / ${anoAtual}`,
         isOrigem: chave === mesSelecionado
       });
     }
@@ -484,7 +488,7 @@ const Orcamento = () => {
       const chave = `${anoAtual + 1}-${String(m).padStart(2, '0')}`;
       lista.push({
         chave,
-        label: `${nomes[m - 1]} / ${anoAtual + 1}`,
+        label: `${t(nomes[m - 1])} / ${anoAtual + 1}`,
         isOrigem: chave === mesSelecionado
       });
     }
@@ -738,7 +742,10 @@ const Orcamento = () => {
             </div>
             {/* RENDA REAL */}
             <div className="bg-custom-primary/30 dark:bg-amber-900/10 p-4 rounded-custom border border-custom-color flex items-center justify-between">
-              <span className="text-lg font-semibold text-custom-main opacity-90">Renda Real Disponível:</span>
+              <span className="text-lg font-semibold text-custom-main opacity-90 flex items-center">
+                <span>Renda Real Disponível:</span>
+                <FieldHelpTooltip fieldLabel="Renda Real Disponível" />
+              </span>
               <span className="text-2xl font-bold text-custom-gold">{formatarMoeda(parseFloat(rendaReal))}</span>
             </div>
           </div>

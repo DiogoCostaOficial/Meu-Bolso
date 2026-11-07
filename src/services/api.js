@@ -279,6 +279,44 @@ export const adminService = {
 // -----------------------------------------------------------------------------
 // SERVIÇOS DE DADOS (Exemplo: Receitas, Despesas, Orçamento)
 // -----------------------------------------------------------------------------
+export const lgpdService = {
+  async status() {
+    try {
+      return handleResponse(await api.get('/user/lgpd/status'));
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+  async aceitar() {
+    try {
+      return handleResponse(await api.post('/user/lgpd/aceite', { aceite: true }));
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+  async definirConsentimento(finalidade, concedido) {
+    try {
+      return handleResponse(await api.post('/user/lgpd/consentimento', { finalidade, concedido }));
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+  async baixarMeusDados() {
+    try {
+      const response = await api.get('/user/lgpd/meus-dados', { responseType: 'blob' });
+      const url = URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'meus-dados-meu-bolso.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+};
+
 export const userService = {
   async excluirConta(confirmacao = 'EXCLUIR') {
     try {

@@ -28,9 +28,13 @@ import {
   Mail,
   Palette,
   Sparkles,
-  CheckCircle2
+  CheckCircle2,
+  Compass,
+  Sliders
 } from 'lucide-react';
 import { removeDuplicates } from '../utils/arrayUtils';
+import PrivacidadeMeusDados from '../components/lgpd/PrivacidadeMeusDados';
+import NiveisConfigSection from '../components/NiveisConfigSection';
 
 
 const LISTA_PAISES = [
@@ -169,6 +173,7 @@ const Configuracoes = () => {
 
   const tabs = [
     { id: 'perfil', label: 'Meu Perfil & Contato', icon: User },
+    { id: 'niveis', label: 'Modo & Nível de Uso', icon: Compass },
     { id: 'categorias', label: 'Categorias & Metas', icon: Layers },
     { id: 'seguranca', label: 'Segurança da Conta', icon: Shield }
   ];
@@ -515,7 +520,12 @@ const Configuracoes = () => {
         </div>
       )}
 
-      {/* ABA 2: CATEGORIAS & METAS (Com Layout Agrupado, Ações no Topo e Alta Densidade) */}
+      {/* ABA 2: MODO & NÍVEL DE USO */}
+      {activeTab === 'niveis' && (
+        <NiveisConfigSection />
+      )}
+
+      {/* ABA 3: CATEGORIAS & METAS (Com Layout Agrupado, Ações no Topo e Alta Densidade) */}
       {activeTab === 'categorias' && (
         <GerenciarCategorias setLoading={setLoading} setMessage={setMessage} />
       )}
@@ -585,6 +595,8 @@ const Configuracoes = () => {
               </button>
             </form>
           </div>
+
+          <PrivacidadeMeusDados />
 
           {/* ZONA DE PERIGO: EXCLUSÃO PERMANENTE DE CONTA */}
           <div className="bg-custom-card border-2 border-red-500/40 rounded-2xl p-6 shadow-custom transition-colors">

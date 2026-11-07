@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const db = require('../utils/database');
+const { registrar: registrarAuditoria } = require('../utils/audit');
 
 const obterPerfil = async (req, res) => {
   try {
@@ -69,6 +71,11 @@ const atualizarPerfil = async (req, res) => {
       const telFinal = String(telefone || whatsapp || '').trim();
       usuario.telefone = telFinal;
       usuario.whatsapp = telFinal;
+    }
+
+    // Atualiza nível de experiência do sistema (iniciante, facil, intermediario, avancado)
+    if (req.body.nivelExperiencia !== undefined) {
+      usuario.nivelExperiencia = String(req.body.nivelExperiencia).trim();
     }
 
     await db.atualizarUsuario(usuario);
@@ -382,6 +389,11 @@ const excluirConta = async (req, res) => {
     }
 
     const ok = await db.deletarUsuario(userId);
+    if (ok) {
+      await registrarAuditoria(req, 'lgpd:conta_excluida', {
+        alvoId: 'excluido:' + crypto.createHash('sha256').update(String(userId)).digest('hex').slice(0, 16)
+      });
+    }
     if (!ok) {
       return res.status(500).json({
         success: false,

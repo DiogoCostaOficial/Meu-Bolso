@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useLevel } from '../contexts/LevelContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   Trash2,
   Edit2,
@@ -29,6 +31,7 @@ import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import CurrencySelector from '../components/CurrencySelector';
+import FieldHelpTooltip from '../components/FieldHelpTooltip';
 
 // Categorias padrão com cores e metas iniciais (Princípio 50-20-20-0-10)
 const categoriasDefault = [
@@ -102,7 +105,10 @@ const mesesDoAno = [
 ];
 
 const Despesas = () => {
+  const { currentLevel } = useLevel();
+  const isIniciante = currentLevel === 'iniciante';
   const { showLesson } = useEdu();
+  const { t } = useLanguage();
   const { formatCurrency: formatarMoeda } = useCurrency();
   const [despesas, setDespesas] = useState([]);
   const [cartoes, setCartoes] = useState([]);
@@ -229,7 +235,10 @@ const Despesas = () => {
       const despesasData = userData.despesas || [];
 
       if (Array.isArray(userData.cartoes)) {
-        setCartoes(userData.cartoes);
+        setCartoes(userData.cartoes.map(c => ({
+          ...c,
+          diaVencimento: c.diaVencimento ?? c.valores?._diaVencimento ?? ''
+        })));
       }
 
       // Garante que todas as despesas carregadas tenham statusPagamento, observacoes, dataVencimento, dataCompra, dataLancamento e cartao
@@ -278,6 +287,27 @@ const Despesas = () => {
     lastSaved
   } = useDebouncedSave(salvarDespesas, 1000); // Aguarda 1 segundo antes de salvar
 
+  // Calcula automaticamente a Data de Vencimento (YYYY-MM-DD) a partir do Dia de Vencimento configurado no cartão
+  const calcularDataVencimentoPorCartao = (nomeCartao, dataReferenciaStr) => {
+    if (!nomeCartao) return '';
+    const cartaoObj = cartoes.find(c => c.nome === nomeCartao || c.id === nomeCartao);
+    if (!cartaoObj) return '';
+    const diaVenc = parseInt(cartaoObj.diaVencimento ?? cartaoObj.valores?._diaVencimento, 10);
+    if (!diaVenc || isNaN(diaVenc) || diaVenc < 1 || diaVenc > 31) return '';
+
+    const refStr = dataReferenciaStr || new Date().toISOString().split('T')[0];
+    const partes = refStr.split('T')[0].split('-');
+    let ano = parseInt(partes[0], 10) || new Date().getFullYear();
+    let mes = (parseInt(partes[1], 10) || (new Date().getMonth() + 1)) + 1; // Fatura do mês seguinte (Regra A1)
+    if (mes > 12) {
+      mes = 1;
+      ano += 1;
+    }
+    const ultimoDiaMes = new Date(ano, mes, 0).getDate();
+    const diaFinal = Math.min(diaVenc, ultimoDiaMes);
+    return `${ano}-${String(mes).padStart(2, '0')}-${String(diaFinal).padStart(2, '0')}`;
+  };
+
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setFormulario(prev => {
@@ -297,6 +327,18 @@ const Despesas = () => {
         const availableSubs = getAvailableSubcategories(value);
         newState.subcategoria =
           availableSubs.length > 0 ? availableSubs[0] : '';
+      }
+      // Quando o usuário seleciona um cartão (ou altera a data com cartão selecionado), preenche automaticamente Data de Vencimento (opcional)
+      if (name === 'cartao') {
+        const dataVencAuto = calcularDataVencimentoPorCartao(value, newState.dataCompra || newState.data);
+        if (dataVencAuto) {
+          newState.dataVencimento = dataVencAuto;
+        }
+      } else if ((name === 'data' || name === 'dataCompra') && newState.cartao) {
+        const dataVencAuto = calcularDataVencimentoPorCartao(newState.cartao, newState.dataCompra || newState.data);
+        if (dataVencAuto) {
+          newState.dataVencimento = dataVencAuto;
+        }
       }
       return newState;
     });
@@ -485,6 +527,12 @@ const Despesas = () => {
         const availableSubs = getAvailableSubcategories(value);
         newState.subcategoria =
           availableSubs.length > 0 ? availableSubs[0] : '';
+      }
+      if (name === 'cartao') {
+        const dataVencAuto = calcularDataVencimentoPorCartao(value, newState.dataCompra || newState.dataLancamento);
+        if (dataVencAuto) {
+          newState.dataVencimento = dataVencAuto;
+        }
       }
       return newState;
     });
@@ -932,8 +980,12 @@ const Despesas = () => {
       {/* Header — mobile-first */}
       <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-start">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Despesas</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">Gerencie seus gastos e mantenha sua saúde financeira em dia.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            {isIniciante ? 'Saiu (Despesas)' : 'Despesas'}
+          </h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">
+            {isIniciante ? 'Registre aqui todo dinheiro que saiu do seu bolso.' : 'Gerencie seus gastos e mantenha sua saúde financeira em dia.'}
+          </p>
         </div>
         <div className="flex items-start gap-3 flex-wrap">
           <CurrencySelector />
@@ -1018,8 +1070,13 @@ const Despesas = () => {
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="dataLancamento" className="block text-sm font-medium text-gray-700 mb-2">
-                      Data da Despesa
+                    <label htmlFor="dataLancamento" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center">
+                      <span>Data despesa (sistema)</span>
+                      <FieldHelpTooltip
+                        text="Informe a data de lançamento da despesa no sistema. Esta é a data principal utilizada para contabilizar o gasto no mês correspondente do seu Orçamento e Relatórios."
+                        example="*Exemplo: Você está lançando hoje (05/11) uma despesa no sistema. Se a compra também aconteceu hoje, basta manter esta data preenchida."
+                        note="**OBS: Caso a compra tenha sido feita em uma data anterior ao lançamento de hoje, informe o dia exato da compra no campo 'Data compra retroativo (opcional)'."
+                      />
                     </label>
                     <input
                       type="date"
@@ -1032,25 +1089,40 @@ const Despesas = () => {
                       required
                     />
                   </div>
-                  {/* NOVO: Campo para Data de Vencimento */}
+                  {/* Campo para Cartão (opcional) — posicionado antes para preencher automaticamente o Vencimento */}
                   <div>
-                    <label htmlFor="dataVencimento" className="block text-sm font-medium text-gray-700 mb-2">
-                      Data de Vencimento (opcional)
+                    <label htmlFor="cartao" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-custom-gold" />
+                      Cartão (opcional)
                     </label>
-                    <input
-                      type="date"
-                      id="dataVencimento"
-                      name="dataVencimento"
-                      value={formulario.dataVencimento}
+                    <select
+                      id="cartao"
+                      name="cartao"
+                      value={formulario.cartao || ''}
                       onChange={handleChange}
-                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800 cursor-pointer"
                       style={{ fontSize: '16px' }}
-                    />
+                    >
+                      <option value="">Nenhum (Não vinculado)</option>
+                      {cartoes.map(c => {
+                        const diaV = c.diaVencimento || c.valores?._diaVencimento;
+                        return (
+                          <option key={c.id || c.nome} value={c.nome}>
+                            {c.nome}{diaV ? ` (Venc. dia ${String(diaV).padStart(2, '0')})` : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
                   </div>
-                  {/* NOVO: Campo para Data da Compra */}
+                  {/* NOVO: Campo para Data compra retroativo (opcional) */}
                   <div>
-                    <label htmlFor="dataCompra" className="block text-sm font-medium text-gray-700 mb-2">
-                      Data da Compra (opcional)
+                    <label htmlFor="dataCompra" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center">
+                      <span>Data compra retroativo (opcional)</span>
+                      <FieldHelpTooltip
+                        text="Utilize este campo para informar de forma retroativa quando foi realizada uma compra cujo lançamento no sistema está sendo feito em outra data. Assim você preserva a data exata da compra."
+                        example="*Exemplo: Posso lançar um título de despesa no dia de hoje, 05/11 (lançamento no sistema), porém a data em que comprei o item foi no dia 01/11. Preencha 01/11 neste campo de forma retroativa."
+                        note="**OBS: Se o lançamento no sistema está sendo feito no mesmo dia da compra, deixe este campo em branco."
+                      />
                     </label>
                     <input
                       type="date"
@@ -1119,26 +1191,20 @@ const Despesas = () => {
                       <option value="pago">Pago</option>
                     </select>
                   </div>
+                  {/* Campo para Data de Vencimento (preenchido automaticamente pelo Cartão ou informado para outros débitos) */}
                   <div>
-                    <label htmlFor="cartao" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-                      <CreditCard className="w-4 h-4 text-custom-gold" />
-                      Cartão (opcional)
+                    <label htmlFor="dataVencimento" className="block text-sm font-medium text-gray-700 mb-2">
+                      Data de Vencimento (opcional)
                     </label>
-                    <select
-                      id="cartao"
-                      name="cartao"
-                      value={formulario.cartao || ''}
+                    <input
+                      type="date"
+                      id="dataVencimento"
+                      name="dataVencimento"
+                      value={formulario.dataVencimento}
                       onChange={handleChange}
-                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800 cursor-pointer"
+                      className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800"
                       style={{ fontSize: '16px' }}
-                    >
-                      <option value="">Nenhum (Não vinculado)</option>
-                      {cartoes.map(c => (
-                        <option key={c.id || c.nome} value={c.nome}>
-                          {c.nome}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 </div>
                 <div>
@@ -1319,10 +1385,10 @@ const Despesas = () => {
                   onChange={e => setFiltroMes(e.target.value)}
                   className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
-                  <option value="" className="dark:bg-slate-900">Selecione o mês</option>
+                  <option value="" className="dark:bg-slate-900">{t('Selecione o mês')}</option>
                   {mesesDoAno.map(mes => (
                     <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">
-                      {mes.nome}
+                      {t(mes.nome)}
                     </option>
                   ))}
                 </select>
@@ -1338,7 +1404,7 @@ const Despesas = () => {
                   onChange={e => setFiltroAno(e.target.value)}
                   className="w-full px-4 py-2.5 bg-transparent border border-custom-color text-custom-main rounded-custom focus:ring-2 focus:ring-amber-500/50 focus:outline-none dark:bg-slate-900"
                 >
-                  <option value="" className="dark:bg-slate-900">Todos os Anos</option>
+                  <option value="" className="dark:bg-slate-900">{t('Todos os Anos')}</option>
                   {gerarListaAnos().map(ano => (
                     <option key={ano} value={ano} className="dark:bg-slate-900">
                       {ano}
@@ -1433,7 +1499,7 @@ const Despesas = () => {
       </div>
 
       {/* Cards de Resumo de Despesas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-no-translate="true">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-red-50 dark:bg-red-950/20 rounded-xl shadow-lg p-6 border border-red-200 dark:border-red-900/30">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-600 dark:text-slate-400">Total de Despesas</h3>
@@ -1777,7 +1843,7 @@ const Despesas = () => {
                               />
                               {/* Campo de Data de Lançamento na Edição Inline */}
                               <div className="flex flex-col gap-1">
-                                <label className="text-[10px] text-gray-500 font-medium">Data da Despesa:</label>
+                                <label className="text-[10px] text-gray-500 font-medium">Data despesa (sistema):</label>
                                 <input
                                   type="date"
                                   name="dataLancamento"
@@ -1794,9 +1860,9 @@ const Despesas = () => {
                                 onChange={handleInlineChange}
                                 className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs"
                               />
-                              {/* Campo de Data da Compra na Edição Inline */}
+                              {/* Campo de Data compra retroativo na Edição Inline */}
                               <div className="flex flex-col gap-1">
-                                <label className="text-[10px] text-gray-500 font-medium">Data da Compra:</label>
+                                <label className="text-[10px] text-gray-500 font-medium">Data compra retroativo:</label>
                                 <input
                                   type="date"
                                   name="dataCompra"

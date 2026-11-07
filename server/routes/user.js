@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const lgpdController = require('../controllers/lgpdController');
 const { verificarToken } = require('../middleware/auth');
 const { generateManualVideoWithGemini, listExistingManualVideos } = require('../utils/geminiVideoGenerator');
 const { synthesizeFullNarrationMp3 } = require('../utils/finChildTts');
@@ -29,6 +30,12 @@ router.put('/perfil', verificarToken, userController.atualizarPerfil);
 router.delete('/conta', verificarToken, userController.excluirConta);
 router.delete('/perfil', verificarToken, userController.excluirConta);
 router.post('/upload-avatar', verificarToken, upload.single('avatar'), userController.uploadAvatar);
+// LGPD: direitos do titular (art. 18)
+router.get('/lgpd/status', verificarToken, lgpdController.status);
+router.post('/lgpd/aceite', verificarToken, lgpdController.aceitarTermos);
+router.post('/lgpd/consentimento', verificarToken, lgpdController.definirConsentimento);
+router.get('/lgpd/meus-dados', verificarToken, lgpdController.exportarMeusDados);
+
 router.get('/dados', verificarToken, userController.obterDados);
 router.post('/dados', verificarToken, userController.salvarDados);
 

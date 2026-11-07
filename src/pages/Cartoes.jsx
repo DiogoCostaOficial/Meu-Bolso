@@ -5,12 +5,15 @@ import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useEdu } from '../contexts/EduContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import CurrencySelector from '../components/CurrencySelector';
+import FieldHelpTooltip from '../components/FieldHelpTooltip';
 
 const Cartoes = () => {
     const { userData, updateUserData } = useAuth();
     const { formatCurrency } = useCurrency();
     const { showLesson } = useEdu();
+    const { t } = useLanguage();
     const [cartoes, setCartoes] = useState([]);
     const [despesas, setDespesas] = useState([]);
     const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
@@ -42,8 +45,10 @@ const Cartoes = () => {
                 const cartoesFormatados = data.cartoes.map(c => {
                     const valores = c.valores || {};
                     const overrides = valores._manualOverrides || c.manualOverrides || {};
+                    const diaVenc = c.diaVencimento ?? valores._diaVencimento ?? '';
                     return {
                         ...c,
+                        diaVencimento: diaVenc !== null && diaVenc !== undefined ? diaVenc : '',
                         valores,
                         manualOverrides: overrides
                     };
@@ -70,7 +75,7 @@ const Cartoes = () => {
         try {
             setSalvando(true);
 
-            // Sincronizar cartões com valores efetivos e guardar manual overrides
+            // Sincronizar cartões com valores efetivos e guardar manual overrides e diaVencimento
             const cartoesAtualizados = cartoes.map(c => {
                 const cardId = c.id || crypto.randomUUID();
                 const novosValores = { ...(c.valores || {}) };
@@ -79,10 +84,13 @@ const Cartoes = () => {
                     novosValores[chave] = getValorEfetivo(c, idx);
                 });
                 novosValores._manualOverrides = c.manualOverrides || {};
+                const diaVencNum = c.diaVencimento ? Math.min(31, Math.max(1, parseInt(c.diaVencimento, 10))) : null;
+                novosValores._diaVencimento = diaVencNum;
 
                 return {
                     ...c,
                     id: cardId,
+                    diaVencimento: diaVencNum || '',
                     valores: novosValores
                 };
             });
@@ -102,11 +110,12 @@ const Cartoes = () => {
         const novoCartao = {
             id: crypto.randomUUID(),
             nome: 'Novo Cartão',
+            diaVencimento: '',
             valores: {},
             manualOverrides: {}
         };
         setCartoes([...cartoes, novoCartao]);
-        toast.info('Novo cartão adicionado. Digite o nome e clique em "Salvar Alterações" para gravar.');
+        toast.info('Novo cartão adicionado. Informe o nome, o dia de vencimento e clique em "Salvar Alterações".');
     };
 
     const removerCartao = async (id) => {
@@ -138,10 +147,13 @@ const Cartoes = () => {
                     novosValores[chave] = getValorEfetivo(c, idx);
                 });
                 novosValores._manualOverrides = c.manualOverrides || {};
+                const diaVencNum = c.diaVencimento ? Math.min(31, Math.max(1, parseInt(c.diaVencimento, 10))) : null;
+                novosValores._diaVencimento = diaVencNum;
 
                 return {
                     ...c,
                     id: cardId,
+                    diaVencimento: diaVencNum || '',
                     valores: novosValores
                 };
             });
@@ -161,6 +173,13 @@ const Cartoes = () => {
     const atualizarNomeCartao = (id, novoNome) => {
         setCartoes(cartoes.map(c =>
             c.id === id ? { ...c, nome: novoNome } : c
+        ));
+    };
+
+    const atualizarDiaVencimentoCartao = (id, novoDia) => {
+        const limpo = novoDia === '' ? '' : Math.min(31, Math.max(1, parseInt(novoDia, 10) || 1));
+        setCartoes(cartoes.map(c =>
+            c.id === id ? { ...c, diaVencimento: limpo } : c
         ));
     };
 
@@ -391,7 +410,7 @@ const Cartoes = () => {
                                 </th>
                                 {meses.map(mes => (
                                     <th key={mes} className="px-2 py-3 text-center text-sm font-bold text-custom-main min-w-[100px]">
-                                        {mes.toUpperCase()}
+                                        {t(mes).toUpperCase()}
                                     </th>
                                 ))}
                                 <th className="px-4 py-3 text-right text-sm font-bold text-custom-main min-w-[120px] bg-custom-primary/40 dark:bg-slate-800/60">
@@ -404,13 +423,33 @@ const Cartoes = () => {
                             {cartoes.map((cartao) => (
                                 <tr key={cartao.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition group text-custom-main">
                                     <td className="px-4 py-2 sticky left-0 bg-custom-card dark:bg-slate-900 group-hover:bg-custom-primary/20 dark:group-hover:bg-slate-800/40 z-10 shadow-sm border-r border-custom-color align-top">
-                                        <input
-                                            type="text"
-                                            value={cartao.nome}
-                                            onChange={(e) => atualizarNomeCartao(cartao.id, e.target.value)}
-                                            className="w-full px-2 py-1 border border-transparent hover:border-custom-color focus:border-blue-500 rounded font-medium text-custom-main bg-transparent focus:bg-custom-card focus:outline-none transition-colors"
-                                            placeholder="Nome do Cartão"
-                                        />
+                                        <div className="space-y-1.5">
+                                            <input
+                                                type="text"
+                                                value={cartao.nome}
+                                                onChange={(e) => atualizarNomeCartao(cartao.id, e.target.value)}
+                                                className="w-full px-2 py-1 border border-transparent hover:border-custom-color focus:border-blue-500 rounded font-medium text-custom-main bg-transparent focus:bg-custom-card focus:outline-none transition-colors"
+                                                placeholder="Nome do Cartão"
+                                            />
+                                            <div className="flex items-center gap-1.5 px-2 text-xs text-custom-main/80">
+                                                <Calendar className="w-3.5 h-3.5 text-custom-gold flex-shrink-0" />
+                                                <span className="whitespace-nowrap text-[11px] opacity-80">Vencimento (Dia):</span>
+                                                <FieldHelpTooltip fieldLabel="Vencimento (Dia)" />
+                                                <select
+                                                    value={cartao.diaVencimento || ''}
+                                                    onChange={(e) => atualizarDiaVencimentoCartao(cartao.id, e.target.value)}
+                                                    className="px-1.5 py-0.5 rounded border border-custom-color bg-custom-card dark:bg-slate-800 text-custom-main text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                                                    title="Dia de vencimento da fatura deste cartão (preenche automaticamente a Data de Vencimento ao lançar uma despesa)"
+                                                >
+                                                    <option value="">Sem dia fixo</option>
+                                                    {Array.from({ length: 31 }, (_, i) => i + 1).map((dia) => (
+                                                        <option key={dia} value={dia}>
+                                                            Dia {String(dia).padStart(2, '0')}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
                                     </td>
                                     {meses.map((_, index) => {
                                         const chaveMes = `${anoSelecionado}-${mesesChaves[index]}`;
@@ -512,7 +551,7 @@ const Cartoes = () => {
                                         {modalDetalhes.cartao.nome}
                                     </h3>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        Fatura de {meses[modalDetalhes.mesIndex]} de {anoSelecionado}
+                                        Fatura de {t(meses[modalDetalhes.mesIndex])} de {anoSelecionado}
                                     </p>
                                 </div>
                             </div>

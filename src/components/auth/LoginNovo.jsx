@@ -18,6 +18,7 @@ import LanguageSelector from '../LanguageSelector';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
+import AceiteTermos from '../lgpd/AceiteTermos';
 import { useLayoutVariant } from '../../contexts/LayoutVariantContext';
 
 const PRESENTATION_SLIDES = [
@@ -74,6 +75,7 @@ const LoginNovo = () => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [aceiteTermos, setAceiteTermos] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -340,12 +342,16 @@ const LoginNovo = () => {
                   Ou acesse rapidamente sem senha:
                 </p>
 
+                <AceiteTermos checked={aceiteTermos} onChange={setAceiteTermos} />
+                <p className="text-[11px] opacity-60">Marque acima ao criar conta pela primeira vez com o Google.</p>
+
                 <div className="flex flex-wrap items-center gap-3">
                   <GoogleLogin
                     onSuccess={async (credentialResponse) => {
                       try {
                         const result = await loginGoogle({
-                          token: credentialResponse.credential
+                          token: credentialResponse.credential,
+                          aceiteTermos
                         });
 
                         if (result.success) {

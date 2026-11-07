@@ -8,6 +8,7 @@ import { Toaster } from './components/ui/sonner';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { LayoutVariantProvider } from './contexts/LayoutVariantContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { LevelProvider } from './contexts/LevelContext';
 import AppNovo from './AppNovo';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
@@ -21,14 +22,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <LanguageProvider>
             <AuthProvider>
-              <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-                <CurrencyProvider>
-                  <LayoutVariantProvider>
-                    <AppNovo />
-                    <Toaster />
-                  </LayoutVariantProvider>
-                </CurrencyProvider>
-              </ThemeProvider>
+              <LevelProvider>
+                <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                  <CurrencyProvider>
+                    <LayoutVariantProvider>
+                      <AppNovo />
+                      <Toaster />
+                    </LayoutVariantProvider>
+                  </CurrencyProvider>
+                </ThemeProvider>
+              </LevelProvider>
             </AuthProvider>
           </LanguageProvider>
         </BrowserRouter>
@@ -36,4 +39,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </ErrorBoundary>
   </React.StrictMode>
 );
-

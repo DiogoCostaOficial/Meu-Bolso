@@ -5,10 +5,15 @@ import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useLevel } from '../contexts/LevelContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import CurrencySelector from '../components/CurrencySelector';
 
 const Receitas = () => {
+  const { currentLevel } = useLevel();
+  const isIniciante = currentLevel === 'iniciante';
   const { showLesson } = useEdu();
+  const { t } = useLanguage();
   const { formatCurrency: formatarMoeda } = useCurrency();
   const [receitas, setReceitas] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -400,8 +405,12 @@ const Receitas = () => {
       {/* Header — mobile-first */}
       <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-start">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Receitas</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">Gerencie suas entradas e acompanhe sua evolução financeira.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            {isIniciante ? 'Entrou (Receitas)' : 'Receitas'}
+          </h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">
+            {isIniciante ? 'Registre aqui todo dinheiro que entrou no seu bolso.' : 'Gerencie suas entradas e acompanhe sua evolução financeira.'}
+          </p>
         </div>
         <div className="flex items-start gap-3 flex-wrap">
           <CurrencySelector />
@@ -649,9 +658,9 @@ const Receitas = () => {
                 value={filtros.mes}
                 onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}
               >
-                <option value="" className="dark:bg-slate-900">Selecione o mês</option>
+                <option value="" className="dark:bg-slate-900">{t('Selecione o mês')}</option>
                 {meses.map(mes => (
-                  <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">{mes.nome}</option>
+                  <option key={mes.valor} value={mes.valor} className="dark:bg-slate-900">{t(mes.nome)}</option>
                 ))}
               </select>
             </div>
@@ -662,7 +671,7 @@ const Receitas = () => {
                 value={filtros.ano}
                 onChange={(e) => setFiltros({ ...filtros, ano: e.target.value })}
               >
-                <option value="" className="dark:bg-slate-900">Todos os Anos</option>
+                <option value="" className="dark:bg-slate-900">{t('Todos os Anos')}</option>
                 {gerarListaAnos().map(ano => (
                   <option key={ano} value={ano} className="dark:bg-slate-900">{ano}</option>
                 ))}
@@ -701,7 +710,7 @@ const Receitas = () => {
       </div>
 
       {/* Cards de Resumo — 3 colunas compactas em mobile */}
-      <div className="grid grid-cols-3 gap-3" data-no-translate="true">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-green-50 dark:bg-green-900/20 rounded-xl shadow p-3 md:p-6 border border-green-200 dark:border-green-800">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-xs md:text-sm font-medium text-gray-600 dark:text-slate-400">Total</h3>

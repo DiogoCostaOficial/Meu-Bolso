@@ -1,9 +1,42 @@
-// server/controllers/authController.js
+﻿// server/controllers/authController.js
 const bcrypt = require('bcryptjs');
 const { gerarToken } = require('../utils/jwt');
 const { gerarSenhaAleatoria, hashSenha, compararSenha } = require('../utils/password');
 const { enviarCodigoOTP, enviarEmailBoasVindas } = require('../utils/email');
+const crypto = require('crypto');
 const db = require('../utils/database');
+const { registrar: registrarAuditoria } = require('../utils/audit');
+const { VERSAO_DOCUMENTOS, FINALIDADES } = require('../utils/lgpdConfig');
+
+// Senhas que já estiveram no código-fonte/histórico do Git: consideradas comprometidas.
+const SENHAS_COMPROMETIDAS = ['admin123', 'admin', 'xPrwGfdhUKnsny0+'];
+const senhaComprometida = (senha) => SENHAS_COMPROMETIDAS.includes(String(senha));
+const respostaSenhaComprometida = (res) => res.status(401).json({
+  success: false,
+  codigo: 'SENHA_COMPROMETIDA',
+  message: 'Esta senha foi exposta publicamente e não é mais aceita. Defina uma nova senha de administrador com "npm run reset-admin" (ADMIN_NEW_PASSWORD) no servidor.'
+});
+
+const gerarOtp = () => crypto.randomInt(100000, 1000000).toString();
+
+const registrarAceite = (usuarioId, req) =>
+  db.registrarConsentimento({
+    userId: usuarioId,
+    finalidade: FINALIDADES.TERMOS_POLITICA,
+    versao: VERSAO_DOCUMENTOS,
+    concedido: true,
+    ip: req.ip
+  });
+
+const exigirAceite = (req, res) => {
+  if (req.body && req.body.aceiteTermos === true) return true;
+  res.status(400).json({
+    success: false,
+    codigo: 'CONSENTIMENTO_OBRIGATORIO',
+    message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade para criar a conta.'
+  });
+  return false;
+};
 
 // Função para registrar atividades do admin
 const registrarAtividadeAdmin = (usuarioId, ip, tipo) => {
@@ -72,12 +105,7 @@ const registrar = async (req, res) => {
       });
     }
 
-    if (!whatsappLimpo) {
-      return res.status(400).json({
-        success: false,
-        message: 'O telefone de WhatsApp é obrigatório'
-      });
-    }
+    if (!exigirAceite(req, res)) return;
 
     if (senha.length < 6) {
       return res.status(400).json({
@@ -92,7 +120,7 @@ const registrar = async (req, res) => {
 
     // Cria hash da senha e gera OTP de 5 minutos
     const senhaHash = await hashSenha(senha);
-    const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCodigo = gerarOtp();
     const otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutos
 
     if (usuarioExistente) {
@@ -120,6 +148,7 @@ const registrar = async (req, res) => {
           message: 'Não foi possível atualizar o cadastro pendente no banco de dados.'
         });
       }
+      await registrarAceite(usuarioExistente.id, req);
 
       const emailRes = await enviarCodigoOTP(emailNorm, nomeLimpo, otpCodigo);
       const isDevSimulado = emailRes?.simulado && process.env.NODE_ENV !== 'production';
@@ -159,6 +188,7 @@ const registrar = async (req, res) => {
         message: 'Erro ao salvar cadastro no banco de dados. Tente novamente.'
       });
     }
+    await registrarAceite(novoUsuario.id, req);
 
     // Envia OTP
     const emailRes = await enviarCodigoOTP(emailNorm, nomeLimpo, otpCodigo);
@@ -189,42 +219,27 @@ const login = async (req, res) => {
     if (username) {
       const usuarios = await db.getUsuarios();
       // O admin pode tentar logar usando o username 'admin' ou o email 'admin@admin.com'
-      let usuarioAdmin = usuarios.find(u => u.tipo === 'admin' && (u.email === username || u.nome === username || username === 'admin'));
+      const usuarioAdmin = usuarios.find(u => u.tipo === 'admin' && (u.email === username || u.nome === username || username === 'admin'));
 
-      // Fallback para homologação caso o banco esteja vazio ou inacessível
-      if (!usuarioAdmin && (username === 'admin' || username === 'admin@admin.com')) {
-        usuarioAdmin = {
-          id: 'admin-fallback-id',
-          nome: 'Administrador Homologação',
-          email: 'admin@admin.com',
-          tipo: 'admin',
-          senha: await bcrypt.hash('admin123', 10),
-          primeiroAcesso: false
-        };
+      // Mensagem única para não revelar se o administrador existe
+      const credenciaisInvalidas = () => res.status(401).json({
+        success: false,
+        message: 'Usuário ou senha inválidos'
+      });
+
+      if (!usuarioAdmin || !senha) {
+        await registrarAuditoria(req, 'auth:login_admin_falha', { atorId: null, detalhes: { motivo: 'credenciais' } });
+        return credenciaisInvalidas();
       }
 
-      if (!usuarioAdmin) {
-        return res.status(401).json({
-          success: false,
-          message: 'Administrador não encontrado no sistema'
-        });
-      }
-
-      // Valida a senha usando bcrypt
       const senhaValida = await compararSenha(senha, usuarioAdmin.senha);
-
-      // Se a senha do banco for diferente da digitada, E também não for a nova senha nem a anterior
-      if (!senhaValida && !(username === 'admin' && (senha === 'admin123' || senha === 'xPrwGfdhUKnsny0+'))) {
-        return res.status(401).json({
-          success: false,
-          message: 'Usuário ou senha inválidos'
-        });
+      if (senhaValida && senhaComprometida(senha)) {
+        await registrarAuditoria(req, 'auth:login_admin_senha_comprometida', { atorId: usuarioAdmin.id, atorTipo: 'admin' });
+        return respostaSenhaComprometida(res);
       }
-
-      // Se logou com admin123, sincroniza a senha no banco e garante primeiroAcesso = false
-      if (senha === 'admin123') {
-        usuarioAdmin.senha = await hashSenha('admin123');
-        usuarioAdmin.primeiroAcesso = false;
+      if (!senhaValida) {
+        await registrarAuditoria(req, 'auth:login_admin_falha', { atorId: usuarioAdmin.id, atorTipo: 'admin' });
+        return credenciaisInvalidas();
       }
 
       // Atualiza último acesso
@@ -289,7 +304,7 @@ const login = async (req, res) => {
 
     // Bloqueia se não verificado (exceto admin) e envia novo OTP de 5 minutos
     if (!usuario.verificado && usuario.tipo !== 'admin') {
-      const novoOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      const novoOtp = gerarOtp();
       usuario.otpCodigo = novoOtp;
       usuario.otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString();
       await db.atualizarUsuario(usuario);
@@ -304,12 +319,8 @@ const login = async (req, res) => {
     // Valida senha
     let senhaValida = await compararSenha(senha, usuario.senha);
 
-    // Se for o admin e a senha for admin123, sincroniza no banco e desativa primeiro acesso
-    if (!senhaValida && usuario.tipo === 'admin' && (senha === 'admin123' || senha === 'xPrwGfdhUKnsny0+')) {
-      usuario.senha = await hashSenha('admin123');
-      usuario.primeiroAcesso = false;
-      await db.atualizarUsuario(usuario);
-      senhaValida = true;
+    if (senhaValida && usuario.tipo === 'admin' && senhaComprometida(senha)) {
+      return respostaSenhaComprometida(res);
     }
 
     if (!senhaValida) {
@@ -437,7 +448,7 @@ const reenviarOTP = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
     }
 
-    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const codigo = gerarOtp();
     usuario.otpCodigo = codigo;
     usuario.otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutos
     await db.atualizarUsuario(usuario);
@@ -471,7 +482,7 @@ const outlookLoginOTP = async (req, res) => {
     const usuarios = await db.getUsuarios();
     let usuario = usuarios.find(u => normalizarEmail(u.email) === emailNorm);
 
-    const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCodigo = gerarOtp();
     const otpExpira = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutos
 
     if (usuario) {
@@ -492,8 +503,9 @@ const outlookLoginOTP = async (req, res) => {
         });
       }
     } else {
+      if (!exigirAceite(req, res)) return;
       const nomePadrao = String(nome || '').trim() || emailNorm.split('@')[0];
-      const senhaAleatoria = await hashSenha(Math.random().toString(36).slice(-10) + Date.now());
+      const senhaAleatoria = await hashSenha(crypto.randomBytes(32).toString('hex'));
 
       usuario = {
         id: `user-${Date.now()}`,
@@ -517,6 +529,7 @@ const outlookLoginOTP = async (req, res) => {
           message: 'Erro ao criar conta rápida no banco de dados.'
         });
       }
+      await registrarAceite(usuario.id, req);
     }
 
     const emailRes = await enviarCodigoOTP(emailNorm, usuario.nome, otpCodigo);
@@ -567,17 +580,7 @@ const alterarSenha = async (req, res) => {
       });
     }
 
-    // Verificação especial para admin com senha padrão
-    const ehAdminComSenhaPadrao = usuario.email === 'admin@admin.com' && senhaAtual === 'admin';
-
-    let senhaValida = false;
-
-    if (ehAdminComSenhaPadrao) {
-      senhaValida = true; // Permite alteração da senha padrão do admin
-    } else {
-      // Valida senha atual normalmente
-      senhaValida = await compararSenha(senhaAtual, usuario.senha);
-    }
+    const senhaValida = await compararSenha(senhaAtual, usuario.senha);
 
     if (!senhaValida) {
       return res.status(401).json({
@@ -636,7 +639,7 @@ const solicitarRecuperacaoSenha = async (req, res) => {
     }
 
     // Gera código OTP
-    const otpCodigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCodigo = gerarOtp();
     const otpExpira = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutos
 
     // Atualiza usuário com OTP
@@ -645,7 +648,6 @@ const solicitarRecuperacaoSenha = async (req, res) => {
     await db.atualizarUsuario(usuario);
 
     // Envia e-mail
-    console.log(`🔑 RECUPERAÇÃO DE SENHA - CÓDIGO OTP: ${otpCodigo} para ${usuario.email}`);
     await enviarCodigoOTP(usuario.email, usuario.nome, otpCodigo);
 
     res.json({
@@ -785,12 +787,13 @@ const googleLogin = async (req, res) => {
         await db.atualizarUsuario(usuario);
       }
     } else {
+      if (!exigirAceite(req, res)) return;
       // Usuário novo: Cria conta automaticamente
       const novoUsuario = {
         id: `user-${Date.now()}`,
         nome: nome || email.split('@')[0],
         email,
-        senha: await hashSenha(Math.random().toString(36).slice(-8)), // Senha aleatória segura
+        senha: await hashSenha(crypto.randomBytes(32).toString('hex')), // Senha aleatória segura
         tipo: 'usuario',
         ativo: true,
         primeiroAcesso: false, // Não precisa trocar senha pois usa Google
@@ -802,6 +805,7 @@ const googleLogin = async (req, res) => {
       };
 
       await db.adicionarUsuario(novoUsuario);
+      await registrarAceite(novoUsuario.id, req);
       usuario = novoUsuario;
     }
 

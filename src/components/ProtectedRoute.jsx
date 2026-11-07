@@ -3,8 +3,8 @@ import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LayoutNovo from './LayoutNovo';
-
 import { EduProvider } from '../contexts/EduContext';
+import NivelExperienciaGate from './NivelExperienciaGate';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -39,7 +39,11 @@ const ProtectedRoute = ({ children }) => {
   const content = children ? children : <Outlet />;
   return (
     <EduProvider>
-      <LayoutNovo>{content}</LayoutNovo>
+      <LayoutNovo>
+        <NivelExperienciaGate>
+          {content}
+        </NivelExperienciaGate>
+      </LayoutNovo>
     </EduProvider>
   );
 };

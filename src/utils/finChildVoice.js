@@ -74,9 +74,9 @@ function splitIntoShortClauses(text = '', maxLen = 115) {
 }
 
 /**
- * Escolhe a voz mais natural/jovem disponível no navegador (caso use fallback offline).
+ * Escolhe a voz mais natural disponível no navegador para o perfil escolhido (homem, mulher ou crianca).
  */
-function pickBestChildFallbackVoice(targetLocale = 'pt-BR') {
+function pickBestFallbackVoice(targetLocale = 'pt-BR', voiceType = 'homem') {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices() || [];
   const langPrefix = targetLocale.split('-')[0].toLowerCase();
@@ -86,15 +86,46 @@ function pickBestChildFallbackVoice(targetLocale = 'pt-BR') {
   );
   if (matchingLang.length === 0) return null;
 
-  // Priorizar vozes "Natural" / "Online" / "Google" / femininas jovens (que com pitch infantil soam como menino de 10 anos)
   const scored = matchingLang.map((v) => {
     const name = (v.name || '').toLowerCase();
     let score = 0;
-    if (name.includes('natural') || name.includes('online')) score += 50;
-    if (name.includes('thalita') || name.includes('francisca') || name.includes('giovanna') || name.includes('ana')) score += 40;
+    if (name.includes('natural') || name.includes('online')) score += 60;
     if (name.includes('google')) score += 35;
-    if (name.includes('luciana') || name.includes('vitória') || name.includes('vitoria')) score += 25;
-    if (name.includes('desktop')) score -= 20; // Evitar vozes SAPI5 robóticas antigas se houver opção melhor
+
+    if (voiceType === 'homem') {
+      if (
+        name.includes('antonio') ||
+        name.includes('daniel') ||
+        name.includes('donato') ||
+        name.includes('fabio') ||
+        name.includes('humberto') ||
+        name.includes('nicolau') ||
+        name.includes('valerio') ||
+        name.includes('christopher') ||
+        name.includes('guy') ||
+        name.includes('david') ||
+        name.includes('alvaro') ||
+        name.includes('jorge') ||
+        name.includes('male')
+      ) {
+        score += 80;
+      }
+    } else {
+      if (
+        name.includes('thalita') ||
+        name.includes('francisca') ||
+        name.includes('giovanna') ||
+        name.includes('leila') ||
+        name.includes('leticia') ||
+        name.includes('luciana') ||
+        name.includes('maria') ||
+        name.includes('female')
+      ) {
+        score += 50;
+      }
+    }
+
+    if (name.includes('desktop')) score -= 15;
     return { voice: v, score };
   });
 
@@ -116,10 +147,11 @@ export function stopFinChildVoice() {
 }
 
 /**
- * Reproduz a explicação completa do FIN com voz infantil (~10 anos) e ZERO cortes.
+ * Reproduz a explicação completa do FIN na voz escolhida (Homem, Mulher ou Criança) e ZERO cortes.
  * @param {Object} params
  * @param {string} params.text Texto completo a ser narrado
  * @param {string} params.language Idioma atual (pt-BR, en, es, etc.)
+ * @param {'homem'|'mulher'|'crianca'} [params.voiceType] Tipo de voz escolhido pelo usuário (padrão: 'homem')
  * @param {(pct: number) => void} [params.onProgress] Callback de progresso real (0 a 100)
  * @param {() => void} [params.onComplete] Callback disparado APENAS quando toda a fala terminar 100%
  * @param {() => void} [params.onError] Callback caso não seja possível reproduzir áudio
@@ -127,6 +159,7 @@ export function stopFinChildVoice() {
 export function speakWithFinChildVoice({
   text,
   language = 'pt-BR',
+  voiceType = getSavedFinVoiceType(),
   onProgress,
   onComplete,
   onError
@@ -180,7 +213,7 @@ export function speakWithFinChildVoice({
     }
 
     const targetLocale = SPEECH_LOCALE_BY_LANG[language] || 'pt-BR';
-    const bestVoice = pickBestChildFallbackVoice(targetLocale);
+    const bestVoice = pickBestFallbackVoice(targetLocale, voiceType);
     let idx = 0;
 
     const speakNextClause = () => {
@@ -195,9 +228,23 @@ export function speakWithFinChildVoice({
       const utter = new SpeechSynthesisUtterance(clauseText);
       utter.lang = targetLocale;
       if (bestVoice) utter.voice = bestVoice;
-      // Timbre de criança de ~10 anos (mais agudo e alegre)
-      utter.pitch = 1.38;
-      utter.rate = 1.08;
+
+      if (voiceType === 'crianca') {
+        utter.pitch = 1.38;
+        utter.rate = 1.08;
+      } else if (voiceType === 'mulher') {
+        utter.pitch = 1.06;
+        utter.rate = 1.02;
+      } else {
+        // Voz de Homem (grave, firme e didática)
+        const isAlreadyMaleVoice =
+          bestVoice &&
+          /antonio|daniel|donato|fabio|humberto|christopher|guy|david|alvaro|jorge|male/i.test(
+            bestVoice.name || ''
+          );
+        utter.pitch = isAlreadyMaleVoice ? 0.94 : 0.72;
+        utter.rate = 1.0;
+      }
 
       utter.onstart = () => {
         if (cancelled) return;
@@ -225,7 +272,23 @@ export function speakWithFinChildVoice({
     speakNextClause();
   };
 
-  // Reproduz a fila de chunks MP3 neurais com formantes de criança de ~10 anos
+  // Se o usuário escolheu "Homem" e o navegador possui uma voz masculina nativa (ex: Antonio/Daniel),
+  // prioriza a voz masculina real em cláusulas sequenciais sem cortes; caso contrário usa o motor Neural MP3 com ajuste acústico!
+  const targetLocaleCheck = SPEECH_LOCALE_BY_LANG[language] || 'pt-BR';
+  const candidateMaleVoice =
+    voiceType === 'homem' ? pickBestFallbackVoice(targetLocaleCheck, 'homem') : null;
+  const hasNativeMaleVoice =
+    candidateMaleVoice &&
+    /antonio|daniel|donato|fabio|humberto|christopher|guy|david|alvaro|jorge|male/i.test(
+      candidateMaleVoice.name || ''
+    );
+
+  if (voiceType === 'homem' && hasNativeMaleVoice) {
+    runBrowserFallback();
+    return controller;
+  }
+
+  // Reproduz a fila de chunks MP3 neurais com formantes ajustados para Homem, Mulher ou Criança
   const playNeuralAudioChunks = (audioChunks) => {
     if (cancelled) return;
     if (!Array.isArray(audioChunks) || audioChunks.length === 0) {
@@ -246,15 +309,37 @@ export function speakWithFinChildVoice({
       const audio = new Audio(audioChunks[chunkIdx]);
       currentAudio = audio;
 
-      // Ajuste acústico de formantes + pitch para soar como um menino animado de ~10 anos (estilo dublagem infantil)
-      try {
-        audio.preservesPitch = false;
-        audio.mozPreservesPitch = false;
-        audio.webkitPreservesPitch = false;
-      } catch {
-        // ignore
+      if (voiceType === 'crianca') {
+        // Timbre infantil (~10 anos): formantes mais agudos
+        try {
+          audio.preservesPitch = false;
+          audio.mozPreservesPitch = false;
+          audio.webkitPreservesPitch = false;
+        } catch {
+          // ignore
+        }
+        audio.playbackRate = 1.17;
+      } else if (voiceType === 'mulher') {
+        // Timbre feminino adulto natural
+        try {
+          audio.preservesPitch = true;
+          audio.mozPreservesPitch = true;
+          audio.webkitPreservesPitch = true;
+        } catch {
+          // ignore
+        }
+        audio.playbackRate = 1.03;
+      } else {
+        // Timbre masculino adulto (formantes mais graves)
+        try {
+          audio.preservesPitch = false;
+          audio.mozPreservesPitch = false;
+          audio.webkitPreservesPitch = false;
+        } catch {
+          // ignore
+        }
+        audio.playbackRate = 0.85;
       }
-      audio.playbackRate = 1.17;
 
       audio.ontimeupdate = () => {
         if (cancelled || !audio.duration || isNaN(audio.duration)) return;

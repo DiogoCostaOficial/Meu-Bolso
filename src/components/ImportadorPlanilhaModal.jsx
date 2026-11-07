@@ -33,6 +33,7 @@ const PALETA_CORES = [
 ];
 
 const SNAPSHOT_STORAGE_KEY = 'MB_ULTIMA_IMPORTACAO_SNAPSHOT';
+const SUBCATEGORIA_PADRAO = 'Outros';
 
 /**
  * Converte qualquer representação de data (número serial Excel, DD/MM/AAAA, YYYY-MM-DD, Date) para YYYY-MM-DD
@@ -1066,7 +1067,7 @@ const ImportadorPlanilhaModal = ({
           valor: parseFloat(item.valor) || 0,
           data: item.data,
           categoria: item.categoria,
-          subcategoria: item.subcategoria || '',
+          subcategoria: item.subcategoria || SUBCATEGORIA_PADRAO,
           observacoes: item.observacoes || '',
           statusPagamento: item.statusPagamento || 'pago',
           somarNoOrcamento: item.somarNoOrcamento !== false,
@@ -1118,6 +1119,21 @@ const ImportadorPlanilhaModal = ({
             cor: corEscolhida,
             subcategorias: []
           });
+        }
+      });
+
+      // 3.1 Garante a subcategoria padrão "Outros" nas categorias que receberam itens sem subcategoria
+      const catsComSubPadrao = new Set(
+        [...novasReceitas, ...novasDespesas]
+          .filter(t => t.subcategoria === SUBCATEGORIA_PADRAO)
+          .map(t => normalizarTexto(t.categoria))
+      );
+      categoriasAtuais.forEach(cat => {
+        if (!cat || typeof cat !== 'object') return;
+        if (!catsComSubPadrao.has(normalizarTexto(cat.nome))) return;
+        const subs = Array.isArray(cat.subcategorias) ? cat.subcategorias : [];
+        if (!subs.some(s => normalizarTexto(s) === normalizarTexto(SUBCATEGORIA_PADRAO))) {
+          cat.subcategorias = [...subs, SUBCATEGORIA_PADRAO];
         }
       });
 

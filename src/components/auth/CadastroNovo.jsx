@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import AceiteTermos from '../lgpd/AceiteTermos';
 import {
   User,
   Mail,
@@ -107,6 +108,7 @@ const CadastroNovo = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [aceiteTermos, setAceiteTermos] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -195,9 +197,7 @@ const CadastroNovo = () => {
     }
 
     const whatsappLimpo = formData.whatsapp.replace(/\D/g, '');
-    if (!formData.whatsapp.trim()) {
-      newErrors.whatsapp = 'Telefone de WhatsApp é obrigatório';
-    } else if (whatsappLimpo.length < 8) {
+    if (formData.whatsapp.trim() && whatsappLimpo.length < 8) {
       newErrors.whatsapp = 'Informe um WhatsApp com DDD válido';
     }
 
@@ -209,6 +209,10 @@ const CadastroNovo = () => {
 
     if (formData.senha !== formData.confirmarSenha) {
       newErrors.confirmarSenha = 'As senhas não coincidem';
+    }
+
+    if (!aceiteTermos) {
+      newErrors.aceite = 'Você precisa aceitar os Termos de Uso e a Política de Privacidade.';
     }
 
     setErrors(newErrors);
@@ -226,10 +230,11 @@ const CadastroNovo = () => {
     setApiError('');
 
     try {
-      const whatsappCompleto = `${formData.ddi} ${formData.whatsapp}`.trim();
+      const whatsappCompleto = formData.whatsapp.trim() ? `${formData.ddi} ${formData.whatsapp}`.trim() : '';
       const result = await register(formData.nome, formData.email, formData.senha, {
         pais: formData.pais,
-        whatsapp: whatsappCompleto
+        whatsapp: whatsappCompleto,
+        aceiteTermos
       });
 
       if (result.success) {
@@ -398,7 +403,7 @@ const CadastroNovo = () => {
                   htmlFor="whatsapp"
                   className="block text-[11px] font-bold uppercase tracking-wider text-custom-main opacity-70 mb-1.5"
                 >
-                  {t('WhatsApp com DDD')}*
+                  {t('WhatsApp com DDD')} (opcional)
                 </label>
                 <div className="relative flex rounded-xl custom-auth-input border border-custom-color focus-within:ring-2 focus-within:ring-custom-gold transition overflow-hidden">
                   <span className="inline-flex items-center px-3 bg-custom-primary/80 text-custom-gold text-xs font-bold border-r border-custom-color select-none">
@@ -498,6 +503,15 @@ const CadastroNovo = () => {
                 )}
               </div>
             </div>
+
+            <AceiteTermos
+              checked={aceiteTermos}
+              onChange={(v) => {
+                setAceiteTermos(v);
+                if (v && errors.aceite) setErrors((prev) => ({ ...prev, aceite: '' }));
+              }}
+              error={errors.aceite}
+            />
 
             <div className="pt-2">
               <button
