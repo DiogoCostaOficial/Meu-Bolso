@@ -54,14 +54,35 @@ const Cartoes = () => {
                     };
                 });
                 setCartoes(cartoesFormatados);
+
+                if (Array.isArray(data.despesas)) {
+                    let precisouAjustar = false;
+                    const despesasSanitizadas = data.despesas.map(d => {
+                        const cNome = d.cartao || '';
+                        const cId = d.cartaoId || d.cartao_id || '';
+                        const cardObj = cartoesFormatados.find(c => (cId && c.id === cId) || (cNome && c.nome === cNome));
+                        const temDiaFixo = Boolean(cardObj && (cardObj.diaVencimento || cardObj.valores?._diaVencimento));
+                        if (cardObj && !temDiaFixo && d.dataLancamento && d.dataLancamento !== d.data) {
+                            precisouAjustar = true;
+                            return {
+                                ...d,
+                                data: d.dataLancamento,
+                                mesFatura: d.dataLancamento.slice(0, 7),
+                                dataVencimento: ''
+                            };
+                        }
+                        return d;
+                    });
+                    setDespesas(despesasSanitizadas);
+                    if (precisouAjustar) {
+                        api.post('/user/dados', { despesas: despesasSanitizadas }).catch(() => {});
+                    }
+                } else {
+                    setDespesas([]);
+                }
             } else {
                 setCartoes([]);
-            }
-
-            if (Array.isArray(data.despesas)) {
-                setDespesas(data.despesas);
-            } else {
-                setDespesas([]);
+                setDespesas(Array.isArray(data.despesas) ? data.despesas : []);
             }
         } catch (error) {
             console.error('Erro ao carregar cartões e despesas:', error);
@@ -196,7 +217,17 @@ const Cartoes = () => {
     };
 
     // Helper para obter o mês da fatura (formato AAAA-MM)
-    const getMesFatura = (despesa) => {
+    const getMesFatura = (despesa, cartao) => {
+        const cartaoAlvo = cartao || cartoes.find(c => isCartaoMatch(despesa, c));
+        const temDiaFixo = Boolean(cartaoAlvo && (cartaoAlvo.diaVencimento || cartaoAlvo.valores?._diaVencimento));
+
+        // Regra para cartão/forma "Sem dia fixo" (ex: PIX, Débito, Ticket):
+        // Deve SEMPRE assumir a data de lançamento do sistema (data da despesa), sem jogar para o próximo mês
+        if (!temDiaFixo) {
+            const dataRef = despesa.dataLancamento || despesa.dataCompra || despesa.data;
+            return dataRef ? dataRef.slice(0, 7) : '';
+        }
+
         if (despesa.mesFatura) return despesa.mesFatura;
         if (despesa.dataVencimento) return despesa.dataVencimento.slice(0, 7);
         const dataRef = despesa.dataCompra || despesa.dataLancamento || despesa.data;
@@ -216,7 +247,7 @@ const Cartoes = () => {
         const chaveMes = `${anoSelecionado}-${mesesChaves[mesIndex]}`;
         return despesas.filter(d => {
             if (!isCartaoMatch(d, cartao)) return false;
-            const mf = getMesFatura(d);
+            const mf = getMesFatura(d, cartao);
             return mf === chaveMes;
         });
     };

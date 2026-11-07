@@ -234,27 +234,52 @@ const Despesas = () => {
       const userData = response.data.dados || {};
       const despesasData = userData.despesas || [];
 
-      if (Array.isArray(userData.cartoes)) {
-        setCartoes(userData.cartoes.map(c => ({
-          ...c,
-          diaVencimento: c.diaVencimento ?? c.valores?._diaVencimento ?? ''
-        })));
-      }
+      const cartoesFormatados = Array.isArray(userData.cartoes)
+        ? userData.cartoes.map(c => ({
+            ...c,
+            diaVencimento: c.diaVencimento ?? c.valores?._diaVencimento ?? ''
+          }))
+        : [];
+      setCartoes(cartoesFormatados);
 
       // Garante que todas as despesas carregadas tenham statusPagamento, observacoes, dataVencimento, dataCompra, dataLancamento e cartao
-      const despesasComDefaults = despesasData.map(d => ({
-        ...d,
-        statusPagamento: d.statusPagamento || d.status_pagamento || 'pendente',
-        observacoes: d.observacoes || d.observacao || '',
-        dataVencimento: d.dataVencimento || '',
-        dataCompra: d.dataCompra || '',
-        dataLancamento: d.dataLancamento || d.data,
-        somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true,
-        cartao: d.cartao || '',
-        cartaoId: d.cartaoId || d.cartao_id || '',
-        mesFatura: d.mesFatura || d.mes_fatura || ''
-      }));
+      let precisouAjustar = false;
+      const despesasComDefaults = despesasData.map(d => {
+        const cNome = d.cartao || '';
+        const cId = d.cartaoId || d.cartao_id || '';
+        const cardObj = cartoesFormatados.find(c => (cId && c.id === cId) || (cNome && c.nome === cNome));
+        const temDiaFixo = Boolean(cardObj && (cardObj.diaVencimento || cardObj.valores?._diaVencimento));
+
+        let dataEfetiva = d.data;
+        let mesFatura = d.mesFatura || d.mes_fatura || '';
+        let dataVenc = d.dataVencimento || '';
+
+        // Se for cartão "sem dia fixo" e a data estava jogada para a frente, ajusta para a data de lançamento
+        if (cardObj && !temDiaFixo && d.dataLancamento && d.dataLancamento !== d.data) {
+          dataEfetiva = d.dataLancamento;
+          mesFatura = d.dataLancamento.slice(0, 7);
+          dataVenc = '';
+          precisouAjustar = true;
+        }
+
+        return {
+          ...d,
+          statusPagamento: d.statusPagamento || d.status_pagamento || 'pendente',
+          observacoes: d.observacoes || d.observacao || '',
+          dataVencimento: dataVenc,
+          dataCompra: d.dataCompra || '',
+          dataLancamento: d.dataLancamento || d.data,
+          somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true,
+          cartao: cNome,
+          cartaoId: cId,
+          mesFatura: mesFatura,
+          data: dataEfetiva
+        };
+      });
       setDespesas(despesasComDefaults);
+      if (precisouAjustar) {
+        salvarDespesas(despesasComDefaults);
+      }
     } catch (error) {
       console.error('Erro ao carregar despesas:', error);
       setDespesas([]);
@@ -331,13 +356,17 @@ const Despesas = () => {
       // Quando o usuário seleciona um cartão (ou altera a data com cartão selecionado), preenche automaticamente Data de Vencimento (opcional)
       if (name === 'cartao') {
         const dataVencAuto = calcularDataVencimentoPorCartao(value, newState.dataCompra || newState.data);
-        if (dataVencAuto) {
-          newState.dataVencimento = dataVencAuto;
-        }
+        newState.dataVencimento = dataVencAuto || '';
       } else if ((name === 'data' || name === 'dataCompra') && newState.cartao) {
         const dataVencAuto = calcularDataVencimentoPorCartao(newState.cartao, newState.dataCompra || newState.data);
         if (dataVencAuto) {
           newState.dataVencimento = dataVencAuto;
+        } else {
+          const cartaoObj = cartoes.find(c => c.nome === newState.cartao || c.id === newState.cartao);
+          const temDiaFixo = Boolean(cartaoObj && (cartaoObj.diaVencimento || cartaoObj.valores?._diaVencimento));
+          if (!temDiaFixo) {
+            newState.dataVencimento = '';
+          }
         }
       }
       return newState;
@@ -383,6 +412,10 @@ const Despesas = () => {
     const cartaoSelecionado = cartoes.find(c => c.nome === formulario.cartao || c.id === formulario.cartaoId);
     const cartaoNome = cartaoSelecionado ? cartaoSelecionado.nome : (formulario.cartao || '');
     const cartaoId = cartaoSelecionado ? cartaoSelecionado.id : '';
+    const temDiaFixo = Boolean(
+      cartaoSelecionado &&
+      (cartaoSelecionado.diaVencimento || cartaoSelecionado.valores?._diaVencimento)
+    );
 
     let novasDespesas = [];
     if (formulario.parcelado) {
@@ -393,13 +426,19 @@ const Despesas = () => {
         let mesFaturaParcela = '';
 
         if (cartaoNome) {
-          if (dataVencParcela) {
-            mesFaturaParcela = dataVencParcela.slice(0, 7);
+          if (temDiaFixo) {
+            if (dataVencParcela) {
+              mesFaturaParcela = dataVencParcela.slice(0, 7);
+            } else {
+              // Mês seguinte automático para compras no cartão com vencimento fixo (Regras A1 e A2)
+              const dataRef = formulario.dataCompra || formulario.dataLancamento || formulario.data;
+              dataVencParcela = adicionarMeses(dataRef, 1 + i);
+              mesFaturaParcela = dataVencParcela.slice(0, 7);
+            }
           } else {
-            // Mês seguinte automático para compras no cartão (Regras A1 e A2)
-            const dataRef = formulario.dataCompra || formulario.dataLancamento || formulario.data;
-            dataVencParcela = adicionarMeses(dataRef, 1 + i);
-            mesFaturaParcela = dataVencParcela.slice(0, 7);
+            // Cartão/forma sem dia fixo (ex: PIX, Débito, Ticket): assume a data da despesa
+            dataVencParcela = formulario.dataVencimento ? adicionarMeses(formulario.dataVencimento, i) : '';
+            mesFaturaParcela = dataParcela.slice(0, 7);
           }
         }
 
@@ -407,7 +446,7 @@ const Despesas = () => {
           id: String(Date.now() + i), // ID único para cada parcela
           descricao: `${formulario.descricao} (Parcela ${i + 1}/${formulario.numeroParcelas})`,
           valor: valorPorParcela,
-          data: dataVencParcela || dataParcela, // Effective grouping/reporting date
+          data: temDiaFixo ? (dataVencParcela || dataParcela) : dataParcela, // Effective grouping/reporting date
           dataLancamento: dataParcela, // Original launch date
           categoria: formulario.categoria,
           subcategoria: formulario.subcategoria,
@@ -430,13 +469,19 @@ const Despesas = () => {
       let mesFaturaFinal = '';
 
       if (cartaoNome) {
-        if (dataVencFinal) {
-          mesFaturaFinal = dataVencFinal.slice(0, 7);
+        if (temDiaFixo) {
+          if (dataVencFinal) {
+            mesFaturaFinal = dataVencFinal.slice(0, 7);
+          } else {
+            // Mês seguinte automático para compras no cartão de crédito com dia fixo (Regra A1)
+            const dataRef = formulario.dataCompra || dataDesp;
+            dataVencFinal = adicionarMeses(dataRef, 1);
+            mesFaturaFinal = dataVencFinal.slice(0, 7);
+          }
         } else {
-          // Mês seguinte automático para compras no cartão (Regra A1)
-          const dataRef = formulario.dataCompra || dataDesp;
-          dataVencFinal = adicionarMeses(dataRef, 1);
-          mesFaturaFinal = dataVencFinal.slice(0, 7);
+          // Sem dia fixo (ex: PIX, Débito, Ticket): assume exclusivamente a data de lançamento da despesa
+          mesFaturaFinal = dataDesp.slice(0, 7);
+          dataVencFinal = formulario.dataVencimento || '';
         }
       }
 
@@ -444,7 +489,7 @@ const Despesas = () => {
         id: String(Date.now()),
         descricao: formulario.descricao,
         valor: parseFloat(formulario.valor),
-        data: dataVencFinal || dataDesp, // Effective grouping/reporting date
+        data: temDiaFixo ? (dataVencFinal || dataDesp) : dataDesp, // Sem dia fixo: assume a data de lançamento da despesa!
         dataLancamento: dataDesp, // Original launch date
         categoria: formulario.categoria,
         subcategoria: formulario.subcategoria,
@@ -530,9 +575,7 @@ const Despesas = () => {
       }
       if (name === 'cartao') {
         const dataVencAuto = calcularDataVencimentoPorCartao(value, newState.dataCompra || newState.dataLancamento);
-        if (dataVencAuto) {
-          newState.dataVencimento = dataVencAuto;
-        }
+        newState.dataVencimento = dataVencAuto || '';
       }
       return newState;
     });
@@ -585,14 +628,22 @@ const Despesas = () => {
       updatedDespesas = updatedDespesas.map(d => {
         if (d.id === id) {
           const cartaoNome = inlineEditForm.cartao !== undefined ? inlineEditForm.cartao : (d.cartao || '');
-          const cartaoObj = cartoes.find(c => c.nome === cartaoNome);
+          const cartaoObj = cartoes.find(c => c.nome === cartaoNome || c.id === cartaoNome);
+          const temDiaFixo = Boolean(cartaoObj && (cartaoObj.diaVencimento || cartaoObj.valores?._diaVencimento));
           let mesFatura = d.mesFatura || '';
+          const dataLanc = inlineEditForm.dataLancamento || d.dataLancamento || d.data;
+
           if (cartaoNome) {
-            if (inlineEditForm.dataVencimento) {
-              mesFatura = inlineEditForm.dataVencimento.slice(0, 7);
+            if (temDiaFixo) {
+              if (inlineEditForm.dataVencimento) {
+                mesFatura = inlineEditForm.dataVencimento.slice(0, 7);
+              } else {
+                const dataRef = inlineEditForm.dataCompra || dataLanc;
+                mesFatura = adicionarMeses(dataRef, 1).slice(0, 7);
+              }
             } else {
-              const dataRef = inlineEditForm.dataCompra || inlineEditForm.dataLancamento || d.data;
-              mesFatura = adicionarMeses(dataRef, 1).slice(0, 7);
+              // Sem dia fixo: assume exclusivamente a data de lançamento da despesa
+              mesFatura = dataLanc.slice(0, 7);
             }
           } else {
             mesFatura = '';
@@ -603,7 +654,7 @@ const Despesas = () => {
             cartao: cartaoNome,
             cartaoId: cartaoObj?.id || '',
             mesFatura,
-            data: inlineEditForm.dataVencimento || inlineEditForm.dataLancamento || d.data,
+            data: temDiaFixo ? (inlineEditForm.dataVencimento || dataLanc) : dataLanc,
             valor: valorNumerico
           };
         }
