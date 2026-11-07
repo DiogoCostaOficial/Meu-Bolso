@@ -7,6 +7,7 @@ new_node_modules/
 
 # Variáveis de ambiente (IMPORTANTE!)
 .env
+.env*
 .env.local
 .env.development.local
 .env.test.local
@@ -14,7 +15,7 @@ new_node_modules/
 server/.env
 server/.env.local
 
-# Banco de dados (contém dados sensíveis)
+# Banco de dados e dados locais (contém dados sensíveis)
 server/data/*.json
 !server/data/.gitkeep
 
@@ -33,6 +34,7 @@ out/
 /.next/
 bin/
 obj/
+*.tsbuildinfo
 
 # Vercel
 .vercel
@@ -58,22 +60,43 @@ Thumbs.db
 desktop.ini
 $RECYCLE.BIN/
 
-# Temporários
+# Temporários e Análises
 *.tmp
 *.temp
 .cache/
 .vite/
 .parcel-cache/
 .eslintcache
+tmp/
+temp/
 
-# Outros
-Error_package-lock.json
-new_package-lock.json
-*.lnk
+# Python / Caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Documentos compilados e binários
+*.pdf
+
+# Backups e arquivos antigos
+backup-*/
 *.backup
 *.bak
 *.old
 ~$*
+
+# Scripts de ambiente local e testes manuais (mantidos apenas localmente)
+*.ps1
+iniciar_sistema.bat
+start-tudo.bat
+setup.bat
+guia_migracao.html
+
+# Assets não estruturados / locais
+logo/
+
+# Antigravity Kit (Mantido estritamente local na máquina)
+.agent/
 
 # Certificados SSL
 *.pem
@@ -83,8 +106,3 @@ new_package-lock.json
 
 # Uploads
 uploads/
-temp/
-
-
-.vercel
-.env*
