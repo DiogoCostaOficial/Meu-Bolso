@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, CreditCard, Calendar, GraduationCap, X, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Save, CreditCard, Calendar, X, RotateCcw, Zap, Wallet, CheckCircle2, Info } from 'lucide-react';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,14 +26,67 @@ const Cartoes = () => {
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
+    const mesesCurto = [
+        'JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN',
+        'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'
+    ];
+
     const mesesChaves = [
         '01', '02', '03', '04', '05', '06',
         '07', '08', '09', '10', '11', '12'
     ];
 
+    const mesAtualIndex = new Date().getMonth();
+
     useEffect(() => {
         carregarDados();
     }, []);
+
+    const garantirFormaFixaDinheiro = (lista = []) => {
+        let encontrouDinheiro = false;
+        const formatados = lista.map((c) => {
+            const nomeLimpo = String(c.nome || '').trim();
+            const isDinheiro = nomeLimpo.toLowerCase() === 'dinheiro' || c.id === 'forma-fixa-dinheiro';
+            if (isDinheiro) {
+                encontrouDinheiro = true;
+                return {
+                    ...c,
+                    nome: 'Dinheiro',
+                    diaVencimento: '',
+                    tipoForma: 'avista',
+                    fixo: true
+                };
+            }
+            return c;
+        });
+
+        if (!encontrouDinheiro) {
+            const idxVazioAVista = formatados.findIndex(
+                (c) => !c.diaVencimento && !String(c.nome || '').trim()
+            );
+            if (idxVazioAVista !== -1) {
+                formatados[idxVazioAVista] = {
+                    ...formatados[idxVazioAVista],
+                    nome: 'Dinheiro',
+                    diaVencimento: '',
+                    tipoForma: 'avista',
+                    fixo: true
+                };
+            } else {
+                formatados.unshift({
+                    id: 'forma-fixa-dinheiro',
+                    nome: 'Dinheiro',
+                    diaVencimento: '',
+                    tipoForma: 'avista',
+                    fixo: true,
+                    valores: {},
+                    manualOverrides: {}
+                });
+            }
+        }
+
+        return formatados;
+    };
 
     const carregarDados = async () => {
         try {
@@ -46,119 +99,113 @@ const Cartoes = () => {
                     const valores = c.valores || {};
                     const overrides = valores._manualOverrides || c.manualOverrides || {};
                     const diaVenc = c.diaVencimento ?? valores._diaVencimento ?? '';
+                    const tipoForma = c.tipoForma ?? valores._tipoForma ?? (diaVenc ? 'credito' : 'avista');
                     return {
                         ...c,
                         diaVencimento: diaVenc !== null && diaVenc !== undefined ? diaVenc : '',
+                        tipoForma,
                         valores,
                         manualOverrides: overrides
                     };
                 });
-                setCartoes(cartoesFormatados);
-
-                if (Array.isArray(data.despesas)) {
-                    let precisouAjustar = false;
-                    const despesasSanitizadas = data.despesas.map(d => {
-                        const cNome = d.cartao || '';
-                        const cId = d.cartaoId || d.cartao_id || '';
-                        const cardObj = cartoesFormatados.find(c => (cId && c.id === cId) || (cNome && c.nome === cNome));
-                        const temDiaFixo = Boolean(cardObj && (cardObj.diaVencimento || cardObj.valores?._diaVencimento));
-                        if (cardObj && !temDiaFixo) {
-                            let alterou = false;
-                            let novoD = { ...d };
-                            if (d.dataLancamento && d.dataLancamento !== d.data) {
-                                novoD.data = d.dataLancamento;
-                                novoD.dataVencimento = '';
-                                alterou = true;
-                            }
-                            if (d.statusPagamento !== 'pago') {
-                                novoD.statusPagamento = 'pago';
-                                alterou = true;
-                            }
-                            if (d.mesFatura) {
-                                novoD.mesFatura = '';
-                                alterou = true;
-                            }
-                            if (alterou) {
-                                precisouAjustar = true;
-                                return novoD;
-                            }
-                        }
-                        return d;
-                    });
-                    setDespesas(despesasSanitizadas);
-                    if (precisouAjustar) {
-                        api.post('/user/dados', { despesas: despesasSanitizadas }).catch(() => {});
-                    }
-                } else {
-                    setDespesas([]);
-                }
+                setCartoes(garantirFormaFixaDinheiro(cartoesFormatados));
+                setDespesas(Array.isArray(data.despesas) ? data.despesas : []);
             } else {
-                setCartoes([]);
+                setCartoes(garantirFormaFixaDinheiro([]));
                 setDespesas(Array.isArray(data.despesas) ? data.despesas : []);
             }
         } catch (error) {
-            console.error('Erro ao carregar cartões e despesas:', error);
-            toast.error('Erro ao carregar dados dos cartões');
+            console.error('Erro ao carregar formas de pagamento e despesas:', error);
+            toast.error('Erro ao carregar formas de pagamento');
         } finally {
             setLoading(false);
         }
     };
 
+    const prepararCartoesParaSalvar = (listaCartoes) => {
+        return garantirFormaFixaDinheiro(listaCartoes).map(c => {
+            const isDinheiroFixo = Boolean(c.fixo || String(c.nome || '').trim().toLowerCase() === 'dinheiro');
+            const cardId = c.id || crypto.randomUUID();
+            const novosValores = { ...(c.valores || {}) };
+            mesesChaves.forEach((mesChave, idx) => {
+                const chave = `${anoSelecionado}-${mesChave}`;
+                novosValores[chave] = getValorEfetivo(c, idx);
+            });
+            novosValores._manualOverrides = c.manualOverrides || {};
+            const diaVencNum = !isDinheiroFixo && c.diaVencimento ? Math.min(31, Math.max(1, parseInt(c.diaVencimento, 10))) : null;
+            novosValores._diaVencimento = diaVencNum;
+            novosValores._tipoForma = diaVencNum ? 'credito' : 'avista';
+
+            return {
+                ...c,
+                id: cardId,
+                nome: isDinheiroFixo ? 'Dinheiro' : c.nome,
+                fixo: isDinheiroFixo,
+                diaVencimento: diaVencNum || '',
+                tipoForma: diaVencNum ? 'credito' : 'avista',
+                valores: novosValores
+            };
+        });
+    };
+
     const salvarDados = async () => {
         try {
             setSalvando(true);
-
-            // Sincronizar cartões com valores efetivos e guardar manual overrides e diaVencimento
-            const cartoesAtualizados = cartoes.map(c => {
-                const cardId = c.id || crypto.randomUUID();
-                const novosValores = { ...(c.valores || {}) };
-                mesesChaves.forEach((mesChave, idx) => {
-                    const chave = `${anoSelecionado}-${mesChave}`;
-                    novosValores[chave] = getValorEfetivo(c, idx);
-                });
-                novosValores._manualOverrides = c.manualOverrides || {};
-                const diaVencNum = c.diaVencimento ? Math.min(31, Math.max(1, parseInt(c.diaVencimento, 10))) : null;
-                novosValores._diaVencimento = diaVencNum;
-
-                return {
-                    ...c,
-                    id: cardId,
-                    diaVencimento: diaVencNum || '',
-                    valores: novosValores
-                };
-            });
-
+            const cartoesAtualizados = prepararCartoesParaSalvar(cartoes);
             await api.post('/user/dados', { cartoes: cartoesAtualizados });
             setCartoes(cartoesAtualizados);
-            toast.success('Dados salvos com sucesso!');
+            toast.success('Formas de pagamento salvas com sucesso!');
         } catch (error) {
-            console.error('Erro ao salvar cartões:', error);
+            console.error('Erro ao salvar formas de pagamento:', error);
             toast.error('Erro ao salvar dados');
         } finally {
             setSalvando(false);
         }
     };
 
-    const adicionarCartao = () => {
+    const adicionarCartaoCredito = () => {
         const novoCartao = {
             id: crypto.randomUUID(),
-            nome: 'Novo Cartão',
-            diaVencimento: '',
+            nome: 'Novo Cartão de Crédito',
+            diaVencimento: 10,
+            tipoForma: 'credito',
             valores: {},
             manualOverrides: {}
         };
         setCartoes([...cartoes, novoCartao]);
-        toast.info('Novo cartão adicionado. Informe o nome, o dia de vencimento e clique em "Salvar Alterações".');
+        toast.info('Novo Cartão de Crédito adicionado! Ajuste o nome, o dia de vencimento e clique em "Salvar Alterações".');
+    };
+
+    const adicionarFormaAVista = (nomeSugerido = 'Nova Forma à Vista') => {
+        const jaExiste = cartoes.some(c => (c.nome || '').trim().toLowerCase() === nomeSugerido.trim().toLowerCase());
+        if (jaExiste && nomeSugerido !== 'Nova Forma à Vista') {
+            toast.info(`"${nomeSugerido}" já está cadastrado na sua lista!`);
+            return;
+        }
+        const novaForma = {
+            id: crypto.randomUUID(),
+            nome: nomeSugerido,
+            diaVencimento: '',
+            tipoForma: 'avista',
+            valores: {},
+            manualOverrides: {}
+        };
+        setCartoes([...cartoes, novaForma]);
+        toast.info(`Forma de pagamento "${nomeSugerido}" adicionada (saída imediata sem fatura). Clique em "Salvar Alterações".`);
     };
 
     const removerCartao = async (id) => {
         const cartaoParaRemover = cartoes.find(c => c.id === id);
-        const nomeCartao = cartaoParaRemover?.nome || 'este cartão';
+        if (cartaoParaRemover?.fixo || String(cartaoParaRemover?.nome || '').trim().toLowerCase() === 'dinheiro') {
+            toast.info('A forma de pagamento "Dinheiro" é fixa do sistema e não pode ser removida.');
+            return;
+        }
+        const nomeCartao = cartaoParaRemover?.nome || 'esta forma de pagamento';
         const despesasVinculadas = despesas.filter(d => isCartaoMatch(d, cartaoParaRemover));
 
-        let mensagemConfirm = `Tem certeza que deseja remover o cartão "${nomeCartao}"?`;
+        let mensagemConfirm = `Tem certeza que deseja remover "${nomeCartao}"?`;
         if (despesasVinculadas.length > 0) {
-            mensagemConfirm += `\n\nAtenção: Existem ${despesasVinculadas.length} despesa(s) associada(s) a este cartão. A exclusão será definitiva no banco de dados.`;
+            mensagemConfirm += `\n\nAtenção: Existem ${despesasVinculadas.length} despesa(s) associada(s) a este item. A exclusão será definitiva no banco de dados.`;
         }
 
         if (!window.confirm(mensagemConfirm)) {
@@ -170,34 +217,14 @@ const Cartoes = () => {
 
         try {
             setSalvando(true);
-
-            // Sincronizar os cartões restantes com valores efetivos e manual overrides
-            const cartoesAtualizados = novosCartoes.map(c => {
-                const cardId = c.id || crypto.randomUUID();
-                const novosValores = { ...(c.valores || {}) };
-                mesesChaves.forEach((mesChave, idx) => {
-                    const chave = `${anoSelecionado}-${mesChave}`;
-                    novosValores[chave] = getValorEfetivo(c, idx);
-                });
-                novosValores._manualOverrides = c.manualOverrides || {};
-                const diaVencNum = c.diaVencimento ? Math.min(31, Math.max(1, parseInt(c.diaVencimento, 10))) : null;
-                novosValores._diaVencimento = diaVencNum;
-
-                return {
-                    ...c,
-                    id: cardId,
-                    diaVencimento: diaVencNum || '',
-                    valores: novosValores
-                };
-            });
-
+            const cartoesAtualizados = prepararCartoesParaSalvar(novosCartoes);
             await api.post('/user/dados', { cartoes: cartoesAtualizados });
             setCartoes(cartoesAtualizados);
-            toast.success(`Cartão "${nomeCartao}" excluído em definitivo!`);
+            toast.success(`"${nomeCartao}" excluído em definitivo!`);
         } catch (error) {
-            console.error('Erro ao excluir cartão no servidor:', error);
+            console.error('Erro ao excluir no servidor:', error);
             toast.error('Erro ao salvar exclusão no servidor. As alterações foram revertidas.');
-            setCartoes(cartoes); // Reverte o estado em caso de falha
+            setCartoes(cartoes);
         } finally {
             setSalvando(false);
         }
@@ -212,11 +239,11 @@ const Cartoes = () => {
     const atualizarDiaVencimentoCartao = (id, novoDia) => {
         const limpo = novoDia === '' ? '' : Math.min(31, Math.max(1, parseInt(novoDia, 10) || 1));
         setCartoes(cartoes.map(c =>
-            c.id === id ? { ...c, diaVencimento: limpo } : c
+            c.id === id ? { ...c, diaVencimento: limpo, tipoForma: limpo ? 'credito' : 'avista' } : c
         ));
     };
 
-    // Helper para verificar se a despesa pertence ao cartão
+    // Helper para verificar se a despesa pertence ao cartão/forma
     const isCartaoMatch = (despesa, cartao) => {
         if (!despesa || !cartao) return false;
         if (despesa.cartaoId && cartao.id && String(despesa.cartaoId) === String(cartao.id)) {
@@ -228,13 +255,11 @@ const Cartoes = () => {
         return false;
     };
 
-    // Helper para obter o mês da fatura (formato AAAA-MM)
+    // Helper para obter o mês de referência (fatura para crédito, mês da compra para à vista)
     const getMesFatura = (despesa, cartao) => {
         const cartaoAlvo = cartao || cartoes.find(c => isCartaoMatch(despesa, c));
         const temDiaFixo = Boolean(cartaoAlvo && (cartaoAlvo.diaVencimento || cartaoAlvo.valores?._diaVencimento));
 
-        // Regra para cartão/forma "Sem dia fixo" (ex: PIX, Débito, Ticket):
-        // Deve SEMPRE assumir a data de lançamento do sistema (data da despesa), sem jogar para o próximo mês
         if (!temDiaFixo) {
             const dataRef = despesa.dataLancamento || despesa.dataCompra || despesa.data;
             return dataRef ? dataRef.slice(0, 7) : '';
@@ -254,7 +279,6 @@ const Cartoes = () => {
         return `${a}-${String(m).padStart(2, '0')}`;
     };
 
-    // Retorna as despesas vinculadas ao cartão no mês selecionado
     const getDespesasDoCartaoNoMes = (cartao, mesIndex) => {
         const chaveMes = `${anoSelecionado}-${mesesChaves[mesIndex]}`;
         return despesas.filter(d => {
@@ -264,13 +288,11 @@ const Cartoes = () => {
         });
     };
 
-    // Retorna a soma automática das despesas vinculadas
     const getValorAutomaticoDespesas = (cartao, mesIndex) => {
         const compras = getDespesasDoCartaoNoMes(cartao, mesIndex);
         return compras.reduce((sum, d) => sum + (parseFloat(d.valor) || 0), 0);
     };
 
-    // Retorna o valor efetivo (soma automática ou valor manual se alterado)
     const getValorEfetivo = (cartao, mesIndex) => {
         const chaveMes = `${anoSelecionado}-${mesesChaves[mesIndex]}`;
         const temOverride = !!(cartao.manualOverrides?.[chaveMes]);
@@ -292,7 +314,6 @@ const Cartoes = () => {
         return 0;
     };
 
-    // Retorna o valor a ser exibido no input do mês
     const getValorInput = (cartao, mesIndex) => {
         const chaveMes = `${anoSelecionado}-${mesesChaves[mesIndex]}`;
         const temOverride = !!(cartao.manualOverrides?.[chaveMes]);
@@ -314,7 +335,6 @@ const Cartoes = () => {
         return '';
     };
 
-    // Atualiza manualmente o valor na célula
     const atualizarValor = (id, mesIndex, valor) => {
         const chaveMes = `${anoSelecionado}-${mesesChaves[mesIndex]}`;
         const valorNumerico = valor === '' ? '' : (parseFloat(valor) || 0);
@@ -337,7 +357,6 @@ const Cartoes = () => {
         }));
     };
 
-    // Restaura o valor para o cálculo automático
     const resetarParaAutomatico = (id, mesIndex) => {
         const chaveMes = `${anoSelecionado}-${mesesChaves[mesIndex]}`;
         setCartoes(cartoes.map(c => {
@@ -356,10 +375,12 @@ const Cartoes = () => {
         }));
     };
 
-    const calcularTotalMes = (mesIndex) => {
-        return cartoes.reduce((acc, cartao) => {
-            return acc + getValorEfetivo(cartao, mesIndex);
-        }, 0);
+    // Separação em 2 grupos: Cartões de Crédito (com dia de vencimento) vs. Formas à Vista/Benefícios (sem dia fixo)
+    const cartoesCredito = cartoes.filter(c => Boolean(c.diaVencimento));
+    const formasAVista = cartoes.filter(c => !c.diaVencimento);
+
+    const calcularTotalGrupoMes = (lista, mesIndex) => {
+        return lista.reduce((acc, item) => acc + getValorEfetivo(item, mesIndex), 0);
     };
 
     const calcularTotalCartao = (cartao) => {
@@ -368,8 +389,8 @@ const Cartoes = () => {
         }, 0);
     };
 
-    const calcularTotalGeral = () => {
-        return cartoes.reduce((acc, cartao) => acc + calcularTotalCartao(cartao), 0);
+    const calcularTotalGrupoGeral = (lista) => {
+        return lista.reduce((acc, item) => acc + calcularTotalCartao(item), 0);
     };
 
     const gerarListaAnos = () => {
@@ -394,21 +415,273 @@ const Cartoes = () => {
         }
     };
 
-    return (
-        <div className="container mx-auto p-6 space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom text-custom-main">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-custom-primary/50 dark:bg-amber-900/20 rounded-lg">
-                        <CreditCard className="w-6 h-6 text-custom-gold" />
+    const renderTabelaGrupo = ({
+        titulo,
+        subtitulo,
+        icone: IconeGrupo,
+        corBadge,
+        lista,
+        labelColuna,
+        labelRodape,
+        isCredito
+    }) => (
+        <div className="bg-custom-card rounded-custom shadow-custom border border-custom-color overflow-hidden transition-custom">
+            {/* Cabeçalho do Bloco */}
+            <div className="p-4 md:p-5 border-b border-custom-color flex flex-col md:flex-row md:items-center justify-between gap-3 bg-custom-primary/15 dark:bg-slate-800/30">
+                <div className="flex items-start gap-3">
+                    <div className={`p-2.5 rounded-xl border ${corBadge} flex-shrink-0 mt-0.5`}>
+                        <IconeGrupo className="w-5 h-5" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-custom-main">Gerenciamento de Cartões</h1>
-                        <p className="text-custom-main opacity-80 text-sm">Acompanhe suas faturas mensais e compras vinculadas automaticamente</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h2 className="text-lg font-bold text-custom-main">{titulo}</h2>
+                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${corBadge}`}>
+                                {isCredito ? 'Gera Fatura Futura (D+30)' : 'Saída Imediata do Caixa (D+0)'}
+                            </span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            {subtitulo}
+                        </p>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-start gap-3">
+                {!isCredito && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] text-gray-500 dark:text-slate-400 mr-1">Adicionar rápido:</span>
+                        {['PIX / DEBITO', 'TICKET', 'Cartão de Débito'].map(sugestao => (
+                            <button
+                                key={sugestao}
+                                type="button"
+                                onClick={() => adicionarFormaAVista(sugestao)}
+                                className="text-xs px-2.5 py-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 font-medium transition cursor-pointer"
+                            >
+                                + {sugestao}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {lista.length > 0 ? (
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[760px] md:min-w-0 md:table-fixed border-collapse">
+                        <thead>
+                            <tr className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
+                                <th className="w-[175px] xl:w-[195px] px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-custom-main sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color">
+                                    {labelColuna}
+                                </th>
+                                {meses.map((mes, idx) => {
+                                    const isMesAtual = idx === mesAtualIndex;
+                                    return (
+                                        <th
+                                            key={mes}
+                                            data-no-field-help="true"
+                                            title={t(mes)}
+                                            className={`px-1 py-2.5 text-center text-[11px] font-bold whitespace-nowrap transition-colors ${
+                                                isMesAtual
+                                                    ? 'bg-custom-gold/15 text-custom-gold border-b-2 border-custom-gold'
+                                                    : 'text-custom-main'
+                                            }`}
+                                        >
+                                            {mesesCurto[idx]}
+                                        </th>
+                                    );
+                                })}
+                                <th
+                                    data-no-field-help="true"
+                                    className="w-[96px] xl:w-[112px] px-2 py-2.5 text-right text-[11px] font-bold text-custom-main bg-custom-primary/40 dark:bg-slate-800/60 border-l border-custom-color whitespace-nowrap"
+                                >
+                                    TOTAL ANUAL
+                                </th>
+                                <th className="w-[28px] px-1 py-2.5" data-no-field-help="true"></th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-custom-color bg-transparent">
+                            {lista.map((cartao) => {
+                                const isFixo = Boolean(cartao.fixo || String(cartao.nome || '').trim().toLowerCase() === 'dinheiro');
+                                return (
+                                <tr key={cartao.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition group text-custom-main">
+                                    <td className="px-2.5 py-2 sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color align-middle">
+                                        {isFixo ? (
+                                            <div className="space-y-1 px-1">
+                                                <div className="flex items-center justify-between gap-1.5">
+                                                    <span className="font-bold text-xs xl:text-sm text-custom-main truncate">
+                                                        💵 Dinheiro
+                                                    </span>
+                                                    <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                                                        FIXO
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                                                    <Zap className="w-3 h-3 flex-shrink-0" />
+                                                    <span className="truncate">À Vista (Saída Imediata)</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-1">
+                                                <input
+                                                    type="text"
+                                                    value={cartao.nome}
+                                                    onChange={(e) => atualizarNomeCartao(cartao.id, e.target.value)}
+                                                    className="w-full min-w-0 px-1.5 py-0.5 border border-transparent hover:border-custom-color focus:border-blue-500 rounded font-bold text-xs xl:text-sm text-custom-main bg-transparent focus:bg-custom-card focus:outline-none transition-colors truncate"
+                                                    placeholder={isCredito ? 'Nome do Cartão' : 'Ex: PIX, Débito, Ticket...'}
+                                                    title={cartao.nome}
+                                                />
+                                                <div className="flex items-center gap-1 px-1 text-[10px] text-custom-main/80">
+                                                    <Calendar className="w-3 h-3 text-custom-gold flex-shrink-0" />
+                                                    <select
+                                                        value={cartao.diaVencimento || ''}
+                                                        onChange={(e) => atualizarDiaVencimentoCartao(cartao.id, e.target.value)}
+                                                        className="w-full min-w-0 px-1 py-0.5 rounded border border-custom-color bg-custom-card dark:bg-slate-800 text-custom-main text-[10px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer truncate"
+                                                        title="Cartões com dia fixo geram fatura futura. Formas 'Sem dia fixo' são tratadas como pagamento à vista (PIX/Débito/Ticket)."
+                                                    >
+                                                        <option value="">⚡ À Vista (Sem Fatura)</option>
+                                                        {Array.from({ length: 31 }, (_, i) => i + 1).map((dia) => (
+                                                            <option key={dia} value={dia}>
+                                                                💳 Fatura Dia {String(dia).padStart(2, '0')}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </td>
+                                    {meses.map((_, index) => {
+                                        const chaveMes = `${anoSelecionado}-${mesesChaves[index]}`;
+                                        const comprasNoMes = getDespesasDoCartaoNoMes(cartao, index);
+                                        const valorAuto = getValorAutomaticoDespesas(cartao, index);
+                                        const temOverride = !!(cartao.manualOverrides?.[chaveMes]);
+                                        const valorMostrado = getValorInput(cartao, index);
+                                        const isMesAtual = index === mesAtualIndex;
+
+                                        return (
+                                            <td
+                                                key={index}
+                                                className={`px-1 py-1.5 align-middle ${
+                                                    isMesAtual ? 'bg-custom-gold/5' : ''
+                                                }`}
+                                            >
+                                                <div className="flex flex-col items-center">
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={valorMostrado}
+                                                        onChange={(e) => atualizarValor(cartao.id, index, e.target.value)}
+                                                        className={`w-full min-w-0 px-1 py-1 text-center border rounded text-[11px] xl:text-xs tabular-nums transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                                                            temOverride
+                                                                ? 'border-amber-400 bg-amber-50/30 text-amber-900 dark:text-amber-300 font-semibold'
+                                                                : valorAuto > 0
+                                                                    ? isCredito
+                                                                        ? 'border-blue-300 bg-blue-50/30 text-blue-900 dark:text-blue-300 font-bold'
+                                                                        : 'border-emerald-300 bg-emerald-50/30 text-emerald-900 dark:text-emerald-300 font-bold'
+                                                                    : 'border-custom-color/60 hover:border-custom-color bg-transparent text-custom-main/80 focus:bg-custom-card'
+                                                        }`}
+                                                        placeholder="0"
+                                                    />
+
+                                                    {comprasNoMes.length > 0 && (
+                                                        <div className="flex items-center justify-center gap-1 mt-0.5 flex-wrap">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setModalDetalhes({ cartao, mesIndex: index, compras: comprasNoMes, isCredito })}
+                                                                className={`inline-flex items-center gap-0.5 text-[9px] leading-tight hover:underline font-semibold cursor-pointer ${
+                                                                    isCredito ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'
+                                                                }`}
+                                                                title={isCredito ? 'Ver compras desta fatura' : 'Ver pagamentos realizados'}
+                                                            >
+                                                                <span>{comprasNoMes.length} {comprasNoMes.length === 1 ? 'item' : 'itens'}</span>
+                                                            </button>
+                                                            {temOverride && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => resetarParaAutomatico(cartao.id, index)}
+                                                                    className="text-[8px] text-amber-700 dark:text-amber-300 hover:text-amber-900 bg-amber-100 dark:bg-amber-900/40 px-1 rounded flex items-center gap-0.5"
+                                                                    title="Restaurar soma automática das despesas"
+                                                                >
+                                                                    <RotateCcw className="w-2 h-2" /> Auto
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        );
+                                    })}
+                                    <td className="px-2 py-2 text-right font-bold text-[11px] xl:text-xs tabular-nums whitespace-nowrap text-custom-main bg-custom-primary/20 dark:bg-slate-800/35 border-l border-r border-custom-color align-middle">
+                                        {formatCurrency(calcularTotalCartao(cartao))}
+                                    </td>
+                                    <td className="px-1 py-2 text-center align-middle">
+                                        {!isFixo && (
+                                            <button
+                                                onClick={() => removerCartao(cartao.id)}
+                                                className="p-1 text-gray-400 hover:text-red-500 transition opacity-60 group-hover:opacity-100 cursor-pointer"
+                                                title="Remover item"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                                );
+                            })}
+
+                            {/* Linha de Totais Exclusiva do Grupo */}
+                            <tr className="bg-custom-primary/40 dark:bg-slate-800/50 font-bold border-t-2 border-custom-color text-custom-main">
+                                <td className="px-2.5 py-2.5 text-[10px] xl:text-[11px] font-extrabold uppercase tracking-tight text-custom-main sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color leading-tight">
+                                    {labelRodape}
+                                </td>
+                                {meses.map((_, index) => {
+                                    const totalMes = calcularTotalGrupoMes(lista, index);
+                                    const isMesAtual = index === mesAtualIndex;
+                                    return (
+                                        <td
+                                            key={index}
+                                            className={`px-0.5 py-2.5 text-center text-[10px] xl:text-[11px] font-bold tabular-nums whitespace-nowrap ${
+                                                isMesAtual ? 'bg-custom-gold/10 text-custom-main' : 'text-custom-main'
+                                            }`}
+                                        >
+                                            {formatCurrency(totalMes)}
+                                        </td>
+                                    );
+                                })}
+                                <td className={`px-2 py-2.5 text-right text-xs xl:text-sm font-extrabold tabular-nums whitespace-nowrap border-l border-custom-color ${isCredito ? 'text-custom-gold' : 'text-emerald-500'}`}>
+                                    {formatCurrency(calcularTotalGrupoGeral(lista))}
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="p-8 text-center text-gray-500 dark:text-slate-400 text-sm">
+                    {isCredito
+                        ? 'Nenhum cartão de crédito com vencimento fixo cadastrado.'
+                        : 'Nenhuma forma de pagamento à vista (PIX, Débito, Ticket) cadastrada ainda.'}
+                </div>
+            )}
+        </div>
+    );
+
+    const totalFaturasMesAtual = calcularTotalGrupoMes(cartoesCredito, mesAtualIndex);
+    const totalAVistaMesAtual = calcularTotalGrupoMes(formasAVista, mesAtualIndex);
+
+    return (
+        <div className="w-full max-w-[1600px] mx-auto p-3 md:p-5 space-y-5">
+            {/* Header Principal */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom text-custom-main">
+                <div className="flex items-center gap-3">
+                    <div className="p-3 bg-custom-primary/50 dark:bg-amber-900/20 rounded-xl">
+                        <CreditCard className="w-6 h-6 text-custom-gold" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-custom-main">Formas de Pagamento & Cartões</h1>
+                        <p className="text-custom-main opacity-80 text-sm">
+                            Separe suas <strong>Faturas de Crédito (a pagar)</strong> dos <strong>Pagamentos à Vista (PIX, Débito e Vales)</strong> sem misturar saldos
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
                     <CurrencySelector />
                     <div className="h-11 flex items-center gap-2 bg-custom-card text-custom-main px-4 rounded-full border border-custom-color shadow-custom transition-custom">
                         <Calendar className="w-4 h-4 text-custom-gold flex-shrink-0" />
@@ -424,17 +697,28 @@ const Cartoes = () => {
                     </div>
 
                     <button
-                        onClick={adicionarCartao}
-                        className="h-11 flex items-center gap-2 px-4 bg-green-600 text-white rounded-full hover:bg-green-700 transition shadow-sm font-medium"
+                        type="button"
+                        onClick={adicionarCartaoCredito}
+                        className="h-11 flex items-center gap-2 px-4 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-sm font-semibold text-xs md:text-sm cursor-pointer"
                     >
-                        <Plus className="w-4 h-4" />
-                        Novo Cartão
+                        <CreditCard className="w-4 h-4" />
+                        + Cartão de Crédito
                     </button>
 
                     <button
+                        type="button"
+                        onClick={() => adicionarFormaAVista('Nova Forma à Vista')}
+                        className="h-11 flex items-center gap-2 px-4 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition shadow-sm font-semibold text-xs md:text-sm cursor-pointer"
+                    >
+                        <Zap className="w-4 h-4" />
+                        + PIX / Débito / Vale
+                    </button>
+
+                    <button
+                        type="button"
                         onClick={salvarDados}
                         disabled={salvando}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm disabled:opacity-50 font-medium"
+                        className="h-11 flex items-center gap-2 px-5 bg-custom-gold text-black rounded-full hover:opacity-90 transition shadow-sm disabled:opacity-50 font-bold text-xs md:text-sm cursor-pointer"
                     >
                         <Save className="w-4 h-4" />
                         {salvando ? 'Salvando...' : 'Salvar Alterações'}
@@ -442,159 +726,101 @@ const Cartoes = () => {
                 </div>
             </div>
 
-            {/* Tabela Editável */}
-            <div className="bg-custom-card rounded-custom shadow-custom border border-custom-color overflow-hidden transition-custom">
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1200px]">
-                        <thead>
-                            <tr className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-custom-main min-w-[250px] sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color">
-                                    CARTÕES
-                                </th>
-                                {meses.map(mes => (
-                                    <th key={mes} className="px-2 py-3 text-center text-sm font-bold text-custom-main min-w-[100px]">
-                                        {t(mes).toUpperCase()}
-                                    </th>
-                                ))}
-                                <th className="px-4 py-3 text-right text-sm font-bold text-custom-main min-w-[120px] bg-custom-primary/40 dark:bg-slate-800/60">
-                                    TOTAL
-                                </th>
-                                <th className="px-2 py-3 w-10"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-custom-color bg-transparent">
-                            {cartoes.map((cartao) => (
-                                <tr key={cartao.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition group text-custom-main">
-                                    <td className="px-4 py-2 sticky left-0 bg-custom-card dark:bg-slate-900 group-hover:bg-custom-primary/20 dark:group-hover:bg-slate-800/40 z-10 shadow-sm border-r border-custom-color align-top">
-                                        <div className="space-y-1.5">
-                                            <input
-                                                type="text"
-                                                value={cartao.nome}
-                                                onChange={(e) => atualizarNomeCartao(cartao.id, e.target.value)}
-                                                className="w-full px-2 py-1 border border-transparent hover:border-custom-color focus:border-blue-500 rounded font-medium text-custom-main bg-transparent focus:bg-custom-card focus:outline-none transition-colors"
-                                                placeholder="Nome do Cartão"
-                                            />
-                                            <div className="flex items-center gap-1.5 px-2 text-xs text-custom-main/80">
-                                                <Calendar className="w-3.5 h-3.5 text-custom-gold flex-shrink-0" />
-                                                <span className="whitespace-nowrap text-[11px] opacity-80">Vencimento (Dia):</span>
-                                                <FieldHelpTooltip fieldLabel="Vencimento (Dia)" />
-                                                <select
-                                                    value={cartao.diaVencimento || ''}
-                                                    onChange={(e) => atualizarDiaVencimentoCartao(cartao.id, e.target.value)}
-                                                    className="px-1.5 py-0.5 rounded border border-custom-color bg-custom-card dark:bg-slate-800 text-custom-main text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                                                    title="Dia de vencimento da fatura deste cartão (preenche automaticamente a Data de Vencimento ao lançar uma despesa)"
-                                                >
-                                                    <option value="">Sem dia fixo</option>
-                                                    {Array.from({ length: 31 }, (_, i) => i + 1).map((dia) => (
-                                                        <option key={dia} value={dia}>
-                                                            Dia {String(dia).padStart(2, '0')}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    {meses.map((_, index) => {
-                                        const chaveMes = `${anoSelecionado}-${mesesChaves[index]}`;
-                                        const comprasNoMes = getDespesasDoCartaoNoMes(cartao, index);
-                                        const valorAuto = getValorAutomaticoDespesas(cartao, index);
-                                        const temOverride = !!(cartao.manualOverrides?.[chaveMes]);
-                                        const valorMostrado = getValorInput(cartao, index);
+            {/* Resumo Rápido do Mês Atual (Sem Soma Dupla) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-custom-card p-4 rounded-custom border border-custom-color shadow-custom flex items-center justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">
+                            💳 Faturas a Pagar ({meses[mesAtualIndex]})
+                        </span>
+                        <p className="text-2xl font-bold text-custom-main mt-1">
+                            {formatCurrency(totalFaturasMesAtual)}
+                        </p>
+                        <span className="text-[11px] text-gray-500 dark:text-slate-400">
+                            Soma exclusiva dos cartões de crédito com vencimento
+                        </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-blue-500/10 text-blue-500">
+                        <CreditCard className="w-6 h-6" />
+                    </div>
+                </div>
 
-                                        return (
-                                            <td key={index} className="px-2 py-2 align-top">
-                                                <div className="flex flex-col">
-                                                    <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        value={valorMostrado}
-                                                        onChange={(e) => atualizarValor(cartao.id, index, e.target.value)}
-                                                        className={`w-full px-2 py-1 text-right border rounded text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                                                            temOverride 
-                                                                ? 'border-amber-400 bg-amber-50/30 text-amber-900 dark:text-amber-300' 
-                                                                : valorAuto > 0 
-                                                                    ? 'border-blue-200 bg-blue-50/20 text-blue-900 dark:text-blue-300 font-semibold' 
-                                                                    : 'border-transparent hover:border-custom-color bg-transparent text-custom-main/80 focus:bg-custom-card'
-                                                        }`}
-                                                        placeholder="0,00"
-                                                    />
+                <div className="bg-custom-card p-4 rounded-custom border border-custom-color shadow-custom flex items-center justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                            ⚡ Já Pago à Vista / Vales ({meses[mesAtualIndex]})
+                        </span>
+                        <p className="text-2xl font-bold text-custom-main mt-1">
+                            {formatCurrency(totalAVistaMesAtual)}
+                        </p>
+                        <span className="text-[11px] text-gray-500 dark:text-slate-400">
+                            PIX, Débito e Ticket já descontados no ato (não é dívida futura)
+                        </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
+                        <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                </div>
 
-                                                    {comprasNoMes.length > 0 && (
-                                                        <div className="flex items-center justify-end gap-1 mt-1">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setModalDetalhes({ cartao, mesIndex: index, compras: comprasNoMes })}
-                                                                className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-medium cursor-pointer"
-                                                                title="Ver compras desta fatura"
-                                                            >
-                                                                <span>{comprasNoMes.length} {comprasNoMes.length === 1 ? 'compra' : 'compras'}</span>
-                                                            </button>
-                                                            {temOverride && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => resetarParaAutomatico(cartao.id, index)}
-                                                                    className="text-[9px] text-amber-600 hover:text-amber-800 bg-amber-100 dark:bg-amber-900/40 px-1 rounded flex items-center gap-0.5"
-                                                                    title="Restaurar soma automática das despesas"
-                                                                >
-                                                                    <RotateCcw className="w-2.5 h-2.5" /> Auto
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        );
-                                    })}
-                                    <td className="px-4 py-2 text-right font-bold text-custom-main bg-custom-primary/20 dark:bg-slate-800/35 border-l border-r border-custom-color align-top">
-                                        {formatCurrency(calcularTotalCartao(cartao))}
-                                    </td>
-                                    <td className="px-2 py-2 text-center align-top">
-                                        <button
-                                            onClick={() => removerCartao(cartao.id)}
-                                            className="p-1 text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100 cursor-pointer"
-                                            title="Remover cartão"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-
-                            {/* Linha de Totais */}
-                            <tr className="bg-custom-primary/40 dark:bg-slate-800/50 font-bold border-t-2 border-custom-color text-custom-main">
-                                <td className="px-4 py-3 text-custom-main sticky left-0 bg-custom-primary/40 dark:bg-slate-800/50 z-10 shadow-sm border-r border-custom-color">
-                                    TOTAL
-                                </td>
-                                {meses.map((_, index) => (
-                                    <td key={index} className="px-2 py-3 text-right text-custom-main text-sm">
-                                        {formatCurrency(calcularTotalMes(index))}
-                                    </td>
-                                ))}
-                                <td className="px-4 py-3 text-right text-custom-gold text-lg border-l border-custom-color">
-                                    {formatCurrency(calcularTotalGeral())}
-                                </td>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div className="bg-custom-card p-4 rounded-custom border border-custom-color shadow-custom flex items-center justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-custom-gold uppercase tracking-wider block">
+                            📌 Por que separamos os totais?
+                        </span>
+                        <p className="text-xs text-gray-600 dark:text-slate-300 mt-1 leading-relaxed">
+                            O que você paga no <strong>PIX, Débito ou Ticket</strong> já saiu da conta na hora. Separar evita que você ache que ainda precisa pagar esse valor no fim do mês!
+                        </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-custom-gold/10 text-custom-gold flex-shrink-0">
+                        <Info className="w-6 h-6" />
+                    </div>
                 </div>
             </div>
 
-            {/* Modal de Detalhes da Fatura */}
+            {/* BLOCO 1: CARTÕES DE CRÉDITO (FATURAS FUTURAS) */}
+            {renderTabelaGrupo({
+                titulo: '1. Cartões de Crédito (Faturas Futuras)',
+                subtitulo: 'Cartões com data de vencimento fixa. O rodapé mostra exatamente quanto você terá que pagar de fatura em cada mês.',
+                icone: CreditCard,
+                corBadge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
+                lista: cartoesCredito,
+                labelColuna: 'CARTÃO DE CRÉDITO',
+                labelRodape: 'TOTAL FATURAS A PAGAR',
+                isCredito: true
+            })}
+
+            {/* BLOCO 2: À VISTA, DÉBITO E BENEFÍCIOS (SAÍDA IMEDIATA) */}
+            {renderTabelaGrupo({
+                titulo: '2. À Vista, Débito & Benefícios (Saída Imediata)',
+                subtitulo: 'PIX, Cartão de Débito, Dinheiro e Vale Refeição/Alimentação. Apenas informativo de quanto foi movimentado — já descontado da conta no ato.',
+                icone: Wallet,
+                corBadge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+                lista: formasAVista,
+                labelColuna: 'FORMA À VISTA / VALE',
+                labelRodape: 'TOTAL PAGO À VISTA',
+                isCredito: false
+            })}
+
+            {/* Modal de Detalhes */}
             {modalDetalhes && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-200 dark:border-slate-800 p-6 space-y-4 animate-in fade-in zoom-in duration-150">
                         <div className="flex justify-between items-center border-b border-gray-200 dark:border-slate-800 pb-3">
                             <div className="flex items-center gap-2.5">
-                                <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
-                                    <CreditCard className="w-5 h-5" />
+                                <div className={`p-2 rounded-lg ${
+                                    modalDetalhes.isCredito
+                                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                        : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                                }`}>
+                                    {modalDetalhes.isCredito ? <CreditCard className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base leading-tight">
                                         {modalDetalhes.cartao.nome}
                                     </h3>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        Fatura de {t(meses[modalDetalhes.mesIndex])} de {anoSelecionado}
+                                        {modalDetalhes.isCredito ? 'Fatura de ' : 'Pagamentos à vista em '}
+                                        {t(meses[modalDetalhes.mesIndex])} de {anoSelecionado}
                                     </p>
                                 </div>
                             </div>
@@ -629,8 +855,10 @@ const Cartoes = () => {
                         </div>
 
                         <div className="flex justify-between items-center border-t border-gray-200 dark:border-slate-800 pt-3 font-bold">
-                            <span className="text-sm">Total Automático da Fatura:</span>
-                            <span className="text-lg text-blue-600 dark:text-blue-400">
+                            <span className="text-sm">
+                                {modalDetalhes.isCredito ? 'Total Automático da Fatura:' : 'Total Pago à Vista no Mês:'}
+                            </span>
+                            <span className={`text-lg ${modalDetalhes.isCredito ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                 {formatCurrency(
                                     modalDetalhes.compras.reduce((sum, d) => sum + (parseFloat(d.valor) || 0), 0)
                                 )}
@@ -646,21 +874,6 @@ const Cartoes = () => {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {cartoes.length === 0 && !loading && (
-                <div className="text-center py-12 bg-custom-card rounded-custom border border-dashed border-custom-color transition-custom text-custom-main">
-                    <CreditCard className="w-12 h-12 text-custom-gold opacity-60 mx-auto mb-3" />
-                    <h3 className="text-lg font-medium text-custom-main">Nenhum cartão cadastrado</h3>
-                    <p className="text-custom-main opacity-80 mb-4">Adicione seus cartões para começar a controlar as faturas.</p>
-                    <button
-                        onClick={adicionarCartao}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-custom-gold text-black rounded-lg hover:opacity-90 transition font-bold"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Adicionar Primeiro Cartão
-                    </button>
                 </div>
             )}
         </div>

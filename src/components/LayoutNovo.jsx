@@ -71,7 +71,7 @@ const LayoutNovo = ({ children }) => {
     { path: '/orcamento', icon: Wallet, label: 'Orçamento' },
     { path: '/receitas', icon: TrendingUp, label: 'Receitas' },
     { path: '/despesas', icon: TrendingDown, label: 'Despesas' },
-    { path: '/cartoes', icon: CreditCard, label: 'Cartões' },
+    { path: '/cartoes', icon: CreditCard, label: 'Formas de Pagamento' },
     { path: '/viagens', icon: Plane, label: 'Viagens' },
     { path: '/relatorios', icon: PieChart, label: 'Relatórios' },
     { path: '/dre', icon: FileBarChart, label: 'DRE' },
@@ -446,21 +446,22 @@ const LayoutNovo = ({ children }) => {
           }}
         >
           <div className="p-4 md:p-8">
-            {/* Barra superior global com Seletor de Nível e Idioma */}
-            <div className="hidden md:flex items-center justify-end gap-3 mb-4">
+            {/* Barra superior global com Ajuda (Videoaulas), Seletor de Nível e Idioma */}
+            <div className="flex items-center justify-end gap-2.5 mb-4">
+              <PageTutorialVideo />
               <button
                 type="button"
                 onClick={openLevelModal}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs transition-all cursor-pointer ${levelInfo.colorBg} ${levelInfo.colorText} ${levelInfo.colorBorder} hover:scale-[1.02]`}
+                className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs transition-all cursor-pointer ${levelInfo.colorBg} ${levelInfo.colorText} ${levelInfo.colorBorder} hover:scale-[1.02]`}
                 title="Clique para alternar o nível de experiência do sistema"
               >
                 <span>{levelInfo.badge}</span>
                 <span className="text-[10px] font-bold opacity-75 uppercase">Trocar</span>
               </button>
-              <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
+              <div className="hidden md:block">
+                <LanguageSelector variant="default" align="right" showQuickFeatured={true} />
+              </div>
             </div>
-            {/* Vídeo Explicativo Exclusivo da Tela Atual */}
-            <PageTutorialVideo />
             {children}
           </div>
         </main>

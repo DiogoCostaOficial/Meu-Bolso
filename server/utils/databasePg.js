@@ -99,12 +99,15 @@ const inicializarDB = async () => {
                         ALTER TABLE trips ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
                         ALTER TABLE categories 
                         ADD COLUMN IF NOT EXISTS tipo_meta VARCHAR(20),
-                        ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2);
+                        ADD COLUMN IF NOT EXISTS valor_meta NUMERIC(15, 2),
+                        ADD COLUMN IF NOT EXISTS metas_subcategorias JSONB DEFAULT '{}'::jsonb;
 
                         ALTER TABLE transactions 
                         ADD COLUMN IF NOT EXISTS cartao TEXT,
                         ADD COLUMN IF NOT EXISTS cartao_id TEXT,
-                        ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20);
+                        ADD COLUMN IF NOT EXISTS mes_fatura VARCHAR(20),
+                        ADD COLUMN IF NOT EXISTS somar_no_orcamento BOOLEAN DEFAULT true,
+                        ADD COLUMN IF NOT EXISTS competencia_mes VARCHAR(20);
                     `);
                     await client.query(`
                         CREATE TABLE IF NOT EXISTS lgpd_consents (
@@ -293,6 +296,7 @@ const buscarDadosUsuario = async (userId) => {
     try {
         const receitasRes = await client.query("SELECT * FROM transactions WHERE user_id = $1 AND tipo = 'receita'", [userId]);
         const despesasRes = await client.query("SELECT * FROM transactions WHERE user_id = $1 AND tipo = 'despesa'", [userId]);
+        const transferenciasRes = await client.query("SELECT * FROM transactions WHERE user_id = $1 AND tipo = 'transferencia'", [userId]).catch(() => ({ rows: [] }));
         const categoriasRes = await client.query("SELECT * FROM categories WHERE user_id = $1", [userId]);
         const orcamentosRes = await client.query("SELECT * FROM budgets WHERE user_id = $1", [userId]);
         const cartoesRes = await client.query("SELECT * FROM cards WHERE user_id = $1", [userId]);
@@ -301,6 +305,7 @@ const buscarDadosUsuario = async (userId) => {
         // Reconstruct Budgets from flat SQL rows
         const rawBudgets = orcamentosRes.rows;
         const budgetsByMonth = {};
+        const ajustesCaixa = {};
 
         // Create a map of category colors
         const categoryColors = {};
@@ -310,6 +315,11 @@ const buscarDadosUsuario = async (userId) => {
 
         rawBudgets.forEach(row => {
             if (!row.periodo) return;
+
+            if (row.categoria === 'META_SALDO_ANTERIOR') {
+                ajustesCaixa[row.periodo] = parseFloat(row.valor_limite);
+                return;
+            }
 
             if (!budgetsByMonth[row.periodo]) {
                 budgetsByMonth[row.periodo] = {
@@ -338,6 +348,30 @@ const buscarDadosUsuario = async (userId) => {
                 const catNome = row.categoria.replace('META_TIPO_', '');
                 monthData.metaTipos = monthData.metaTipos || {};
                 monthData.metaTipos[catNome] = valor === 1 ? 'valor' : 'percentual';
+            } else if (row.categoria.startsWith('SUBMETA_VAL_')) {
+                const [catNome, subNome] = row.categoria.replace('SUBMETA_VAL_', '').split('::');
+                if (catNome && subNome) {
+                    monthData.subMetas = monthData.subMetas || {};
+                    monthData.subMetas[catNome] = monthData.subMetas[catNome] || {};
+                    monthData.subMetas[catNome][subNome] = monthData.subMetas[catNome][subNome] || { tipoMeta: 'percentual', valorPlanejado: 0, percentual: 0 };
+                    monthData.subMetas[catNome][subNome].valorPlanejado = valor;
+                }
+            } else if (row.categoria.startsWith('SUBMETA_PERC_')) {
+                const [catNome, subNome] = row.categoria.replace('SUBMETA_PERC_', '').split('::');
+                if (catNome && subNome) {
+                    monthData.subMetas = monthData.subMetas || {};
+                    monthData.subMetas[catNome] = monthData.subMetas[catNome] || {};
+                    monthData.subMetas[catNome][subNome] = monthData.subMetas[catNome][subNome] || { tipoMeta: 'percentual', valorPlanejado: 0, percentual: 0 };
+                    monthData.subMetas[catNome][subNome].percentual = valor;
+                }
+            } else if (row.categoria.startsWith('SUBMETA_TIPO_')) {
+                const [catNome, subNome] = row.categoria.replace('SUBMETA_TIPO_', '').split('::');
+                if (catNome && subNome) {
+                    monthData.subMetas = monthData.subMetas || {};
+                    monthData.subMetas[catNome] = monthData.subMetas[catNome] || {};
+                    monthData.subMetas[catNome][subNome] = monthData.subMetas[catNome][subNome] || { tipoMeta: 'percentual', valorPlanejado: 0, percentual: 0 };
+                    monthData.subMetas[catNome][subNome].tipoMeta = valor === 1 ? 'valor' : 'percentual';
+                }
             } else {
                 // Regular category
                 monthData.categorias.push({
@@ -372,9 +406,14 @@ const buscarDadosUsuario = async (userId) => {
                     tipoMeta: (orc.metaTipos && orc.metaTipos[cat.nome]) ? orc.metaTipos[cat.nome] : 'percentual'
                 }));
             }
+            orc.categorias = orc.categorias.map(cat => ({
+                ...cat,
+                metasSubcategorias: (orc.subMetas && orc.subMetas[cat.nome]) ? orc.subMetas[cat.nome] : {}
+            }));
             // Cleanup internal meta field
             delete orc.metaPercentuais;
             delete orc.metaTipos;
+            delete orc.subMetas;
             return orc;
         });
 
@@ -392,7 +431,9 @@ const buscarDadosUsuario = async (userId) => {
                 parcelado: r.parcelado,
                 parcelas: r.parcelas_total,
                 parcelaAtual: r.parcela_atual,
-                observacao: r.observacao
+                observacao: r.observacao,
+                somarNoOrcamento: r.somar_no_orcamento !== false,
+                competenciaMes: r.competencia_mes || null
             })),
             despesas: despesasRes.rows.map(r => {
                 const dataVenc = r.data_vencimento instanceof Date ? r.data_vencimento.toISOString().split('T')[0] : r.data_vencimento;
@@ -415,7 +456,9 @@ const buscarDadosUsuario = async (userId) => {
                     dataVencimento: dataVenc || '',
                     cartao: r.cartao || null,
                     cartaoId: r.cartao_id || null,
-                    mesFatura: r.mes_fatura || null
+                    mesFatura: r.mes_fatura || null,
+                    somarNoOrcamento: r.somar_no_orcamento !== false,
+                    competenciaMes: r.competencia_mes || null
                 };
             }),
             categorias: categoriasRes.rows.length > 0
@@ -427,7 +470,8 @@ const buscarDadosUsuario = async (userId) => {
                     cor: c.cor,
                     icone: c.icone,
                     tipoMeta: c.tipo_meta || null,
-                    valorMeta: c.valor_meta !== null && c.valor_meta !== undefined ? parseFloat(c.valor_meta) : null
+                    valorMeta: c.valor_meta !== null && c.valor_meta !== undefined ? parseFloat(c.valor_meta) : null,
+                    metasSubcategorias: typeof c.metas_subcategorias === 'string' ? JSON.parse(c.metas_subcategorias) : (c.metas_subcategorias || {})
                 }))
                 : [
                     { id: `cat-${userId}-fixas`, nome: 'Despesas Fixas', cor: '#3B82F6', tipoMeta: 'percentual', valorMeta: 50, subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'] },
@@ -446,7 +490,17 @@ const buscarDadosUsuario = async (userId) => {
                     valores: valoresObj
                 };
             }),
-            viagens: tripsRes.rows.map(t => (typeof t.dados === 'string' ? JSON.parse(t.dados) : (t.dados || {})))
+            viagens: tripsRes.rows.map(t => (typeof t.dados === 'string' ? JSON.parse(t.dados) : (t.dados || {}))),
+            transferencias: transferenciasRes.rows.map(t => ({
+                id: t.id,
+                descricao: t.descricao,
+                valor: parseFloat(t.valor),
+                data: t.data instanceof Date ? t.data.toISOString().split('T')[0] : t.data,
+                origem: t.categoria || 'Conta Corrente (Giro)',
+                destino: t.subcategoria || 'Reserva de Emergência',
+                observacao: t.observacao || ''
+            })),
+            ajustesCaixa
         };
     } catch (err) {
         console.error('Erro ao buscar dados do usuário:', err);
@@ -496,6 +550,26 @@ const salvarDadosUsuario = async (userId, dados) => {
             dados.despesas.forEach(d => incomingTransactions.push({ ...d, tipo: 'despesa' }));
         }
 
+        // 1.2b TRATAMENTO DE TRANSFERÊNCIAS INTERNAS
+        if (dados.transferencias && Array.isArray(dados.transferencias)) {
+            const transfIds = dados.transferencias.map(t => String(t.id)).filter(id => id && id !== 'undefined' && id !== 'null');
+            if (transfIds.length > 0) {
+                await client.query(`
+          DELETE FROM transactions 
+          WHERE user_id = $1 AND tipo = 'transferencia' AND id NOT IN (SELECT unnest($2::text[]))
+        `, [userId, transfIds]);
+            } else {
+                await client.query(`DELETE FROM transactions WHERE user_id = $1 AND tipo = 'transferencia'`, [userId]);
+            }
+            dados.transferencias.forEach(t => incomingTransactions.push({
+                ...t,
+                tipo: 'transferencia',
+                categoria: t.origem || t.categoria || 'Conta Corrente (Giro)',
+                subcategoria: t.destino || t.subcategoria || 'Reserva de Emergência',
+                somarNoOrcamento: false
+            }));
+        }
+
         // 1.3 BATCH INSERT/UPDATE TRANSACTIONS
         if (incomingTransactions.length > 0) {
             const tIds = incomingTransactions.map(t => String(t.id));
@@ -542,17 +616,19 @@ const salvarDadosUsuario = async (userId, dados) => {
                 const mf = t.mesFatura || t.mes_fatura;
                 return mf ? String(mf) : null;
             });
+            const tSomarNoOrcamento = incomingTransactions.map(t => t.somarNoOrcamento !== false);
+            const tCompetenciaMes = incomingTransactions.map(t => t.competenciaMes ? String(t.competenciaMes) : null);
 
             await client.query(`
         INSERT INTO transactions (
           id, user_id, descricao, valor, data, data_compra, data_vencimento, categoria, subcategoria, 
           tipo, status, status_pagamento, parcelado, parcelas_total, 
-          parcela_atual, observacao, cartao, cartao_id, mes_fatura
+          parcela_atual, observacao, cartao, cartao_id, mes_fatura, somar_no_orcamento, competencia_mes
         )
         SELECT * FROM UNNEST(
           $1::text[], $2::text[], $3::text[], $4::numeric[], $5::date[], $6::date[], $7::date[], $8::text[], $9::text[],
           $10::text[], $11::text[], $12::text[], $13::boolean[], $14::integer[],
-          $15::integer[], $16::text[], $17::text[], $18::text[], $19::text[]
+          $15::integer[], $16::text[], $17::text[], $18::text[], $19::text[], $20::boolean[], $21::text[]
         )
         ON CONFLICT (id) DO UPDATE SET
           descricao = EXCLUDED.descricao,
@@ -571,11 +647,13 @@ const salvarDadosUsuario = async (userId, dados) => {
           observacao = EXCLUDED.observacao,
           cartao = EXCLUDED.cartao,
           cartao_id = EXCLUDED.cartao_id,
-          mes_fatura = EXCLUDED.mes_fatura
+          mes_fatura = EXCLUDED.mes_fatura,
+          somar_no_orcamento = EXCLUDED.somar_no_orcamento,
+          competencia_mes = EXCLUDED.competencia_mes
       `, [
                 tIds, tUserIds, tDescs, tVals, tDatas, tDatasCompra, tDatasVencimento, tCats, tSubcats,
                 tTipos, tStatus, tStatusPg, tParcelado, tParcelas,
-                tParcelaAtual, tObs, tCartao, tCartaoId, tMesFatura
+                tParcelaAtual, tObs, tCartao, tCartaoId, tMesFatura, tSomarNoOrcamento, tCompetenciaMes
             ]);
         }
 
@@ -604,8 +682,8 @@ const salvarDadosUsuario = async (userId, dados) => {
 
             for (const c of dados.categorias) {
                 await client.query(`
-                    INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom, tipo_meta, valor_meta)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                    INSERT INTO categories (id, user_id, nome, tipo, subcategorias, cor, icone, is_custom, tipo_meta, valor_meta, metas_subcategorias)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                     ON CONFLICT (id) DO UPDATE SET
                         nome = EXCLUDED.nome,
                         tipo = EXCLUDED.tipo,
@@ -613,7 +691,8 @@ const salvarDadosUsuario = async (userId, dados) => {
                         cor = EXCLUDED.cor,
                         icone = EXCLUDED.icone,
                         tipo_meta = EXCLUDED.tipo_meta,
-                        valor_meta = EXCLUDED.valor_meta
+                        valor_meta = EXCLUDED.valor_meta,
+                        metas_subcategorias = EXCLUDED.metas_subcategorias
                 `, [
                     c.id,
                     userId,
@@ -624,7 +703,8 @@ const salvarDadosUsuario = async (userId, dados) => {
                     c.icone || null,
                     true,
                     c.tipoMeta || null,
-                    c.valorMeta !== undefined && c.valorMeta !== null && c.valorMeta !== '' ? parseFloat(c.valorMeta) : null
+                    c.valorMeta !== undefined && c.valorMeta !== null && c.valorMeta !== '' ? parseFloat(c.valorMeta) : null,
+                    JSON.stringify(c.metasSubcategorias || {})
                 ]);
             }
         }
@@ -695,6 +775,35 @@ const salvarDadosUsuario = async (userId, dados) => {
                                 periodo: orcamento.mes
                             });
                         }
+
+                        if (cat.metasSubcategorias && typeof cat.metasSubcategorias === 'object') {
+                            Object.entries(cat.metasSubcategorias).forEach(([subNome, subMeta]) => {
+                                if (!subMeta) return;
+                                const valSub = parseFloat(subMeta.valorPlanejado ?? subMeta.valorMeta ?? 0) || 0;
+                                const percSub = parseFloat(subMeta.percentual ?? 0) || 0;
+                                const tipoSub = subMeta.tipoMeta === 'valor' ? 1 : 2;
+                                if (valSub > 0 || percSub > 0) {
+                                    budgetRows.push({
+                                        id: `budget-subval-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                        categoria: `SUBMETA_VAL_${cat.nome}::${subNome}`,
+                                        valor: valSub,
+                                        periodo: orcamento.mes
+                                    });
+                                    budgetRows.push({
+                                        id: `budget-subperc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                        categoria: `SUBMETA_PERC_${cat.nome}::${subNome}`,
+                                        valor: percSub,
+                                        periodo: orcamento.mes
+                                    });
+                                    budgetRows.push({
+                                        id: `budget-subtipo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                        categoria: `SUBMETA_TIPO_${cat.nome}::${subNome}`,
+                                        valor: tipoSub,
+                                        periodo: orcamento.mes
+                                    });
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -712,6 +821,22 @@ const salvarDadosUsuario = async (userId, dados) => {
             $1::text[], $2::text[], $3::text[], $4::numeric[], $5::text[]
           )
         `, [bIds, bUserIds, bCats, bVals, bPeriodos]);
+            }
+        }
+
+        // 3.1 AJUSTES DE CAIXA (SALDO ANTERIOR MANUAL POR MÊS)
+        if (dados.ajustesCaixa && typeof dados.ajustesCaixa === 'object') {
+            const mesesAjuste = Object.keys(dados.ajustesCaixa);
+            for (const mesKey of mesesAjuste) {
+                const valAjuste = dados.ajustesCaixa[mesKey];
+                await client.query(`DELETE FROM budgets WHERE user_id = $1 AND periodo = $2 AND categoria = 'META_SALDO_ANTERIOR'`, [userId, mesKey]);
+                if (valAjuste !== null && valAjuste !== undefined && valAjuste !== '') {
+                    const ajId = `budget-saldoant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                    await client.query(
+                        `INSERT INTO budgets (id, user_id, categoria, valor_limite, periodo) VALUES ($1, $2, 'META_SALDO_ANTERIOR', $3, $4)`,
+                        [ajId, userId, parseFloat(valAjuste) || 0, mesKey]
+                    );
+                }
             }
         }
 

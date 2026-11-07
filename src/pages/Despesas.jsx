@@ -240,59 +240,35 @@ const Despesas = () => {
             diaVencimento: c.diaVencimento ?? c.valores?._diaVencimento ?? ''
           }))
         : [];
+      const jaTemDinheiro = cartoesFormatados.some(
+        c => String(c.nome || '').trim().toLowerCase() === 'dinheiro'
+      );
+      if (!jaTemDinheiro) {
+        cartoesFormatados.unshift({
+          id: 'forma-fixa-dinheiro',
+          nome: 'Dinheiro',
+          diaVencimento: '',
+          tipoForma: 'avista',
+          fixo: true
+        });
+      }
       setCartoes(cartoesFormatados);
 
-      // Garante que todas as despesas carregadas tenham statusPagamento, observacoes, dataVencimento, dataCompra, dataLancamento e cartao
-      let precisouAjustar = false;
-      const despesasComDefaults = despesasData.map(d => {
-        const cNome = d.cartao || '';
-        const cId = d.cartaoId || d.cartao_id || '';
-        const cardObj = cartoesFormatados.find(c => (cId && c.id === cId) || (cNome && c.nome === cNome));
-        const temDiaFixo = Boolean(cardObj && (cardObj.diaVencimento || cardObj.valores?._diaVencimento));
-
-        let dataEfetiva = d.data;
-        let mesFatura = d.mesFatura || d.mes_fatura || '';
-        let dataVenc = d.dataVencimento || '';
-        let statusFinal = d.statusPagamento || d.status_pagamento || 'pendente';
-
-        // Se for cartão "sem dia fixo" (PIX, débito, ticket):
-        // 1. Ajusta para a data de lançamento caso estivesse no mês seguinte
-        // 2. Define o status como pago automaticamente
-        // 3. Remove o campo mesFatura (não é fatura, pagamento direto da conta)
-        if (cardObj && !temDiaFixo) {
-          if (d.dataLancamento && d.dataLancamento !== d.data) {
-            dataEfetiva = d.dataLancamento;
-            dataVenc = '';
-            precisouAjustar = true;
-          }
-          if (statusFinal !== 'pago') {
-            statusFinal = 'pago';
-            precisouAjustar = true;
-          }
-          if (mesFatura) {
-            mesFatura = '';
-            precisouAjustar = true;
-          }
-        }
-
-        return {
-          ...d,
-          statusPagamento: statusFinal,
-          observacoes: d.observacoes || d.observacao || '',
-          dataVencimento: dataVenc,
-          dataCompra: d.dataCompra || '',
-          dataLancamento: d.dataLancamento || d.data,
-          somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true,
-          cartao: cNome,
-          cartaoId: cId,
-          mesFatura: mesFatura,
-          data: dataEfetiva
-        };
-      });
+      // Preserva 100% dos dados já lançados pelo usuário sem mutações automáticas
+      const despesasComDefaults = despesasData.map(d => ({
+        ...d,
+        statusPagamento: d.statusPagamento || d.status_pagamento || 'pendente',
+        observacoes: d.observacoes || d.observacao || '',
+        dataVencimento: d.dataVencimento || '',
+        dataCompra: d.dataCompra || '',
+        dataLancamento: d.dataLancamento || d.data,
+        somarNoOrcamento: d.somarNoOrcamento !== undefined ? d.somarNoOrcamento : true,
+        cartao: d.cartao || '',
+        cartaoId: d.cartaoId || d.cartao_id || '',
+        mesFatura: d.mesFatura || d.mes_fatura || '',
+        data: d.data
+      }));
       setDespesas(despesasComDefaults);
-      if (precisouAjustar) {
-        salvarDespesas(despesasComDefaults);
-      }
     } catch (error) {
       console.error('Erro ao carregar despesas:', error);
       setDespesas([]);
@@ -1168,11 +1144,11 @@ const Despesas = () => {
                       required
                     />
                   </div>
-                  {/* Campo para Cartão (opcional) — posicionado antes para preencher automaticamente o Vencimento */}
+                  {/* Campo para Forma de Pagamento / Cartão (opcional) — posicionado antes para preencher automaticamente o Vencimento */}
                   <div>
                     <label htmlFor="cartao" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
                       <CreditCard className="w-4 h-4 text-custom-gold" />
-                      Cartão (opcional)
+                      Forma de Pagamento / Cartão (opcional)
                     </label>
                     <select
                       id="cartao"
@@ -1182,15 +1158,32 @@ const Despesas = () => {
                       className="w-full py-3 px-3 text-gray-700 dark:text-white leading-tight rounded-lg border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-slate-800 cursor-pointer"
                       style={{ fontSize: '16px' }}
                     >
-                      <option value="">Nenhum (Não vinculado)</option>
-                      {cartoes.map(c => {
-                        const diaV = c.diaVencimento || c.valores?._diaVencimento;
-                        return (
-                          <option key={c.id || c.nome} value={c.nome}>
-                            {c.nome}{diaV ? ` (Venc. dia ${String(diaV).padStart(2, '0')})` : ''}
-                          </option>
-                        );
-                      })}
+                      <option value="">Nenhum (Conta Corrente / Não vinculado)</option>
+                      {cartoes.filter(c => Boolean(c.diaVencimento || c.valores?._diaVencimento)).length > 0 && (
+                        <optgroup label="💳 Cartões de Crédito (Fatura Futura)">
+                          {cartoes
+                            .filter(c => Boolean(c.diaVencimento || c.valores?._diaVencimento))
+                            .map(c => {
+                              const diaV = c.diaVencimento || c.valores?._diaVencimento;
+                              return (
+                                <option key={c.id || c.nome} value={c.nome}>
+                                  {c.nome} (Venc. dia {String(diaV).padStart(2, '0')})
+                                </option>
+                              );
+                            })}
+                        </optgroup>
+                      )}
+                      {cartoes.filter(c => !c.diaVencimento && !c.valores?._diaVencimento).length > 0 && (
+                        <optgroup label="⚡ À Vista, PIX, Débito e Vales (Pago na Hora)">
+                          {cartoes
+                            .filter(c => !c.diaVencimento && !c.valores?._diaVencimento)
+                            .map(c => (
+                              <option key={c.id || c.nome} value={c.nome}>
+                                {c.nome} (À Vista / Sem Fatura)
+                              </option>
+                            ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                   {/* NOVO: Campo para Data compra retroativo (opcional) */}

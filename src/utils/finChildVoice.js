@@ -160,11 +160,13 @@ export function speakWithFinChildVoice({
   text,
   language = 'pt-BR',
   voiceType = getSavedFinVoiceType(),
+  speedRate = 1,
   onProgress,
   onComplete,
   onError
 }) {
   stopFinChildVoice();
+  const safeSpeed = Math.min(2, Math.max(0.75, Number(speedRate) || 1));
 
   const cleanText = String(text || '').trim();
   if (!cleanText) {
@@ -231,10 +233,10 @@ export function speakWithFinChildVoice({
 
       if (voiceType === 'crianca') {
         utter.pitch = 1.38;
-        utter.rate = 1.08;
+        utter.rate = Math.min(2, 1.08 * safeSpeed);
       } else if (voiceType === 'mulher') {
         utter.pitch = 1.06;
-        utter.rate = 1.02;
+        utter.rate = Math.min(2, 1.02 * safeSpeed);
       } else {
         // Voz de Homem (grave, firme e didática)
         const isAlreadyMaleVoice =
@@ -243,7 +245,7 @@ export function speakWithFinChildVoice({
             bestVoice.name || ''
           );
         utter.pitch = isAlreadyMaleVoice ? 0.94 : 0.72;
-        utter.rate = 1.0;
+        utter.rate = Math.min(2, 1.0 * safeSpeed);
       }
 
       utter.onstart = () => {
@@ -318,7 +320,7 @@ export function speakWithFinChildVoice({
         } catch {
           // ignore
         }
-        audio.playbackRate = 1.17;
+        audio.playbackRate = Math.min(2.2, 1.17 * safeSpeed);
       } else if (voiceType === 'mulher') {
         // Timbre feminino adulto natural
         try {
@@ -328,7 +330,7 @@ export function speakWithFinChildVoice({
         } catch {
           // ignore
         }
-        audio.playbackRate = 1.03;
+        audio.playbackRate = Math.min(2.2, 1.03 * safeSpeed);
       } else {
         // Timbre masculino adulto (formantes mais graves)
         try {
@@ -338,7 +340,7 @@ export function speakWithFinChildVoice({
         } catch {
           // ignore
         }
-        audio.playbackRate = 0.85;
+        audio.playbackRate = Math.min(2.2, 0.85 * safeSpeed);
       }
 
       audio.ontimeupdate = () => {

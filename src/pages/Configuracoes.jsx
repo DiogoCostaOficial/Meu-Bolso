@@ -751,85 +751,216 @@ const Configuracoes = () => {
 };
 
 /**
- * COMPONENTE OTIMIZADO DE CATEGORIAS E METAS PADRÃO
- * Ações no topo (sem precisar rolar para baixo), grid compacto de 3 colunas e subcategorias inline.
+ * COMPONENTE OTIMIZADO DE CATEGORIAS E METAS PADRÃO (COM METAS POR SUBCATEGORIA E VALIDAÇÃO EM TEMPO REAL)
+ * Sincronizado com a tela de Orçamento: permite criar/editar categorias e subcategorias com metas em % (até 100% da categoria) ou R$.
  */
 const GerenciarCategorias = ({ setLoading, setMessage }) => {
   const [categorias, setCategorias] = useState([]);
+  const [rendaRealRef, setRendaRealRef] = useState(0);
   const [loadingLocal, setLoadingLocal] = useState(false);
   const [showNovaCategoriaModal, setShowNovaCategoriaModal] = useState(false);
-  const [showNovaSubcategoriaModal, setShowNovaSubcategoriaModal] = useState(false);
 
   // Estados dos Modais
-  const [novaCategoria, setNovaCategoria] = useState({ nome: '', cor: '#eab308', tipoMeta: 'percentual', valorMeta: '', subcategorias: [] });
-  const [novaSubcategoria, setNovaSubcategoria] = useState('');
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+  const [novaCategoria, setNovaCategoria] = useState({
+    nome: '',
+    cor: '#eab308',
+    tipoMeta: 'percentual',
+    valorMeta: '',
+    subcategorias: [],
+    metasSubcategorias: {}
+  });
   const [categoriaEditando, setCategoriaEditando] = useState(null);
   const [dadosEdicao, setDadosEdicao] = useState({ nome: '', cor: '#eab308', tipoMeta: 'percentual', valorMeta: '' });
 
-  // Input rápido inline por card
+  // Input rápido inline por card (nome + tipoMeta + valor)
   const [subcategoriaInline, setSubcategoriaInline] = useState({});
 
   useEffect(() => {
     carregarCategorias();
   }, []);
 
+  const obterValorMonetarioCategoria = (cat, rendaBase = rendaRealRef) => {
+    if (!cat) return 0;
+    const valMeta = parseFloat(cat.valorMeta) || 0;
+    if (cat.tipoMeta === 'valor') return valMeta;
+    if (rendaBase > 0) return parseFloat(((rendaBase * valMeta) / 100).toFixed(2));
+    return 0;
+  };
+
+  const calcularResumoSubcategoriasCard = (cat) => {
+    const valorCat = obterValorMonetarioCategoria(cat);
+    const metasSub = cat.metasSubcategorias && typeof cat.metasSubcategorias === 'object' ? cat.metasSubcategorias : {};
+    const subs = Array.isArray(cat.subcategorias) ? cat.subcategorias : [];
+
+    let somaPercentual = 0;
+    let somaValor = 0;
+
+    subs.forEach((subNome) => {
+      const m = metasSub[subNome];
+      if (!m) return;
+      const tipo = m.tipoMeta || 'percentual';
+      const p = parseFloat(m.percentual ?? (tipo === 'percentual' ? m.valorMeta : 0)) || 0;
+      const v = parseFloat(m.valorPlanejado ?? (tipo === 'valor' ? m.valorMeta : 0)) || 0;
+
+      if (tipo === 'percentual') {
+        somaPercentual += p;
+        somaValor += valorCat > 0 ? (valorCat * p) / 100 : 0;
+      } else {
+        somaValor += v;
+        somaPercentual += valorCat > 0 ? (v / valorCat) * 100 : 0;
+      }
+    });
+
+    const percentualEfetivo = valorCat > 0
+      ? parseFloat(((somaValor / valorCat) * 100).toFixed(2))
+      : parseFloat(somaPercentual.toFixed(2));
+
+    const ultrapassou =
+      percentualEfetivo > 100.1 ||
+      somaPercentual > 100.1 ||
+      (valorCat > 0 && somaValor > valorCat + 0.05) ||
+      (cat.tipoMeta === 'valor' && (parseFloat(cat.valorMeta) || 0) > 0 && somaValor > (parseFloat(cat.valorMeta) || 0) + 0.05);
+
+    return {
+      valorCat,
+      somaValor: parseFloat(somaValor.toFixed(2)),
+      somaPercentual: parseFloat(somaPercentual.toFixed(2)),
+      percentualEfetivo,
+      diferencaPercentual: parseFloat((100 - percentualEfetivo).toFixed(2)),
+      diferencaValor: parseFloat((valorCat - somaValor).toFixed(2)),
+      ultrapassou
+    };
+  };
+
   const carregarCategorias = async () => {
     try {
       setLoadingLocal(true);
       const response = await userService.obterDados();
+      const userData = response.data || {};
+      const mesAtual = new Date().toISOString().slice(0, 7);
+      const orcamentos = Array.isArray(userData.orcamentos) ? userData.orcamentos : [];
+      const orcAtual = orcamentos.find((o) => o.mes === mesAtual) || orcamentos[orcamentos.length - 1];
+      const rendaBase = parseFloat(orcAtual?.rendaReal) || 0;
+      setRendaRealRef(rendaBase);
+
       let listaCategorias = [];
-      if (response.success && response.data && Array.isArray(response.data.categorias) && response.data.categorias.length > 0) {
-        const rawCats = removeDuplicates(response.data.categorias, 'nome');
-        const mapOld = {};
-        rawCats.forEach((c) => {
-          mapOld[String(c.nome || '').trim().toLowerCase()] = parseFloat(c.valorMeta ?? 0) || 0;
-        });
-        const ehLegado30101535 =
-          mapOld['despesas fixas'] === 30 &&
-          (mapOld['lazer'] === 10 || mapOld['lazer'] === 8) &&
-          (mapOld['educação'] === 15 || mapOld['educacao'] === 15);
+      if (response.success && userData && Array.isArray(userData.categorias) && userData.categorias.length > 0) {
+        const rawCats = removeDuplicates(userData.categorias, 'nome');
 
         listaCategorias = rawCats.map((c) => {
-          const nomeNormalizado = c.nome === 'Reserva' ? 'Reserva de Emergência' : c.nome;
-          const defaultCat = categoriasDefault.find((dc) => dc.nome === nomeNormalizado);
-          const usarValorPadrao = ehLegado30101535 || c.valorMeta === undefined || c.valorMeta === null;
+          const defaultCat = categoriasDefault.find(
+            (dc) => dc.nome.toLowerCase() === String(c.nome || '').trim().toLowerCase()
+          );
+          const temValorSalvo = c.valorMeta !== undefined && c.valorMeta !== null && c.valorMeta !== '';
+          // Também recupera metasSubcategorias do orçamento atual se ainda não estiverem na categoria
+          const catNoOrc = (orcAtual?.categorias || []).find(
+            (oc) => String(oc.nome || '').trim().toLowerCase() === String(c.nome || '').trim().toLowerCase()
+          );
+          const metasSub =
+            c.metasSubcategorias && Object.keys(c.metasSubcategorias).length > 0
+              ? c.metasSubcategorias
+              : catNoOrc?.metasSubcategorias || {};
+
           return {
             ...c,
-            nome: nomeNormalizado,
+            nome: c.nome,
             tipoMeta: c.tipoMeta || (defaultCat ? defaultCat.tipoMeta : 'percentual'),
-            valorMeta: !usarValorPadrao ? c.valorMeta : (defaultCat ? defaultCat.valorMeta : null),
-            subcategorias: c.subcategorias && c.subcategorias.length > 0 ? c.subcategorias : defaultCat ? defaultCat.subcategorias : []
+            valorMeta: temValorSalvo ? c.valorMeta : (defaultCat ? defaultCat.valorMeta : null),
+            subcategorias: c.subcategorias && c.subcategorias.length > 0 ? c.subcategorias : defaultCat ? defaultCat.subcategorias : [],
+            metasSubcategorias: metasSub
           };
         });
         const temViagens = listaCategorias.some((c) => (c.nome || '').toLowerCase() === 'viagens');
         if (!temViagens) {
           const catViagens = categoriasDefault.find((c) => c.nome === 'Viagens');
-          if (catViagens) listaCategorias.push(catViagens);
+          if (catViagens) listaCategorias.push({ ...catViagens, metasSubcategorias: {} });
         }
       } else {
-        listaCategorias = categoriasDefault;
+        listaCategorias = categoriasDefault.map((c) => ({ ...c, metasSubcategorias: {} }));
       }
       setCategorias(listaCategorias);
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
-      setCategorias(categoriasDefault);
+      setCategorias(categoriasDefault.map((c) => ({ ...c, metasSubcategorias: {} })));
     } finally {
       setLoadingLocal(false);
     }
   };
 
-  const salvarCategorias = async (novasCategorias) => {
+  const salvarCategorias = async (novasCategorias, ignorarBloqueio = false) => {
+    // Verifica se alguma categoria tem subcategorias cuja soma ultrapassa a meta principal da categoria
+    const estouradas = novasCategorias.filter((c) => calcularResumoSubcategoriasCard(c).ultrapassou);
+    if (estouradas.length > 0 && !ignorarBloqueio) {
+      const nomes = estouradas.map((c) => c.nome).join(', ');
+      setMessage({
+        type: 'error',
+        text: `A soma das subcategorias ultrapassa o valor principal em: ${nomes}. Ajuste as subcategorias ou clique em "Igualar Meta Principal" no card.`
+      });
+      setCategorias(novasCategorias);
+      return;
+    }
+
     try {
       setLoading(true);
       const responseGet = await userService.obterDados();
       const dadosAtuais = responseGet.data || {};
-      const dadosAtualizados = { ...dadosAtuais, categorias: novasCategorias };
+
+      // Sincroniza também com o orçamento do mês atual se existir
+      const mesAtual = new Date().toISOString().slice(0, 7);
+      const orcamentosAtuais = Array.isArray(dadosAtuais.orcamentos) ? [...dadosAtuais.orcamentos] : [];
+      const idxOrc = orcamentosAtuais.findIndex((o) => o.mes === mesAtual);
+
+      if (idxOrc >= 0) {
+        const orcMes = { ...orcamentosAtuais[idxOrc] };
+        const rendaMes = parseFloat(orcMes.rendaReal) || 0;
+        const catsOrcExistentes = Array.isArray(orcMes.categorias) ? orcMes.categorias : [];
+
+        orcMes.categorias = novasCategorias
+          .filter((c) => !(String(c.nome || '').toLowerCase() === 'viagens' && !c.valorMeta))
+          .map((c) => {
+            const catExistente = catsOrcExistentes.find(
+              (ce) => String(ce.nome || '').trim().toLowerCase() === String(c.nome || '').trim().toLowerCase()
+            );
+            const tipoMeta = c.tipoMeta || catExistente?.tipoMeta || 'percentual';
+            const valMeta = c.valorMeta !== undefined && c.valorMeta !== null && c.valorMeta !== ''
+              ? parseFloat(c.valorMeta)
+              : null;
+
+            const valorPlanejado = valMeta !== null
+              ? (tipoMeta === 'valor' ? valMeta : rendaMes > 0 ? (rendaMes * valMeta) / 100 : (catExistente?.valorPlanejado || 0))
+              : (catExistente?.valorPlanejado || 0);
+
+            const percentual = valMeta !== null
+              ? (tipoMeta === 'percentual' ? valMeta : rendaMes > 0 ? parseFloat(((valMeta / rendaMes) * 100).toFixed(2)) : (catExistente?.percentual || 0))
+              : (catExistente?.percentual || 0);
+
+            return {
+              ...(catExistente || {}),
+              nome: c.nome,
+              cor: c.cor || catExistente?.cor || '#eab308',
+              tipoMeta,
+              valorPlanejado,
+              percentual,
+              subcategorias: c.subcategorias || catExistente?.subcategorias || [],
+              metasSubcategorias: {
+                ...(catExistente?.metasSubcategorias || {}),
+                ...(c.metasSubcategorias || {})
+              }
+            };
+          });
+        orcamentosAtuais[idxOrc] = orcMes;
+      }
+
+      const dadosAtualizados = {
+        ...dadosAtuais,
+        categorias: novasCategorias,
+        orcamentos: orcamentosAtuais
+      };
 
       const responseSave = await userService.salvarDados({ dados: dadosAtualizados });
       if (responseSave.success) {
         setCategorias(novasCategorias);
-        setMessage({ type: 'success', text: 'Categorias atualizadas com sucesso!' });
+        setMessage({ type: 'success', text: 'Categorias, subcategorias e metas sincronizadas com o Orçamento!' });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erro ao salvar categorias.' });
@@ -838,17 +969,76 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
     }
   };
 
+  const atualizarMetaSubcategoriaCard = (catIdx, subNome, campo, valor) => {
+    const novasCategorias = [...categorias];
+    const cat = { ...novasCategorias[catIdx] };
+    const valorCat = obterValorMonetarioCategoria(cat);
+    const metasAtuais = { ...(cat.metasSubcategorias || {}) };
+    const atual = metasAtuais[subNome] || { tipoMeta: 'percentual', percentual: 0, valorPlanejado: 0 };
+
+    if (campo === 'tipoMeta') {
+      const novoTipo = valor;
+      let percentual = parseFloat(atual.percentual) || 0;
+      let valorPlanejado = parseFloat(atual.valorPlanejado) || 0;
+      if (novoTipo === 'valor' && !valorPlanejado && percentual > 0 && valorCat > 0) {
+        valorPlanejado = parseFloat(((valorCat * percentual) / 100).toFixed(2));
+      } else if (novoTipo === 'percentual' && !percentual && valorPlanejado > 0 && valorCat > 0) {
+        percentual = parseFloat(((valorPlanejado / valorCat) * 100).toFixed(2));
+      }
+      metasAtuais[subNome] = { tipoMeta: novoTipo, percentual, valorPlanejado };
+    } else {
+      const num = parseFloat(valor) || 0;
+      const tipo = atual.tipoMeta || 'percentual';
+      if (tipo === 'valor') {
+        metasAtuais[subNome] = {
+          tipoMeta: 'valor',
+          valorPlanejado: num,
+          percentual: valorCat > 0 ? parseFloat(((num / valorCat) * 100).toFixed(2)) : 0
+        };
+      } else {
+        metasAtuais[subNome] = {
+          tipoMeta: 'percentual',
+          percentual: num,
+          valorPlanejado: valorCat > 0 ? parseFloat(((valorCat * num) / 100).toFixed(2)) : 0
+        };
+      }
+    }
+
+    cat.metasSubcategorias = metasAtuais;
+    novasCategorias[catIdx] = cat;
+    setCategorias(novasCategorias);
+  };
+
+  const reajustarMetaCategoriaPelasSubcategorias = (catIdx) => {
+    const novasCategorias = [...categorias];
+    const cat = { ...novasCategorias[catIdx] };
+    const resumo = calcularResumoSubcategoriasCard(cat);
+
+    if (resumo.somaValor > 0) {
+      if (cat.tipoMeta === 'percentual' && rendaRealRef > 0) {
+        cat.valorMeta = parseFloat(((resumo.somaValor / rendaRealRef) * 100).toFixed(2));
+      } else {
+        cat.tipoMeta = 'valor';
+        cat.valorMeta = resumo.somaValor;
+      }
+      novasCategorias[catIdx] = cat;
+      salvarCategorias(novasCategorias, true);
+    }
+  };
+
   const adicionarCategoria = () => {
     if (!novaCategoria.nome.trim()) return;
     const catParaAdicionar = {
       ...novaCategoria,
+      id: `cat-${Date.now()}`,
       nome: novaCategoria.nome.trim(),
       valorMeta: novaCategoria.valorMeta !== '' ? parseFloat(novaCategoria.valorMeta) : null,
-      subcategorias: []
+      subcategorias: [],
+      metasSubcategorias: {}
     };
     const novasCategorias = [...categorias, catParaAdicionar];
     salvarCategorias(novasCategorias);
-    setNovaCategoria({ nome: '', cor: '#eab308', tipoMeta: 'percentual', valorMeta: '', subcategorias: [] });
+    setNovaCategoria({ nome: '', cor: '#eab308', tipoMeta: 'percentual', valorMeta: '', subcategorias: [], metasSubcategorias: {} });
     setShowNovaCategoriaModal(false);
   };
 
@@ -878,27 +1068,49 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
   };
 
   const adicionarSubcategoriaInline = (catIdx) => {
-    const sub = (subcategoriaInline[catIdx] || '').trim();
+    const formInline = subcategoriaInline[catIdx] || { nome: '', tipoMeta: 'percentual', valor: '' };
+    const sub = String(formInline.nome || '').trim();
     if (!sub) return;
 
     const novasCategorias = [...categorias];
-    const subList = novasCategorias[catIdx].subcategorias || [];
+    const cat = { ...novasCategorias[catIdx] };
+    const subList = cat.subcategorias || [];
 
     if (subList.includes(sub)) {
       setMessage({ type: 'error', text: 'Esta subcategoria já existe.' });
       return;
     }
 
-    novasCategorias[catIdx].subcategorias = [...subList, sub];
+    const valorCat = obterValorMonetarioCategoria(cat);
+    const tipoMeta = formInline.tipoMeta || 'percentual';
+    const valNum = parseFloat(formInline.valor) || 0;
+
+    cat.subcategorias = [...subList, sub];
+    cat.metasSubcategorias = {
+      ...(cat.metasSubcategorias || {}),
+      [sub]: {
+        tipoMeta,
+        percentual: tipoMeta === 'percentual' ? valNum : (valorCat > 0 ? parseFloat(((valNum / valorCat) * 100).toFixed(2)) : 0),
+        valorPlanejado: tipoMeta === 'valor' ? valNum : (valorCat > 0 ? parseFloat(((valorCat * valNum) / 100).toFixed(2)) : 0)
+      }
+    };
+
+    novasCategorias[catIdx] = cat;
     salvarCategorias(novasCategorias);
-    setSubcategoriaInline((prev) => ({ ...prev, [catIdx]: '' }));
+    setSubcategoriaInline((prev) => ({ ...prev, [catIdx]: { nome: '', tipoMeta: 'percentual', valor: '' } }));
   };
 
   const removerSubcategoria = (catIdx, subIdx) => {
     if (!window.confirm('Excluir subcategoria?')) return;
     const novasCategorias = [...categorias];
-    const subList = novasCategorias[catIdx].subcategorias || [];
-    novasCategorias[catIdx].subcategorias = subList.filter((_, i) => i !== subIdx);
+    const cat = { ...novasCategorias[catIdx] };
+    const subList = cat.subcategorias || [];
+    const subNome = subList[subIdx];
+    cat.subcategorias = subList.filter((_, i) => i !== subIdx);
+    const novasMetas = { ...(cat.metasSubcategorias || {}) };
+    delete novasMetas[subNome];
+    cat.metasSubcategorias = novasMetas;
+    novasCategorias[catIdx] = cat;
     salvarCategorias(novasCategorias);
   };
 
@@ -918,22 +1130,29 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
 
   return (
     <div className="space-y-4">
-      {/* BARRA DE AÇÕES NO TOPO (Sem rolagem para baixo) */}
+      {/* BARRA DE AÇÕES NO TOPO */}
       <div className="bg-custom-card border border-custom-color rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-custom transition-colors">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-custom-main">Categorias & Metas Padrão</h2>
+            <h2 className="text-base font-bold text-custom-main">Categorias, Subcategorias & Metas Sincronizadas</h2>
             <p className="text-xs text-custom-main opacity-70">
-              {categorias.length} categorias cadastradas • Metas mensais configuráveis
+              Defina a meta principal da categoria e distribua metas para cada subcategoria (em % até 100% da categoria ou R$)
             </p>
           </div>
         </div>
 
-        {/* Botões de Ação no Topo */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => salvarCategorias(categorias)}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Save className="w-3.5 h-3.5" />
+            Salvar Todas as Metas
+          </button>
           <button
             onClick={() => setShowNovaCategoriaModal(true)}
             className="px-4 py-2 rounded-xl bg-custom-gold text-black font-bold text-xs hover:bg-yellow-400 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -944,124 +1163,251 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
         </div>
       </div>
 
-      {/* GRADE COMPACTA E ALINHADA DE CATEGORIAS (3 Colunas em telas médias, 4 em telas largas) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-        {categorias.map((cat, idx) => (
-          <div
-            key={idx}
-            className="bg-custom-card border border-custom-color rounded-2xl p-4 hover:border-custom-gold/50 transition-all flex flex-col justify-between h-[360px] shadow-custom"
-          >
-            <div>
-              {/* Header do Card */}
-              <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-custom-color/60">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div
-                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-xs ring-2 ring-gray-800"
-                    style={{ backgroundColor: cat.cor || '#eab308' }}
-                  ></div>
-                  <h3 className="font-bold text-custom-main text-sm truncate" title={cat.nome}>{cat.nome}</h3>
-                </div>
+      {/* GRADE DE CATEGORIAS COM METAS DE SUBCATEGORIAS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {categorias.map((cat, idx) => {
+          const resumoSub = calcularResumoSubcategoriasCard(cat);
+          const formInline = subcategoriaInline[idx] || { nome: '', tipoMeta: 'percentual', valor: '' };
 
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => iniciarEdicao(idx)}
-                    title="Editar categoria e meta"
-                    className="p-1.5 text-custom-main opacity-65 hover:text-amber-400 hover:bg-custom-primary/60 rounded-lg transition"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => removerCategoria(idx)}
-                    title="Excluir categoria"
-                    className="p-1.5 text-custom-main opacity-65 hover:text-red-400 hover:bg-custom-primary/60 rounded-lg transition"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Badge da Meta Padrão & Contador */}
-              <div className="flex items-center justify-between mb-3 text-[11px]">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold bg-custom-primary/60 border border-custom-color text-custom-main">
-                  <Target className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                  {cat.valorMeta !== null && cat.valorMeta !== undefined && cat.valorMeta !== '' ? (
-                    <span>
-                      Meta:{' '}
-                      <strong className="text-amber-400">
-                        {cat.tipoMeta === 'percentual'
-                          ? `${cat.valorMeta}%`
-                          : `R$ ${Number(cat.valorMeta).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-                      </strong>
-                    </span>
-                  ) : (
-                    <span className="text-custom-main opacity-50 italic">Sem meta configurada</span>
-                  )}
-                </span>
-                <span className="text-[11px] text-custom-main opacity-65 font-medium">
-                  {(cat.subcategorias || []).length} {(cat.subcategorias || []).length === 1 ? 'item' : 'itens'}
-                </span>
-              </div>
-
-              {/* Subcategorias alinhadas em Grade de 2 Colunas com altura uniforme */}
-              <div className="h-44 overflow-y-auto pr-1.5 custom-scrollbar mb-2">
-                {(cat.subcategorias || []).length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-3 border border-dashed border-custom-color/80 rounded-xl text-custom-main opacity-50 text-xs">
-                    <span>Nenhuma subcategoria</span>
-                    <span className="text-[10px] text-custom-main opacity-40 mt-1">Adicione uma abaixo</span>
+          return (
+            <div
+              key={idx}
+              className={`bg-custom-card border rounded-2xl p-4 transition-all flex flex-col justify-between h-[430px] shadow-custom ${
+                resumoSub.ultrapassou
+                  ? 'border-red-500/80 ring-1 ring-red-500/30'
+                  : 'border-custom-color hover:border-custom-gold/50'
+              }`}
+            >
+              <div>
+                {/* Header do Card */}
+                <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-custom-color/60">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-xs ring-2 ring-gray-800"
+                      style={{ backgroundColor: cat.cor || '#eab308' }}
+                    />
+                    <h3 className="font-bold text-custom-main text-sm truncate" title={cat.nome}>
+                      {cat.nome}
+                    </h3>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 content-start">
-                    {(cat.subcategorias || []).map((sub, sIdx) => (
-                      <div
-                        key={sIdx}
-                        className="group flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-custom-primary/40 border border-custom-color hover:border-custom-gold/40 text-xs text-custom-main transition-all min-h-[34px]"
-                      >
-                        <span className="truncate pr-1 text-[11px] font-medium" title={sub}>
-                          {sub}
+
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => iniciarEdicao(idx)}
+                      title="Editar categoria e meta principal"
+                      className="p-1.5 text-custom-main opacity-65 hover:text-amber-400 hover:bg-custom-primary/60 rounded-lg transition"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => removerCategoria(idx)}
+                      title="Excluir categoria"
+                      className="p-1.5 text-custom-main opacity-65 hover:text-red-400 hover:bg-custom-primary/60 rounded-lg transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Badge da Meta Principal + Soma das Subcategorias */}
+                <div className="space-y-1.5 mb-2.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold bg-custom-primary/60 border border-custom-color text-custom-main">
+                      <Target className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                      {cat.valorMeta !== null && cat.valorMeta !== undefined && cat.valorMeta !== '' ? (
+                        <span>
+                          Meta Principal:{' '}
+                          <strong className="text-amber-400">
+                            {cat.tipoMeta === 'percentual'
+                              ? `${cat.valorMeta}%`
+                              : `R$ ${Number(cat.valorMeta).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                          </strong>
+                          {resumoSub.valorCat > 0 && cat.tipoMeta === 'percentual' && (
+                            <span className="opacity-70 ml-1">
+                              (R$ {resumoSub.valorCat.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                            </span>
+                          )}
                         </span>
+                      ) : (
+                        <span className="text-custom-main opacity-50 italic">Sem meta configurada</span>
+                      )}
+                    </span>
+                    <span className={`text-[11px] font-bold ${resumoSub.ultrapassou ? 'text-red-400' : 'text-custom-main opacity-75'}`}>
+                      Sub: {resumoSub.percentualEfetivo.toFixed(0)}%
+                    </span>
+                  </div>
+
+                  {/* Barra de Alocação das Subcategorias */}
+                  <div className="w-full bg-custom-primary/80 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        resumoSub.ultrapassou
+                          ? 'bg-red-500'
+                          : Math.abs(resumoSub.percentualEfetivo - 100) < 0.5
+                            ? 'bg-emerald-500'
+                            : 'bg-amber-400'
+                      }`}
+                      style={{ width: `${Math.min(resumoSub.percentualEfetivo, 100)}%` }}
+                    />
+                  </div>
+
+                  {resumoSub.ultrapassou && (
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/40 text-[10px] text-red-300 font-bold">
+                      <span>
+                        ⚠️ Ultrapassou em {Math.abs(resumoSub.diferencaPercentual).toFixed(1)}%
+                        {resumoSub.valorCat > 0 ? ` (R$ ${Math.abs(resumoSub.diferencaValor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })})` : ''}
+                      </span>
+                      {resumoSub.somaValor > 0 && (
                         <button
                           type="button"
-                          onClick={() => removerSubcategoria(idx, sIdx)}
-                          title="Remover"
-                          className="text-custom-main opacity-50 hover:text-red-400 transition-colors flex-shrink-0 p-0.5 rounded opacity-60 group-hover:opacity-100"
+                          onClick={() => reajustarMetaCategoriaPelasSubcategorias(idx)}
+                          className="px-2 py-0.5 rounded bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold shrink-0"
                         >
-                          <X className="w-3 h-3" />
+                          Igualar Meta
                         </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-            {/* Ação Inline: Adicionar Subcategoria DIRETO no Card (Perfeitamente alinhada no rodapé) */}
-            <div className="pt-3 border-t border-custom-color/60 mt-auto">
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="text"
-                  placeholder="+ Nova subcategoria..."
-                  value={subcategoriaInline[idx] || ''}
-                  onChange={(e) => setSubcategoriaInline({ ...subcategoriaInline, [idx]: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      adicionarSubcategoriaInline(idx);
+                {/* Lista de Subcategorias com Input de Meta Individual */}
+                <div className="h-52 overflow-y-auto pr-1 custom-scrollbar mb-2 space-y-1.5">
+                  {(cat.subcategorias || []).length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-3 border border-dashed border-custom-color/80 rounded-xl text-custom-main opacity-50 text-xs">
+                      <span>Nenhuma subcategoria</span>
+                      <span className="text-[10px] text-custom-main opacity-40 mt-1">Adicione uma abaixo já com a meta</span>
+                    </div>
+                  ) : (
+                    (cat.subcategorias || []).map((sub, sIdx) => {
+                      const metaSub = (cat.metasSubcategorias && cat.metasSubcategorias[sub]) || {
+                        tipoMeta: 'percentual',
+                        percentual: 0,
+                        valorPlanejado: 0
+                      };
+                      const isSubValor = metaSub.tipoMeta === 'valor';
+
+                      return (
+                        <div
+                          key={sIdx}
+                          className="group flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-custom-primary/40 border border-custom-color hover:border-custom-gold/40 text-xs text-custom-main transition-all"
+                        >
+                          <span className="truncate flex-1 text-[11px] font-medium" title={sub}>
+                            {sub}
+                          </span>
+
+                          {/* Controle de Meta da Subcategoria (% ou R$) */}
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                atualizarMetaSubcategoriaCard(
+                                  idx,
+                                  sub,
+                                  'tipoMeta',
+                                  isSubValor ? 'percentual' : 'valor'
+                                )
+                              }
+                              title="Alternar entre % da categoria e R$"
+                              className="px-1.5 py-0.5 rounded bg-custom-card border border-custom-color text-[10px] font-bold text-amber-400 hover:border-custom-gold"
+                            >
+                              {isSubValor ? 'R$' : '%'}
+                            </button>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              placeholder="0"
+                              value={isSubValor ? (metaSub.valorPlanejado || '') : (metaSub.percentual || '')}
+                              onChange={(e) => atualizarMetaSubcategoriaCard(idx, sub, 'valor', e.target.value)}
+                              onBlur={() => salvarCategorias(categorias)}
+                              className="w-16 bg-custom-card border border-custom-color focus:border-custom-gold rounded px-1.5 py-0.5 text-[11px] text-center font-bold text-custom-main focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removerSubcategoria(idx, sIdx)}
+                              title="Remover subcategoria"
+                              className="text-custom-main opacity-40 hover:text-red-400 transition-colors p-0.5 rounded"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Rodapé do Card: Criar Nova Subcategoria já com Meta */}
+              <div className="pt-2.5 border-t border-custom-color/60 mt-auto">
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    placeholder="+ Subcategoria..."
+                    value={formInline.nome}
+                    onChange={(e) =>
+                      setSubcategoriaInline({
+                        ...subcategoriaInline,
+                        [idx]: { ...formInline, nome: e.target.value }
+                      })
                     }
-                  }}
-                  className="flex-1 bg-custom-primary/60 border border-custom-color focus:border-custom-gold rounded-lg px-2.5 py-1.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => adicionarSubcategoriaInline(idx)}
-                  className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition flex items-center justify-center cursor-pointer"
-                  title="Adicionar subcategoria"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        adicionarSubcategoriaInline(idx);
+                      }
+                    }}
+                    className="flex-1 min-w-0 bg-custom-primary/60 border border-custom-color focus:border-custom-gold rounded-lg px-2 py-1.5 text-xs text-custom-main placeholder-custom-main/40 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSubcategoriaInline({
+                        ...subcategoriaInline,
+                        [idx]: {
+                          ...formInline,
+                          tipoMeta: formInline.tipoMeta === 'valor' ? 'percentual' : 'valor'
+                        }
+                      })
+                    }
+                    className="px-2 py-1.5 rounded-lg bg-custom-primary/60 border border-custom-color text-[10px] font-bold text-amber-400"
+                    title="Alternar tipo de meta da nova subcategoria"
+                  >
+                    {formInline.tipoMeta === 'valor' ? 'R$' : '%'}
+                  </button>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    placeholder="Meta"
+                    value={formInline.valor}
+                    onChange={(e) =>
+                      setSubcategoriaInline({
+                        ...subcategoriaInline,
+                        [idx]: { ...formInline, valor: e.target.value }
+                      })
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        adicionarSubcategoriaInline(idx);
+                      }
+                    }}
+                    className="w-16 bg-custom-primary/60 border border-custom-color focus:border-custom-gold rounded-lg px-2 py-1.5 text-xs text-center text-custom-main placeholder-custom-main/40 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adicionarSubcategoriaInline(idx)}
+                    className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition flex items-center justify-center cursor-pointer"
+                    title="Adicionar subcategoria com meta"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* MODAL: NOVA CATEGORIA */}
@@ -1113,7 +1459,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
               <div className="bg-custom-primary/50 p-3.5 rounded-xl border border-custom-color space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider">
-                    Meta Mensal Padrão
+                    Meta Mensal Principal
                   </span>
                   <div className="flex bg-custom-primary/80 p-0.5 rounded-lg text-xs border border-custom-color">
                     <button
@@ -1170,14 +1516,14 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
         </div>
       )}
 
-      {/* MODAL: EDITAR CATEGORIA E META */}
+      {/* MODAL: EDITAR CATEGORIA E META PRINCIPAL */}
       {categoriaEditando !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-custom-card border border-custom-color rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-custom-main">
             <div className="flex items-center justify-between pb-3 border-b border-custom-color">
               <div className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-bold text-custom-main">Editar Categoria & Meta</h3>
+                <h3 className="text-base font-bold text-custom-main">Editar Categoria & Meta Principal</h3>
               </div>
               <button
                 onClick={() => setCategoriaEditando(null)}
@@ -1218,7 +1564,7 @@ const GerenciarCategorias = ({ setLoading, setMessage }) => {
               <div className="bg-custom-primary/50 p-3.5 rounded-xl border border-custom-color space-y-2.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-custom-main opacity-80 uppercase tracking-wider">
-                    Tipo da Meta
+                    Tipo da Meta Principal
                   </label>
                   <div className="flex bg-custom-primary/80 p-0.5 rounded-lg text-xs border border-custom-color">
                     <button

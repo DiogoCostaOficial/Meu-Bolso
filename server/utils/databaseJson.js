@@ -230,6 +230,12 @@ const buscarDadosUsuario = async (userId) => {
         if (!parsed.viagens) {
             parsed.viagens = [];
         }
+        if (!Array.isArray(parsed.transferencias)) {
+            parsed.transferencias = [];
+        }
+        if (!parsed.ajustesCaixa || typeof parsed.ajustesCaixa !== 'object') {
+            parsed.ajustesCaixa = {};
+        }
         if (!Array.isArray(parsed.categorias) || parsed.categorias.length === 0) {
             parsed.categorias = CATEGORIAS_INICIAIS_PADRAO.map(c => ({ ...c }));
         }
@@ -242,7 +248,9 @@ const buscarDadosUsuario = async (userId) => {
             categorias: CATEGORIAS_INICIAIS_PADRAO.map(c => ({ ...c })),
             orcamentos: [],
             cartoes: [],
-            viagens: []
+            viagens: [],
+            transferencias: [],
+            ajustesCaixa: {}
         };
     }
 };
@@ -258,7 +266,9 @@ const salvarDadosUsuario = async (userId, dados) => {
             categorias: [],
             orcamentos: [],
             cartoes: [],
-            viagens: []
+            viagens: [],
+            transferencias: [],
+            ajustesCaixa: {}
         };
         try {
             const fileContent = await fs.readFile(filePath, 'utf8');
@@ -283,7 +293,9 @@ const salvarDadosUsuario = async (userId, dados) => {
             categorias: dados.categorias || currentData.categorias || [],
             orcamentos: finalOrcamentos,
             cartoes: Array.isArray(dados.cartoes) ? dados.cartoes : (currentData.cartoes || []),
-            viagens: Array.isArray(dados.viagens) ? dados.viagens : (currentData.viagens || [])
+            viagens: Array.isArray(dados.viagens) ? dados.viagens : (currentData.viagens || []),
+            transferencias: Array.isArray(dados.transferencias) ? dados.transferencias : (currentData.transferencias || []),
+            ajustesCaixa: dados.ajustesCaixa !== undefined ? { ...(currentData.ajustesCaixa || {}), ...dados.ajustesCaixa } : (currentData.ajustesCaixa || {})
         };
 
         await fs.writeFile(filePath, JSON.stringify(newData, null, 2));

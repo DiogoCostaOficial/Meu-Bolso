@@ -52,8 +52,17 @@ const FinVideoPlayer = ({
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [voiceType, setVoiceType] = useState(() => getSavedFinVoiceType());
+  const [playbackSpeed, setPlaybackSpeed] = useState(() => {
+    try {
+      const saved = parseFloat(localStorage.getItem('fin_video_speed') || '1');
+      return [1, 1.25, 1.5].includes(saved) ? saved : 1;
+    } catch {
+      return 1;
+    }
+  });
   const [sceneProgressPct, setSceneProgressPct] = useState(0);
   const [typedCharsCount, setTypedCharsCount] = useState(0);
+  const mp4VideoRef = useRef(null);
 
   // Estado para vídeo MP4 pré-gerado via gemini-omni-1.1-flash
   const [availableMp4Ids, setAvailableMp4Ids] = useState([]);
@@ -135,6 +144,7 @@ const FinVideoPlayer = ({
     if (!fullText) return;
 
     // Começa a digitar logo após o cursor do FIN chegar no campo (350ms)
+    const charInterval = Math.max(25, Math.round(55 / (playbackSpeed || 1)));
     const startDelay = setTimeout(() => {
       typingTimerRef.current = setInterval(() => {
         setTypedCharsCount((prev) => {
@@ -144,14 +154,14 @@ const FinVideoPlayer = ({
           }
           return prev + 1;
         });
-      }, 55);
-    }, 350);
+      }, charInterval);
+    }, Math.round(350 / (playbackSpeed || 1)));
 
     return () => {
       clearTimeout(startDelay);
       if (typingTimerRef.current) clearInterval(typingTimerRef.current);
     };
-  }, [selectedTopicId, sceneIndex, isPlaying, currentScene?.typedValue]);
+  }, [selectedTopicId, sceneIndex, isPlaying, playbackSpeed, currentScene?.typedValue]);
 
   // Função auxiliar que avança para o próximo passo do vídeo contínuo APENAS quando a fala concluiu
   // Se a tela atual tiver Parte 1 e Parte 2 (ex: Despesas, Receitas, Orçamento), ao terminar a Parte 1 passa automaticamente para a Parte 2!
@@ -195,6 +205,7 @@ const FinVideoPlayer = ({
         text: narrationText,
         language,
         voiceType,
+        speedRate: playbackSpeed,
         onProgress: (pct) => {
           setSceneProgressPct(pct);
         },
@@ -203,11 +214,11 @@ const FinVideoPlayer = ({
           setSceneProgressPct(100);
           advanceTimeoutRef.current = setTimeout(() => {
             moveToNextStep();
-          }, 950);
+          }, Math.round(950 / (playbackSpeed || 1)));
         },
         onError: () => {
           // Caso o áudio esteja indisponível, usa tempo de leitura completo sem cortar
-          const fallbackMs = Math.max(11000, narrationText.length * 85);
+          const fallbackMs = Math.max(7000, Math.round((narrationText.length * 85) / (playbackSpeed || 1)));
           advanceTimeoutRef.current = setTimeout(() => {
             setSceneProgressPct(100);
             moveToNextStep();
@@ -223,7 +234,7 @@ const FinVideoPlayer = ({
     }
 
     // Modo Sem Som (isMuted = true): avança suavemente pelo tempo de leitura
-    const readingDurationMs = Math.max(11000, narrationText.length * 85);
+    const readingDurationMs = Math.max(7000, Math.round((narrationText.length * 85) / (playbackSpeed || 1)));
     const stepMs = 100;
     const increment = (stepMs / readingDurationMs) * 100;
 
@@ -233,7 +244,7 @@ const FinVideoPlayer = ({
           clearInterval(progressTimerRef.current);
           advanceTimeoutRef.current = setTimeout(() => {
             moveToNextStep();
-          }, 400);
+          }, Math.round(400 / (playbackSpeed || 1)));
           return 100;
         }
         return prev + increment;
@@ -251,11 +262,23 @@ const FinVideoPlayer = ({
     isPlaying,
     isMuted,
     voiceType,
+    playbackSpeed,
     hasMp4ForCurrentTopic,
     preferMp4Mode,
     language,
     currentScene?.narration
   ]);
+
+  const handleChangeSpeed = (newSpeed) => {
+    setPlaybackSpeed(newSpeed);
+    try {
+      localStorage.setItem('fin_video_speed', String(newSpeed));
+    } catch {}
+    if (mp4VideoRef.current) {
+      mp4VideoRef.current.playbackRate = newSpeed;
+    }
+    setIsPlaying(true);
+  };
 
   const handleChangeVoiceType = (newVoice) => {
     setVoiceType(newVoice);
@@ -427,23 +450,45 @@ const FinVideoPlayer = ({
       {hasMp4ForCurrentTopic && preferMp4Mode ? (
         <div className="rounded-2xl overflow-hidden border border-amber-500/40 bg-slate-950 shadow-lg">
           <video
+            ref={mp4VideoRef}
             key={currentVideo.mp4Url}
             src={currentVideo.mp4Url}
             controls
             autoPlay
+            onLoadedMetadata={(e) => {
+              e.currentTarget.playbackRate = playbackSpeed || 1;
+            }}
             className="w-full aspect-video object-cover bg-black"
           />
-          <div className="p-3 bg-slate-900/95 text-white flex items-center justify-between gap-2">
+          <div className="p-3 bg-slate-900/95 text-white flex flex-wrap items-center justify-between gap-2">
             <span className={`${currentFont.chip} text-amber-400 font-bold flex items-center gap-1.5`}>
               <Film className="w-4 h-4" /> Vídeo MP4 Gerado via Google Gemini Omni 1.1 Flash
             </span>
-            <button
-              type="button"
-              onClick={() => setPreferMp4Mode(false)}
-              className={`${currentFont.chip} px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white font-semibold cursor-pointer`}
-            >
-              Ver Simulação Interativa da Tela
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center rounded-lg bg-white/10 p-0.5 border border-white/15">
+                {[1, 1.25, 1.5].map((spd) => (
+                  <button
+                    key={spd}
+                    type="button"
+                    onClick={() => handleChangeSpeed(spd)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-bold transition cursor-pointer ${
+                      playbackSpeed === spd
+                        ? 'bg-amber-400 text-black'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    {spd}x
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreferMp4Mode(false)}
+                className={`${currentFont.chip} px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white font-semibold cursor-pointer`}
+              >
+                Ver Simulação Interativa da Tela
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -509,8 +554,8 @@ const FinVideoPlayer = ({
           </div>
 
           {/* Controles do Player Contínuo */}
-          <div className="px-4 py-2.5 bg-black/70 border-t border-white/10 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
+          <div className="px-4 py-2.5 bg-black/70 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setIsPlaying((p) => !p)}
@@ -559,6 +604,28 @@ const FinVideoPlayer = ({
                       }`}
                     >
                       {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Seletor de Velocidade: 1x, 1.25x, 1.5x */}
+              <div className="inline-flex items-center rounded-lg bg-white/10 p-0.5 border border-white/15" title="Velocidade da videoaula">
+                {[1, 1.25, 1.5].map((spd) => {
+                  const isSpeedSelected = playbackSpeed === spd;
+                  return (
+                    <button
+                      key={spd}
+                      type="button"
+                      onClick={() => handleChangeSpeed(spd)}
+                      className={`px-2 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
+                        isSpeedSelected
+                          ? 'bg-emerald-400 text-black shadow-xs'
+                          : 'text-gray-300 hover:text-white hover:bg-white/10'
+                      }`}
+                      title={`Assistir em velocidade ${spd}x`}
+                    >
+                      {spd}x
                     </button>
                   );
                 })}

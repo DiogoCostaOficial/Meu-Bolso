@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, DollarSign, Calendar, Tag, FileText, TrendingUp, Filter, X, ChevronUp, ChevronDown, Check, XCircle, GraduationCap, ArrowUpDown } from 'lucide-react';
+import { Plus, Trash2, Edit, DollarSign, Calendar, Tag, FileText, TrendingUp, Filter, X, ChevronUp, ChevronDown, Check, XCircle, GraduationCap, ArrowUpDown, ArrowLeftRight, ShieldCheck } from 'lucide-react';
 import api from '../services/api';
 import useDebouncedSave from '../hooks/useDebouncedSave';
 import SaveIndicator from '../components/SaveIndicator';
+import TransferenciaInternaModal from '../components/TransferenciaInternaModal';
+import { toast } from 'sonner';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useLevel } from '../contexts/LevelContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import CurrencySelector from '../components/CurrencySelector';
+
+const isCarryoverDuplicado = (desc = '') => /reserva\s+m[eê]s\s+anterior/i.test(String(desc).trim());
+const isResgateReserva = (desc = '') => /retirad[ao]\s+(da\s+)?reserva/i.test(String(desc).trim());
 
 const Receitas = () => {
   const { currentLevel } = useLevel();
@@ -16,6 +21,8 @@ const Receitas = () => {
   const { t } = useLanguage();
   const { formatCurrency: formatarMoeda } = useCurrency();
   const [receitas, setReceitas] = useState([]);
+  const [transferencias, setTransferencias] = useState([]);
+  const [mostrarModalTransferencia, setMostrarModalTransferencia] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
   const [filtrosMinimizados, setFiltrosMinimizados] = useState(false);
@@ -35,7 +42,8 @@ const Receitas = () => {
     subcategoria: '',
     observacoes: '',
     recorrente: false,
-    somarNoOrcamento: true
+    somarNoOrcamento: true,
+    competenciaMesSeguinte: false
   });
   const [quantidadeTitulos, setQuantidadeTitulos] = useState(1);
   const [filtros, setFiltros] = useState({
@@ -84,14 +92,47 @@ const Receitas = () => {
     try {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      const receitasData = userData.receitas || [];
+      const receitasData = Array.isArray(userData.receitas) ? userData.receitas : [];
+      const transfData = Array.isArray(userData.transferencias) ? userData.transferencias : [];
 
-      setReceitas(Array.isArray(receitasData) ? receitasData : []);
+      setReceitas(receitasData);
+      setTransferencias(transfData);
       console.log('✅ Receitas carregadas:', receitasData.length);
     } catch (error) {
       console.error('❌ Erro ao carregar receitas:', error);
       setReceitas([]);
     }
+  };
+
+  const handleSaveTransferencias = async (novaLista) => {
+    await api.post('/user/dados', { transferencias: novaLista });
+    setTransferencias(novaLista);
+  };
+
+  const lancamentosDuplicadosDetectados = React.useMemo(() => {
+    return (receitas || []).filter(r => isCarryoverDuplicado(r.descricao) || isResgateReserva(r.descricao));
+  }, [receitas]);
+
+  const handleExcluirDuplicadosDefinitivo = async () => {
+    if (!window.confirm(
+      `Encontrados ${lancamentosDuplicadosDetectados.length} lançamento(s) de "Reserva Mês Anterior / Retirada Reserva" nas Receitas.\n\nDeseja excluir esses registros duplicados para deixar seu histórico 100% limpo?`
+    )) return;
+    const limpas = receitas.filter(r => !isCarryoverDuplicado(r.descricao) && !isResgateReserva(r.descricao));
+    setReceitas(limpas);
+    await saveImmediately(limpas);
+    toast.success('Lançamentos duplicados excluídos com sucesso!');
+  };
+
+  const calcularMesSeguinte = (dataYmd) => {
+    if (!dataYmd) return null;
+    const [ano, mes] = String(dataYmd).split('-');
+    let a = parseInt(ano, 10);
+    let m = parseInt(mes, 10) + 1;
+    if (m > 12) {
+      m = 1;
+      a++;
+    }
+    return `${a}-${String(m).padStart(2, '0')}`;
   };
 
   const salvarReceitas = async (novasReceitas) => {
@@ -147,7 +188,8 @@ const Receitas = () => {
         ...novaReceita,
         id: editando.id,
         valor: valorNumerico,
-        somarNoOrcamento: novaReceita.somarNoOrcamento !== undefined ? novaReceita.somarNoOrcamento : true
+        somarNoOrcamento: novaReceita.somarNoOrcamento !== undefined ? novaReceita.somarNoOrcamento : true,
+        competenciaMes: novaReceita.competenciaMesSeguinte ? calcularMesSeguinte(novaReceita.data) : null
       };
       receitasAtualizadas = receitas.map(r =>
         r.id === editando.id ? receitaParaSalvar : r
@@ -162,13 +204,15 @@ const Receitas = () => {
       for (let i = 0; i < qtd; i++) {
         const dataReceita = new Date(dataInicial);
         dataReceita.setMonth(dataReceita.getMonth() + i);
+        const dataYmd = dataReceita.toISOString().split('T')[0];
 
         novasReceitas.push({
           ...novaReceita,
           id: String(timestamp + i),
           valor: valorNumerico,
-          data: dataReceita.toISOString().split('T')[0],
-          somarNoOrcamento: novaReceita.somarNoOrcamento !== undefined ? novaReceita.somarNoOrcamento : true
+          data: dataYmd,
+          somarNoOrcamento: novaReceita.somarNoOrcamento !== undefined ? novaReceita.somarNoOrcamento : true,
+          competenciaMes: novaReceita.competenciaMesSeguinte ? calcularMesSeguinte(dataYmd) : null
         });
       }
 
@@ -252,10 +296,12 @@ const Receitas = () => {
       descricao: '',
       valor: '',
       data: new Date().toISOString().split('T')[0],
+      categoria: 'Receita Principal',
       subcategoria: '',
       observacoes: '',
       recorrente: false,
-      somarNoOrcamento: true
+      somarNoOrcamento: true,
+      competenciaMesSeguinte: false
     });
     setQuantidadeTitulos(1);
     setMostrarFormulario(false);
@@ -327,18 +373,23 @@ const Receitas = () => {
   };
 
   const receitasFiltradas = receitas.filter(receita => {
-    let passaNoFiltro = true;
-
     if (filtros.categoria && receita.categoria !== filtros.categoria) return false;
     if (filtros.subcategoria && receita.subcategoria !== filtros.subcategoria) return false;
 
     const { ano, mes, ymd } = extrairAnoMesDia(receita.data);
+    let compAno = ano;
+    let compMes = mes;
+    if (receita.competenciaMes && /^\d{4}-\d{2}$/.test(receita.competenciaMes)) {
+      const parts = receita.competenciaMes.split('-');
+      compAno = parts[0];
+      compMes = parts[1];
+    }
 
-    // Filtro por Mês (funciona independente de ter ano ou não)
-    if (filtros.mes && mes !== filtros.mes) return false;
+    // Filtro por Mês (considera competência ou data de caixa)
+    if (filtros.mes && mes !== filtros.mes && compMes !== filtros.mes) return false;
 
-    // Filtro por Ano (funciona independente de ter mês ou não)
-    if (filtros.ano && ano !== filtros.ano) return false;
+    // Filtro por Ano (considera competência ou data de caixa)
+    if (filtros.ano && ano !== filtros.ano && compAno !== filtros.ano) return false;
 
     // Filtro por intervalo de datas (quando não estiver filtrando por mês específico)
     if (!filtros.mes) {
@@ -388,9 +439,11 @@ const Receitas = () => {
     return sortableItems;
   }, [receitasFiltradas, sortConfig]);
 
-  // Total de receitas: soma todas as receitas visíveis na lista (ou todas se sem filtro)
+  // Total de receitas: preserva 100% do que foi lançado pelo usuário (só ignora se o usuário desmarcou somarNoOrcamento)
   const totalReceitas = React.useMemo(() => {
-    return receitasFiltradas.reduce((acc, r) => acc + extrairValorNumerico(r.valor), 0);
+    return receitasFiltradas
+      .filter(r => r.somarNoOrcamento !== false)
+      .reduce((acc, r) => acc + extrairValorNumerico(r.valor), 0);
   }, [receitasFiltradas]);
 
   const categoriasAtivas = React.useMemo(() => {
@@ -409,11 +462,19 @@ const Receitas = () => {
             {isIniciante ? 'Entrou (Receitas)' : 'Receitas'}
           </h1>
           <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm md:text-base">
-            {isIniciante ? 'Registre aqui todo dinheiro que entrou no seu bolso.' : 'Gerencie suas entradas e acompanhe sua evolução financeira.'}
+            {isIniciante ? 'Registre aqui todo dinheiro novo que entrou no seu bolso.' : 'Gerencie suas entradas reais e separe transferências entre contas.'}
           </p>
         </div>
-        <div className="flex items-start gap-3 flex-wrap">
+        <div className="flex items-start gap-2.5 flex-wrap">
           <CurrencySelector />
+          <button
+            onClick={() => setMostrarModalTransferencia(true)}
+            className="h-11 px-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full shadow-md transition flex items-center justify-center gap-2 font-medium text-sm"
+            title="Transferir entre Conta Corrente e Reserva sem inflar sua renda"
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+            Transferir Conta ⇄ Reserva
+          </button>
           <button
             onClick={() => {
               setMostrarFormulario(!mostrarFormulario);
@@ -426,6 +487,20 @@ const Receitas = () => {
           </button>
         </div>
       </div>
+
+      {/* Aviso Consultivo (preserva 100% dos lançamentos para o usuário decidir se deseja editar) */}
+      {lancamentosDuplicadosDetectados.length > 0 && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+              <span className="font-bold">Seus dados estão 100% preservados:</span> Você possui{' '}
+              <span className="font-bold">{lancamentosDuplicadosDetectados.length} lançamento(s)</span> com descrição{' '}
+              <span className="underline">&quot;Reserva Mês Anterior&quot; / &quot;Retirada Reserva&quot;</span>. Eles foram mantidos exatamente como você lançou para que você decida se quer editá-los ou usar o recurso de Transferência Interna.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Formulário de Nova Receita */}
       {mostrarFormulario && (
@@ -552,29 +627,43 @@ const Receitas = () => {
                 onChange={(e) => setNovaReceita({ ...novaReceita, observacoes: e.target.value })}
               />
             </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="recorrente"
-                className="w-4 h-4 text-green-600 dark:text-green-500 border-gray-300 dark:border-slate-700 rounded focus:ring-green-500"
-                checked={novaReceita.recorrente}
-                onChange={(e) => setNovaReceita({ ...novaReceita, recorrente: e.target.checked })}
-              />
-              <label htmlFor="recorrente" className="ml-2 text-sm text-gray-700 dark:text-slate-300">
-                Receita recorrente (mensal)
-              </label>
-            </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="somarNoOrcamento"
-                className="w-4 h-4 text-green-600 dark:text-green-500 border-gray-300 dark:border-slate-700 rounded focus:ring-green-500"
-                checked={novaReceita.somarNoOrcamento}
-                onChange={(e) => setNovaReceita({ ...novaReceita, somarNoOrcamento: e.target.checked })}
-              />
-              <label htmlFor="somarNoOrcamento" className="ml-2 text-sm text-gray-700 dark:text-slate-300 font-bold">
-                Somar ao Orçamento e Relatórios
-              </label>
+            <div className="space-y-2.5 bg-gray-50 dark:bg-slate-800/40 p-4 rounded-xl border border-gray-200 dark:border-slate-700/60">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="recorrente"
+                  className="w-4 h-4 text-green-600 dark:text-green-500 border-gray-300 dark:border-slate-700 rounded focus:ring-green-500"
+                  checked={novaReceita.recorrente}
+                  onChange={(e) => setNovaReceita({ ...novaReceita, recorrente: e.target.checked })}
+                />
+                <label htmlFor="recorrente" className="ml-2 text-sm text-gray-700 dark:text-slate-300">
+                  Receita recorrente (mensal)
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="competenciaMesSeguinte"
+                  className="w-4 h-4 text-cyan-600 dark:text-cyan-500 border-gray-300 dark:border-slate-700 rounded focus:ring-cyan-500"
+                  checked={Boolean(novaReceita.competenciaMesSeguinte)}
+                  onChange={(e) => setNovaReceita({ ...novaReceita, competenciaMesSeguinte: e.target.checked })}
+                />
+                <label htmlFor="competenciaMesSeguinte" className="ml-2 text-sm text-gray-700 dark:text-slate-300 font-medium">
+                  📅 Competência do Mês Seguinte <span className="text-xs text-gray-500 dark:text-slate-400">(Ex: Adiantamento Salarial do dia 20 usado para pagar contas do próximo mês)</span>
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="somarNoOrcamento"
+                  className="w-4 h-4 text-green-600 dark:text-green-500 border-gray-300 dark:border-slate-700 rounded focus:ring-green-500"
+                  checked={novaReceita.somarNoOrcamento}
+                  onChange={(e) => setNovaReceita({ ...novaReceita, somarNoOrcamento: e.target.checked })}
+                />
+                <label htmlFor="somarNoOrcamento" className="ml-2 text-sm text-gray-700 dark:text-slate-300 font-bold">
+                  Somar ao Orçamento e Relatórios (Desmarque se for apenas saldo anterior ou transferência)
+                </label>
+              </div>
             </div>
             <div className="flex gap-4">
               <button
@@ -782,9 +871,14 @@ const Receitas = () => {
                           </label></>
                       ) : (
                         <div>
-                          <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">{receita.descricao}
-                            {receita.recorrente && <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-full font-semibold">Recorrente</span>}
-                            {receita.somarNoOrcamento === false && <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 text-[10px] font-bold rounded uppercase border border-gray-200 dark:border-slate-600">Apenas DRE</span>}
+                          <div className="flex items-center gap-2 flex-wrap font-medium text-gray-900 dark:text-white">{receita.descricao}
+                            {receita.recorrente && <span className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 rounded-full font-semibold">Recorrente</span>}
+                            {receita.competenciaMes && <span className="px-2 py-0.5 text-[10px] bg-cyan-100 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-300 rounded-full font-bold border border-cyan-300 dark:border-cyan-800">Competência: {receita.competenciaMes.split('-').reverse().join('/')}</span>}
+                            {(isCarryoverDuplicado(receita.descricao) || isResgateReserva(receita.descricao)) ? (
+                              <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-bold rounded uppercase border border-amber-300 dark:border-amber-800">Saldo Anterior / Transferência (Não soma na Renda)</span>
+                            ) : (
+                              receita.somarNoOrcamento === false && <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 text-[10px] font-bold rounded uppercase border border-gray-200 dark:border-slate-600">Fora da Renda do Mês</span>
+                            )}
                           </div>
                           {receita.observacoes && <p className="text-xs text-gray-500 mt-1">{receita.observacoes}</p>}
                         </div>
@@ -880,6 +974,17 @@ const Receitas = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de Transferência Interna entre Contas / Reserva */}
+      <TransferenciaInternaModal
+        isOpen={mostrarModalTransferencia}
+        onClose={() => setMostrarModalTransferencia(false)}
+        transferencias={transferencias}
+        onSaveTransferencias={handleSaveTransferencias}
+        formatarMoeda={formatarMoeda}
+        duplicadosDetectados={lancamentosDuplicadosDetectados}
+        onLimparDuplicados={handleExcluirDuplicadosDefinitivo}
+      />
 
       {/* Indicador de salvamento */}
       <SaveIndicator

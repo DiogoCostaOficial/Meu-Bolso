@@ -520,8 +520,9 @@ export const GlobalFieldHelpEnhancer = () => {
       const labels = mainContainer.querySelectorAll('label, th, h2, h3, h4');
       labels.forEach((label) => {
         const kind = label.tagName === 'LABEL' ? 'field' : label.tagName === 'TH' ? 'column' : 'section';
-        // Ignora labels dentro da réplica em miniatura do vídeo ou que já tenham ajuda
+        // Ignora labels dentro da réplica em miniatura do vídeo, marcados sem ajuda ou que já tenham ajuda
         if (label.closest('[data-fin-replica="true"]')) return;
+        if (label.closest('[data-no-field-help="true"]')) return;
         if (label.querySelector('[data-field-help="true"]')) return;
 
         // Ignora labels que envolvem botões de upload de arquivo inteiros ou switches vazios

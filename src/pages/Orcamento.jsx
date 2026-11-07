@@ -11,18 +11,61 @@ import {
 import {
   DollarSign, TrendingUp, Target, AlertCircle,
   Save, RefreshCw, PieChart as PieIcon, Calculator,
-  CheckCircle, XCircle, GraduationCap, Copy, Calendar, Percent, X, Check, ArrowLeft
+  CheckCircle, XCircle, GraduationCap, Copy, Calendar, Percent, X, Check, ArrowLeft,
+  ChevronDown, ChevronUp, Plus, Layers, Trash2, Sparkles, ArrowUpRight
 } from 'lucide-react';
 import api from '../services/api';
 import { removeDuplicates } from '../utils/arrayUtils';
 
 const CATEGORIAS_PADRAO = [
-  { nome: 'Despesas Fixas', percentual: 50.00, cor: '#3B82F6', gastoAtual: 0 },
-  { nome: 'Lazer', percentual: 20.00, cor: '#10B981', gastoAtual: 0 },
-  { nome: 'Educação', percentual: 20.00, cor: '#F59E0B', gastoAtual: 0 },
-  { nome: 'Investimentos', percentual: 0.00, cor: '#EF4444', gastoAtual: 0 },
-  { nome: 'Reserva de Emergência', percentual: 10.00, cor: '#EC4899', gastoAtual: 0 }
+  {
+    nome: 'Despesas Fixas',
+    percentual: 50.00,
+    cor: '#3B82F6',
+    gastoAtual: 0,
+    subcategorias: ['Moradia', 'Mercado', 'Saúde', 'Carro', 'Transporte', 'Bichos', 'Diversos Fixos'],
+    metasSubcategorias: {}
+  },
+  {
+    nome: 'Lazer',
+    percentual: 20.00,
+    cor: '#10B981',
+    gastoAtual: 0,
+    subcategorias: ['Junkie Food', 'Assinaturas', 'Rolês e Passeios', 'Datas especiais', 'Presentes', 'Diversos Lazer'],
+    metasSubcategorias: {}
+  },
+  {
+    nome: 'Educação',
+    percentual: 20.00,
+    cor: '#F59E0B',
+    gastoAtual: 0,
+    subcategorias: ['Cursos', 'Livros', 'Workshops', 'Material Escolar', 'Faculdade', 'Idiomas', 'Pós-graduação', 'Diversos Educação'],
+    metasSubcategorias: {}
+  },
+  {
+    nome: 'Investimentos',
+    percentual: 0.00,
+    cor: '#EF4444',
+    gastoAtual: 0,
+    subcategorias: ['Investimentos BR', 'Investimentos US', 'Cripto', 'Diversos Investimentos'],
+    metasSubcategorias: {}
+  },
+  {
+    nome: 'Reserva de Emergência',
+    percentual: 10.00,
+    cor: '#EC4899',
+    gastoAtual: 0,
+    subcategorias: ['Fundo de Emergência', 'Fundo de Oportunidade', 'Diversos Reserva'],
+    metasSubcategorias: {}
+  }
 ];
+
+const obterSubcategoriasPadrao = (nomeCategoria) => {
+  const match = CATEGORIAS_PADRAO.find(
+    c => c.nome.toLowerCase() === String(nomeCategoria || '').trim().toLowerCase()
+  );
+  return match ? [...match.subcategorias] : [];
+};
 
 const obterPercentualPadrao50202010 = (nomeCategoria) => {
   const nome = String(nomeCategoria || '').trim().toLowerCase();
@@ -36,27 +79,9 @@ const obterPercentualPadrao50202010 = (nomeCategoria) => {
 
 const ehDistribuicaoLegadaOuZerada = (lista) => {
   if (!Array.isArray(lista) || lista.length === 0) return true;
-  const valores = lista.map(c => parseFloat(c.valorMeta ?? c.percentual ?? 0) || 0);
+  const valores = lista.map(c => parseFloat(c.valorMeta ?? c.percentual ?? c.valorPlanejado ?? 0) || 0);
   const soma = valores.reduce((a, b) => a + b, 0);
-  if (soma === 0) return true;
-
-  // Detecta se está exatamente com os parâmetros antigos (30-10-15-35-10 ou 30-8-15-40-7)
-  const mapCat = {};
-  lista.forEach(c => {
-    mapCat[String(c.nome || '').trim().toLowerCase()] = parseFloat(c.valorMeta ?? c.percentual ?? 0) || 0;
-  });
-  const ehAntigoConfig =
-    mapCat['despesas fixas'] === 30 &&
-    mapCat['lazer'] === 10 &&
-    (mapCat['educação'] === 15 || mapCat['educacao'] === 15) &&
-    mapCat['investimentos'] === 35;
-  const ehAntigoOrc =
-    mapCat['despesas fixas'] === 30 &&
-    mapCat['lazer'] === 8 &&
-    (mapCat['educação'] === 15 || mapCat['educacao'] === 15) &&
-    mapCat['investimentos'] === 40;
-
-  return ehAntigoConfig || ehAntigoOrc;
+  return soma === 0;
 };
 
 const Orcamento = () => {
@@ -68,11 +93,28 @@ const Orcamento = () => {
   const [dividas, setDividas] = useState('');
   const [rendaReal, setRendaReal] = useState('');
   const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7)); // Formato YYYY-MM
-  const [categorias, setCategorias] = useState(CATEGORIAS_PADRAO.map(c => ({ ...c, tipoMeta: 'percentual', valorPlanejado: 0 })));
+  const [categorias, setCategorias] = useState(
+    CATEGORIAS_PADRAO.map(c => ({ ...c, tipoMeta: 'percentual', valorPlanejado: 0 }))
+  );
+  const [categoriasCadastro, setCategoriasCadastro] = useState([]);
   const [orcamentoSalvo, setOrcamentoSalvo] = useState(false);
   const [mensagemFeedback, setMensagemFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
   const [despesas, setDespesas] = useState([]);
+
+  // Controle de expansão de subcategorias por categoria
+  const [categoriasExpandidas, setCategoriasExpandidas] = useState({});
+  const [novaSubInline, setNovaSubInline] = useState({});
+
+  // Modal de Nova Categoria direto no Orçamento
+  const [modalNovaCategoria, setModalNovaCategoria] = useState(false);
+  const [formNovaCategoria, setFormNovaCategoria] = useState({
+    nome: '',
+    cor: '#10B981',
+    tipoMeta: 'percentual',
+    valorMeta: '',
+    primeiraSubcategoria: ''
+  });
 
   // Modal de Replicação de Metas
   const [modalCopiarAberto, setModalCopiarAberto] = useState(false);
@@ -84,7 +126,7 @@ const Orcamento = () => {
   useEffect(() => {
     carregarOrcamento();
     carregarDespesas();
-  }, [mesSelecionado]); // Recarrega orçamento e despesas ao mudar o mês
+  }, [mesSelecionado]);
 
   useEffect(() => {
     calcularRendaReal();
@@ -94,12 +136,47 @@ const Orcamento = () => {
     atualizarGastosAtuais();
   }, [despesas]);
 
+  const toggleExpandirCategoria = (nomeCat) => {
+    setCategoriasExpandidas(prev => ({
+      ...prev,
+      [nomeCat]: !prev[nomeCat]
+    }));
+  };
+
+  // Normaliza as metas de subcategorias quando o valor planejado da categoria pai muda
+  const normalizarMetasSubcategorias = (metasSubBrutas, subcategoriasLista, valorCatPai) => {
+    const resultado = {};
+    const origem = metasSubBrutas && typeof metasSubBrutas === 'object' ? metasSubBrutas : {};
+    (subcategoriasLista || []).forEach(subNome => {
+      const m = origem[subNome];
+      if (!m) {
+        resultado[subNome] = { tipoMeta: 'percentual', percentual: 0, valorPlanejado: 0 };
+        return;
+      }
+      const tipoMeta = m.tipoMeta || 'percentual';
+      let percentual = parseFloat(m.percentual ?? (tipoMeta === 'percentual' ? m.valorMeta : 0)) || 0;
+      let valorPlanejado = parseFloat(m.valorPlanejado ?? (tipoMeta === 'valor' ? m.valorMeta : 0)) || 0;
+
+      if (tipoMeta === 'percentual') {
+        valorPlanejado = valorCatPai > 0 ? parseFloat(((valorCatPai * percentual) / 100).toFixed(2)) : valorPlanejado;
+      } else {
+        percentual = valorCatPai > 0 ? parseFloat(((valorPlanejado / valorCatPai) * 100).toFixed(2)) : percentual;
+      }
+
+      resultado[subNome] = {
+        tipoMeta,
+        percentual,
+        valorPlanejado
+      };
+    });
+    return resultado;
+  };
+
   const inicializarCategoriasSemOrcamento = (categoriasDoUsuario, real) => {
     const realNum = parseFloat(real) || 0;
     if (categoriasDoUsuario.length > 0) {
       const categoriasUnicasUsuario = removeDuplicates(categoriasDoUsuario, 'nome').filter(cat => {
         const nomeLimpo = String(cat.nome || '').trim().toLowerCase();
-        // Não inclui 'Viagens' na tabela inicial de orçamento se ela não tiver meta configurada
         if (nomeLimpo === 'viagens' && (cat.valorMeta === null || cat.valorMeta === undefined || cat.valorMeta === '')) {
           return false;
         }
@@ -127,27 +204,33 @@ const Orcamento = () => {
           valorPlanejado = realNum > 0 ? (realNum * percentual) / 100 : 0;
         }
 
-        const nomeNormalizado =
-          String(cat.nome || '').trim().toLowerCase() === 'reserva'
-            ? 'Reserva de Emergência'
-            : cat.nome;
+        const subcategorias = Array.isArray(cat.subcategorias) && cat.subcategorias.length > 0
+          ? cat.subcategorias
+          : obterSubcategoriasPadrao(cat.nome);
 
         return {
-          nome: nomeNormalizado,
+          id: cat.id,
+          nome: cat.nome,
           cor: cat.cor || '#3B82F6',
           tipoMeta,
           valorPlanejado,
           percentual,
-          gastoAtual: 0
+          gastoAtual: 0,
+          subcategorias,
+          metasSubcategorias: normalizarMetasSubcategorias(cat.metasSubcategorias, subcategorias, valorPlanejado)
         };
       }));
     } else {
-      setCategorias(CATEGORIAS_PADRAO.map(cat => ({
-        ...cat,
-        tipoMeta: 'percentual',
-        valorPlanejado: realNum > 0 ? (realNum * cat.percentual) / 100 : 0,
-        gastoAtual: 0
-      })));
+      setCategorias(CATEGORIAS_PADRAO.map(cat => {
+        const valorPlanejado = realNum > 0 ? (realNum * cat.percentual) / 100 : 0;
+        return {
+          ...cat,
+          tipoMeta: 'percentual',
+          valorPlanejado,
+          gastoAtual: 0,
+          metasSubcategorias: normalizarMetasSubcategorias(cat.metasSubcategorias, cat.subcategorias, valorPlanejado)
+        };
+      }));
     }
   };
 
@@ -156,10 +239,10 @@ const Orcamento = () => {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
 
-      // Look for budget for the selected month
       const orcamentos = Array.isArray(userData.orcamentos) ? userData.orcamentos : [];
       const orcamentoMes = orcamentos.find(o => o.mes === mesSelecionado);
-      const categoriasDoUsuario = userData.categorias || [];
+      const categoriasDoUsuario = Array.isArray(userData.categorias) ? userData.categorias : [];
+      setCategoriasCadastro(categoriasDoUsuario);
 
       if (orcamentoMes) {
         setRendaPrevista(orcamentoMes.rendaPrevista || '');
@@ -170,12 +253,33 @@ const Orcamento = () => {
         const categoriasDoOrcamento = orcamentoMes.categorias || [];
 
         if (categoriasDoOrcamento.length > 0) {
-          const categoriasUnicas = removeDuplicates(categoriasDoOrcamento, 'nome');
-          const somaPlanejado = categoriasUnicas.reduce((acc, c) => acc + (parseFloat(c.valorPlanejado) || 0), 0);
-          const usarPadrao50202010 = somaPlanejado === 0 && ehDistribuicaoLegadaOuZerada(categoriasUnicas);
+          // Mescla categorias novas que o usuário criou em Configurações e ainda não estavam no orçamento salvo do mês
+          const nomesNoOrcamento = new Set(categoriasDoOrcamento.map(c => String(c.nome || '').trim().toLowerCase()));
+          const categoriasExtrasUsuario = categoriasDoUsuario.filter(cu => {
+            const n = String(cu.nome || '').trim().toLowerCase();
+            if (n === 'viagens' && !cu.valorMeta) return false;
+            return !nomesNoOrcamento.has(n);
+          });
 
-          setCategorias(categoriasUnicas.map(cat => {
-            const matchUser = categoriasDoUsuario.find(c => c.nome === cat.nome);
+          const listaCombinada = [
+            ...removeDuplicates(categoriasDoOrcamento, 'nome'),
+            ...categoriasExtrasUsuario.map(cu => ({
+              nome: cu.nome,
+              cor: cu.cor || '#3B82F6',
+              tipoMeta: cu.tipoMeta || 'percentual',
+              valorPlanejado: cu.tipoMeta === 'valor' ? (parseFloat(cu.valorMeta) || 0) : (real > 0 ? (real * (parseFloat(cu.valorMeta) || 0)) / 100 : 0),
+              percentual: cu.tipoMeta === 'percentual' ? (parseFloat(cu.valorMeta) || 0) : (real > 0 ? parseFloat((((parseFloat(cu.valorMeta) || 0) / real) * 100).toFixed(2)) : 0),
+              metasSubcategorias: cu.metasSubcategorias || {}
+            }))
+          ];
+
+          const somaPlanejado = listaCombinada.reduce((acc, c) => acc + (parseFloat(c.valorPlanejado) || 0), 0);
+          const usarPadrao50202010 = somaPlanejado === 0 && ehDistribuicaoLegadaOuZerada(listaCombinada);
+
+          setCategorias(listaCombinada.map(cat => {
+            const matchUser = categoriasDoUsuario.find(
+              c => String(c.nome || '').trim().toLowerCase() === String(cat.nome || '').trim().toLowerCase()
+            );
             let cor = cat.cor;
             if (!cor || cor === '#CCCCCC') {
               const match = matchUser || CATEGORIAS_PADRAO.find(c => c.nome === cat.nome);
@@ -199,13 +303,26 @@ const Orcamento = () => {
               valorPlanejado = (real * percentual) / 100;
             }
 
+            const subcategorias = (matchUser && Array.isArray(matchUser.subcategorias) && matchUser.subcategorias.length > 0)
+              ? matchUser.subcategorias
+              : (Array.isArray(cat.subcategorias) && cat.subcategorias.length > 0
+                  ? cat.subcategorias
+                  : obterSubcategoriasPadrao(cat.nome));
+
+            const metasSubBrutas = (cat.metasSubcategorias && Object.keys(cat.metasSubcategorias).length > 0)
+              ? cat.metasSubcategorias
+              : (matchUser?.metasSubcategorias || {});
+
             return {
               ...cat,
+              id: matchUser?.id || cat.id,
               cor,
               tipoMeta,
               valorPlanejado,
               percentual,
-              gastoAtual: cat.gastoAtual || 0
+              gastoAtual: cat.gastoAtual || 0,
+              subcategorias,
+              metasSubcategorias: normalizarMetasSubcategorias(metasSubBrutas, subcategorias, valorPlanejado)
             };
           }));
         } else {
@@ -226,8 +343,8 @@ const Orcamento = () => {
     try {
       const response = await api.get('/user/dados');
       const userData = response.data.dados || {};
-      const despesas = Array.isArray(userData.despesas) ? userData.despesas : [];
-      const despesasMes = despesas.filter(d => d.data && d.data.startsWith(mesSelecionado));
+      const todasDespesas = Array.isArray(userData.despesas) ? userData.despesas : [];
+      const despesasMes = todasDespesas.filter(d => d.data && d.data.startsWith(mesSelecionado));
       setDespesas(despesasMes);
     } catch (error) {
       console.error('Erro ao carregar despesas do backend:', error);
@@ -243,19 +360,105 @@ const Orcamento = () => {
 
   const atualizarGastosAtuais = () => {
     setCategorias(prevCategorias => {
-      const novasCategorias = prevCategorias.map(cat => {
+      return prevCategorias.map(cat => {
         const gastoTotal = despesas
           .filter(d => d.categoria === cat.nome && d.somarNoOrcamento !== false)
           .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0);
         return { ...cat, gastoAtual: gastoTotal };
       });
-
-      const mudou = novasCategorias.some((cat, index) => {
-        return cat.gastoAtual !== (prevCategorias[index] ? prevCategorias[index].gastoAtual : 0);
-      });
-
-      return mudou ? novasCategorias : prevCategorias;
     });
+  };
+
+  const calcularGastoSubcategoria = (nomeCat, nomeSub) => {
+    return despesas
+      .filter(d => d.categoria === nomeCat && d.subcategoria === nomeSub && d.somarNoOrcamento !== false)
+      .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0);
+  };
+
+  const calcularValorCategoria = (cat) => {
+    if (!cat) return 0;
+    const real = parseFloat(rendaReal) || 0;
+    if (cat.tipoMeta === 'valor') {
+      return parseFloat(cat.valorPlanejado) || 0;
+    }
+    return (real * (parseFloat(cat.percentual) || 0)) / 100;
+  };
+
+  const calcularDisponivel = (cat) => {
+    if (!cat) return 0;
+    return calcularValorCategoria(cat) - (parseFloat(cat.gastoAtual) || 0);
+  };
+
+  // Calcula valor e percentual de uma subcategoria em relação à categoria pai
+  const calcularDadosSubcategoria = (cat, subNome) => {
+    const valorCat = calcularValorCategoria(cat);
+    const metaSub = (cat.metasSubcategorias && cat.metasSubcategorias[subNome]) || {
+      tipoMeta: 'percentual',
+      percentual: 0,
+      valorPlanejado: 0
+    };
+    const tipoMeta = metaSub.tipoMeta || 'percentual';
+    let valorPlanejado = 0;
+    let percentual = 0;
+
+    if (tipoMeta === 'valor') {
+      valorPlanejado = parseFloat(metaSub.valorPlanejado) || 0;
+      percentual = valorCat > 0 ? parseFloat(((valorPlanejado / valorCat) * 100).toFixed(2)) : (parseFloat(metaSub.percentual) || 0);
+    } else {
+      percentual = parseFloat(metaSub.percentual) || 0;
+      valorPlanejado = valorCat > 0 ? parseFloat(((valorCat * percentual) / 100).toFixed(2)) : (parseFloat(metaSub.valorPlanejado) || 0);
+    }
+
+    const gastoAtual = calcularGastoSubcategoria(cat.nome, subNome);
+    const disponivel = valorPlanejado - gastoAtual;
+
+    return {
+      tipoMeta,
+      valorPlanejado,
+      percentual,
+      gastoAtual,
+      disponivel
+    };
+  };
+
+  // Calcula o resumo de todas as subcategorias de uma categoria pai
+  const calcularResumoSubcategorias = (cat) => {
+    const valorCat = calcularValorCategoria(cat);
+    const listaSubs = cat.subcategorias || [];
+    let somaValorSub = 0;
+    let somaPercentualSub = 0;
+
+    listaSubs.forEach(subNome => {
+      const dados = calcularDadosSubcategoria(cat, subNome);
+      somaValorSub += dados.valorPlanejado;
+      somaPercentualSub += dados.percentual;
+    });
+
+    // Se a categoria pai tem valor > 0, o percentual total real das subcategorias também pode ser aferido por somaValorSub / valorCat
+    const percentualEfetivo = valorCat > 0
+      ? parseFloat(((somaValorSub / valorCat) * 100).toFixed(2))
+      : parseFloat(somaPercentualSub.toFixed(2));
+
+    const diferencaValorSub = valorCat - somaValorSub;
+    const diferencaPercentualSub = 100 - percentualEfetivo;
+
+    // Ultrapassou se:
+    // 1) A soma percentual nas subcategorias > 100.1%
+    // 2) Ou somaValorSub > valorCat + 0.05
+    const ultrapassou =
+      percentualEfetivo > 100.1 ||
+      somaPercentualSub > 100.1 ||
+      (somaValorSub > 0 && somaValorSub > valorCat + 0.05);
+
+    return {
+      valorCat,
+      somaValorSub: parseFloat(somaValorSub.toFixed(2)),
+      somaPercentualSub: parseFloat(somaPercentualSub.toFixed(2)),
+      percentualEfetivo,
+      diferencaValorSub: parseFloat(diferencaValorSub.toFixed(2)),
+      diferencaPercentualSub: parseFloat(diferencaPercentualSub.toFixed(2)),
+      ultrapassou
+    };
   };
 
   const alternarTipoMeta = (index, novoTipo) => {
@@ -275,8 +478,14 @@ const Orcamento = () => {
     const valNum = parseFloat(valor) || 0;
     const real = parseFloat(rendaReal) || 0;
     const novasCategorias = [...categorias];
+    const novoValorCat = real > 0 ? (real * valNum) / 100 : 0;
     novasCategorias[index].percentual = valNum;
-    novasCategorias[index].valorPlanejado = real > 0 ? (real * valNum) / 100 : 0;
+    novasCategorias[index].valorPlanejado = novoValorCat;
+    novasCategorias[index].metasSubcategorias = normalizarMetasSubcategorias(
+      novasCategorias[index].metasSubcategorias,
+      novasCategorias[index].subcategorias,
+      novoValorCat
+    );
     setCategorias(novasCategorias);
   };
 
@@ -286,31 +495,242 @@ const Orcamento = () => {
     const novasCategorias = [...categorias];
     novasCategorias[index].valorPlanejado = valNum;
     novasCategorias[index].percentual = real > 0 ? parseFloat(((valNum / real) * 100).toFixed(2)) : 0;
+    novasCategorias[index].metasSubcategorias = normalizarMetasSubcategorias(
+      novasCategorias[index].metasSubcategorias,
+      novasCategorias[index].subcategorias,
+      valNum
+    );
     setCategorias(novasCategorias);
   };
 
-  const calcularValorCategoria = (cat) => {
-    if (!cat) return 0;
-    const real = parseFloat(rendaReal) || 0;
-    if (cat.tipoMeta === 'valor') {
-      return parseFloat(cat.valorPlanejado) || 0;
+  // Manipuladores de metas das Subcategorias
+  const alternarTipoMetaSubcategoria = (catIndex, subNome, novoTipo) => {
+    const novasCategorias = [...categorias];
+    const cat = { ...novasCategorias[catIndex] };
+    const valorCat = calcularValorCategoria(cat);
+    const metasAtuais = { ...(cat.metasSubcategorias || {}) };
+    const atual = metasAtuais[subNome] || { tipoMeta: 'percentual', percentual: 0, valorPlanejado: 0 };
+
+    let valorPlanejado = parseFloat(atual.valorPlanejado) || 0;
+    let percentual = parseFloat(atual.percentual) || 0;
+
+    if (novoTipo === 'valor' && !valorPlanejado && percentual > 0 && valorCat > 0) {
+      valorPlanejado = parseFloat(((valorCat * percentual) / 100).toFixed(2));
+    } else if (novoTipo === 'percentual' && !percentual && valorPlanejado > 0 && valorCat > 0) {
+      percentual = parseFloat(((valorPlanejado / valorCat) * 100).toFixed(2));
     }
-    return (real * (parseFloat(cat.percentual) || 0)) / 100;
+
+    metasAtuais[subNome] = {
+      tipoMeta: novoTipo,
+      valorPlanejado,
+      percentual
+    };
+    cat.metasSubcategorias = metasAtuais;
+    novasCategorias[catIndex] = cat;
+    setCategorias(novasCategorias);
   };
 
-  const calcularDisponivel = (cat) => {
-    if (!cat) return 0;
-    return calcularValorCategoria(cat) - (parseFloat(cat.gastoAtual) || 0);
+  const atualizarMetaSubcategoria = (catIndex, subNome, inputValor) => {
+    const valNum = parseFloat(inputValor) || 0;
+    const novasCategorias = [...categorias];
+    const cat = { ...novasCategorias[catIndex] };
+    const valorCat = calcularValorCategoria(cat);
+    const metasAtuais = { ...(cat.metasSubcategorias || {}) };
+    const atual = metasAtuais[subNome] || { tipoMeta: 'percentual', percentual: 0, valorPlanejado: 0 };
+    const tipoMeta = atual.tipoMeta || 'percentual';
+
+    if (tipoMeta === 'valor') {
+      metasAtuais[subNome] = {
+        tipoMeta: 'valor',
+        valorPlanejado: valNum,
+        percentual: valorCat > 0 ? parseFloat(((valNum / valorCat) * 100).toFixed(2)) : 0
+      };
+    } else {
+      metasAtuais[subNome] = {
+        tipoMeta: 'percentual',
+        percentual: valNum,
+        valorPlanejado: valorCat > 0 ? parseFloat(((valorCat * valNum) / 100).toFixed(2)) : 0
+      };
+    }
+
+    cat.metasSubcategorias = metasAtuais;
+    novasCategorias[catIndex] = cat;
+    setCategorias(novasCategorias);
+  };
+
+  // Botão rápido de 1 clique: Reajusta a meta da Categoria Principal para bater exatamente com a soma das subcategorias
+  const reajustarTetoCategoriaParaSubcategorias = (catIndex) => {
+    const novasCategorias = [...categorias];
+    const cat = { ...novasCategorias[catIndex] };
+    const resumo = calcularResumoSubcategorias(cat);
+    const real = parseFloat(rendaReal) || 0;
+
+    if (resumo.somaValorSub > 0) {
+      cat.valorPlanejado = resumo.somaValorSub;
+      if (real > 0) {
+        cat.percentual = parseFloat(((resumo.somaValorSub / real) * 100).toFixed(2));
+      } else {
+        cat.tipoMeta = 'valor';
+      }
+      // Recalcula o percentual de cada subcategoria com base no novo teto da categoria pai
+      cat.metasSubcategorias = normalizarMetasSubcategorias(
+        cat.metasSubcategorias,
+        cat.subcategorias,
+        resumo.somaValorSub
+      );
+      novasCategorias[catIndex] = cat;
+      setCategorias(novasCategorias);
+      setMensagemFeedback({
+        tipo: 'sucesso',
+        texto: `Meta principal de "${cat.nome}" reajustada para ${formatarMoeda(resumo.somaValorSub)} para bater com a soma das subcategorias!`
+      });
+      setTimeout(() => setMensagemFeedback(null), 4000);
+    }
+  };
+
+  // Adicionar nova subcategoria inline dentro do Orçamento e sincronizar com Configurações
+  const adicionarSubcategoriaNoOrcamento = async (catIndex) => {
+    const cat = categorias[catIndex];
+    const formSub = novaSubInline[cat.nome] || { nome: '', tipoMeta: 'percentual', valor: '' };
+    const nomeLimpo = String(formSub.nome || '').trim();
+    if (!nomeLimpo) return;
+
+    const subAtuais = cat.subcategorias || [];
+    if (subAtuais.some(s => s.toLowerCase() === nomeLimpo.toLowerCase())) {
+      setMensagemFeedback({ tipo: 'erro', texto: `A subcategoria "${nomeLimpo}" já existe em ${cat.nome}.` });
+      return;
+    }
+
+    const valorCat = calcularValorCategoria(cat);
+    const tipoMetaSub = formSub.tipoMeta || 'percentual';
+    const valInput = parseFloat(formSub.valor) || 0;
+    const novaMetaObj = {
+      tipoMeta: tipoMetaSub,
+      valorPlanejado: tipoMetaSub === 'valor' ? valInput : (valorCat > 0 ? parseFloat(((valorCat * valInput) / 100).toFixed(2)) : 0),
+      percentual: tipoMetaSub === 'percentual' ? valInput : (valorCat > 0 ? parseFloat(((valInput / valorCat) * 100).toFixed(2)) : 0)
+    };
+
+    const novasCategorias = [...categorias];
+    const novasSubs = [...subAtuais, nomeLimpo];
+    const novasMetasSub = {
+      ...(cat.metasSubcategorias || {}),
+      [nomeLimpo]: novaMetaObj
+    };
+
+    novasCategorias[catIndex] = {
+      ...cat,
+      subcategorias: novasSubs,
+      metasSubcategorias: novasMetasSub
+    };
+    setCategorias(novasCategorias);
+    setNovaSubInline(prev => ({ ...prev, [cat.nome]: { nome: '', tipoMeta: 'percentual', valor: '' } }));
+
+    // Sincronizar também no cadastro geral de categorias do usuário
+    await sincronizarCadastroCategorias(novasCategorias);
+  };
+
+  const removerSubcategoriaNoOrcamento = async (catIndex, subNome) => {
+    if (!window.confirm(`Deseja remover a subcategoria "${subNome}"?`)) return;
+    const novasCategorias = [...categorias];
+    const cat = { ...novasCategorias[catIndex] };
+    cat.subcategorias = (cat.subcategorias || []).filter(s => s !== subNome);
+    const novasMetas = { ...(cat.metasSubcategorias || {}) };
+    delete novasMetas[subNome];
+    cat.metasSubcategorias = novasMetas;
+    novasCategorias[catIndex] = cat;
+    setCategorias(novasCategorias);
+    await sincronizarCadastroCategorias(novasCategorias);
+  };
+
+  // Criar nova Categoria Principal direto pelo Orçamento
+  const criarNovaCategoriaNoOrcamento = async (e) => {
+    e.preventDefault();
+    const nomeLimpo = String(formNovaCategoria.nome || '').trim();
+    if (!nomeLimpo) return;
+
+    if (categorias.some(c => c.nome.toLowerCase() === nomeLimpo.toLowerCase())) {
+      setMensagemFeedback({ tipo: 'erro', texto: `A categoria "${nomeLimpo}" já existe.` });
+      return;
+    }
+
+    const real = parseFloat(rendaReal) || 0;
+    const tipoMeta = formNovaCategoria.tipoMeta || 'percentual';
+    const valInput = parseFloat(formNovaCategoria.valorMeta) || 0;
+    const valorPlanejado = tipoMeta === 'valor' ? valInput : (real > 0 ? (real * valInput) / 100 : 0);
+    const percentual = tipoMeta === 'percentual' ? valInput : (real > 0 ? parseFloat(((valInput / real) * 100).toFixed(2)) : 0);
+
+    const primeiraSub = String(formNovaCategoria.primeiraSubcategoria || '').trim();
+    const subcategorias = primeiraSub ? [primeiraSub] : [];
+
+    const novaCat = {
+      id: `cat-${Date.now()}`,
+      nome: nomeLimpo,
+      cor: formNovaCategoria.cor || '#10B981',
+      tipoMeta,
+      valorPlanejado,
+      percentual,
+      gastoAtual: 0,
+      subcategorias,
+      metasSubcategorias: primeiraSub
+        ? { [primeiraSub]: { tipoMeta: 'percentual', percentual: 100, valorPlanejado } }
+        : {}
+    };
+
+    const novasCategorias = [...categorias, novaCat];
+    setCategorias(novasCategorias);
+    setCategoriasExpandidas(prev => ({ ...prev, [nomeLimpo]: true }));
+    setModalNovaCategoria(false);
+    setFormNovaCategoria({ nome: '', cor: '#10B981', tipoMeta: 'percentual', valorMeta: '', primeiraSubcategoria: '' });
+
+    await sincronizarCadastroCategorias(novasCategorias);
+    setMensagemFeedback({
+      tipo: 'sucesso',
+      texto: `Categoria "${nomeLimpo}" criada e sincronizada com Configurações! Não esqueça de clicar em "Salvar Orçamento".`
+    });
+  };
+
+  const sincronizarCadastroCategorias = async (listaCategoriasOrcamento) => {
+    try {
+      const categoriasParaSalvar = listaCategoriasOrcamento.map(c => ({
+        id: c.id || `cat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        nome: c.nome,
+        cor: c.cor || '#3B82F6',
+        tipoMeta: c.tipoMeta || 'percentual',
+        valorMeta: c.tipoMeta === 'valor' ? (parseFloat(c.valorPlanejado) || 0) : (parseFloat(c.percentual) || 0),
+        subcategorias: Array.isArray(c.subcategorias) ? c.subcategorias : [],
+        metasSubcategorias: c.metasSubcategorias || {}
+      }));
+      setCategoriasCadastro(categoriasParaSalvar);
+      await api.post('/user/dados', { categorias: categoriasParaSalvar });
+    } catch (err) {
+      console.error('Erro ao sincronizar cadastro de categorias:', err);
+    }
   };
 
   const totalPercentual = categorias.reduce((acc, cat) => acc + (parseFloat(cat.percentual) || 0), 0);
   const percentualValido = Math.abs(totalPercentual - 100) < 0.1 || totalPercentual === 0;
 
+  // Verifica se alguma categoria tem subcategorias cuja soma ultrapassa o valor da categoria principal
+  const categoriasComSubcategoriasEstouradas = categorias
+    .map((cat, idx) => ({ cat, idx, resumo: calcularResumoSubcategorias(cat) }))
+    .filter(item => item.resumo.ultrapassou);
+
   const salvarOrcamento = async () => {
     setMensagemFeedback(null);
 
     if (totalPercentual > 100.5) {
-      setMensagemFeedback({ tipo: 'erro', texto: `A soma dos percentuais ultrapassa 100%. Atual: ${totalPercentual.toFixed(2)}%` });
+      setMensagemFeedback({ tipo: 'erro', texto: `A soma dos percentuais das categorias ultrapassa 100%. Atual: ${totalPercentual.toFixed(2)}%` });
+      return;
+    }
+
+    if (categoriasComSubcategoriasEstouradas.length > 0) {
+      const nomesEstourados = categoriasComSubcategoriasEstouradas
+        .map(i => `${i.cat.nome} (Subcategorias: ${formatarMoeda(i.resumo.somaValorSub)} / ${i.resumo.percentualEfetivo.toFixed(1)}% vs Meta: ${formatarMoeda(i.resumo.valorCat)})`)
+        .join(', ');
+      setMensagemFeedback({
+        tipo: 'erro',
+        texto: `A soma das subcategorias ultrapassa o valor principal em: ${nomesEstourados}. Ajuste as subcategorias ou clique em "Igualar Teto da Categoria" antes de salvar.`
+      });
       return;
     }
 
@@ -325,14 +745,29 @@ const Orcamento = () => {
           ...c,
           tipoMeta: c.tipoMeta || 'percentual',
           valorPlanejado: calcularValorCategoria(c),
-          percentual: c.percentual || 0
+          percentual: c.percentual || 0,
+          subcategorias: c.subcategorias || [],
+          metasSubcategorias: c.metasSubcategorias || {}
         }))
       };
 
-      await api.post('/user/dados', { orcamentos: [novoOrcamento] });
+      const categoriasAtualizadas = categorias.map(c => ({
+        id: c.id || `cat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        nome: c.nome,
+        cor: c.cor || '#3B82F6',
+        tipoMeta: c.tipoMeta || 'percentual',
+        valorMeta: c.tipoMeta === 'valor' ? calcularValorCategoria(c) : (parseFloat(c.percentual) || 0),
+        subcategorias: Array.isArray(c.subcategorias) ? c.subcategorias : [],
+        metasSubcategorias: c.metasSubcategorias || {}
+      }));
+
+      await api.post('/user/dados', {
+        orcamentos: [novoOrcamento],
+        categorias: categoriasAtualizadas
+      });
 
       setOrcamentoSalvo(true);
-      setMensagemFeedback({ tipo: 'sucesso', texto: 'Orçamento e metas salvos com sucesso!' });
+      setMensagemFeedback({ tipo: 'sucesso', texto: 'Orçamento, categorias e metas de subcategorias salvos e sincronizados com sucesso!' });
       setTimeout(() => {
         setOrcamentoSalvo(false);
         setMensagemFeedback(null);
@@ -371,7 +806,6 @@ const Orcamento = () => {
     }
   };
 
-  // Helper methods for month navigation and replication
   const getMesAnterior = (mesChave) => {
     const [anoStr, mesStr] = mesChave.split('-');
     let ano = parseInt(anoStr, 10);
@@ -444,13 +878,19 @@ const Orcamento = () => {
             percentual = parseFloat(((valorPlanejado / real) * 100).toFixed(2));
           }
 
+          const subcategorias = (matchUser && Array.isArray(matchUser.subcategorias) && matchUser.subcategorias.length > 0)
+            ? matchUser.subcategorias
+            : obterSubcategoriasPadrao(cat.nome);
+
           return {
             ...cat,
             cor,
             tipoMeta,
             valorPlanejado,
             percentual,
-            gastoAtual: 0
+            gastoAtual: 0,
+            subcategorias,
+            metasSubcategorias: normalizarMetasSubcategorias(cat.metasSubcategorias || matchUser?.metasSubcategorias, subcategorias, valorPlanejado)
           };
         }));
       }
@@ -570,10 +1010,6 @@ const Orcamento = () => {
 
             if (tipoMeta === 'percentual') {
               valorPlanejado = realDestino > 0 ? (realDestino * percentual) / 100 : valorPlanejado;
-            } else if (tipoMeta === 'valor') {
-              if (realDestino > 0 && valorPlanejado > 0) {
-                // mantém o valor planejado em R$ e ajusta percentual se houver renda
-              }
             }
 
             return {
@@ -582,7 +1018,9 @@ const Orcamento = () => {
               tipoMeta,
               valorPlanejado,
               percentual,
-              gastoAtual: 0
+              gastoAtual: 0,
+              subcategorias: c.subcategorias || [],
+              metasSubcategorias: normalizarMetasSubcategorias(c.metasSubcategorias, c.subcategorias, valorPlanejado)
             };
           })
         };
@@ -594,7 +1032,7 @@ const Orcamento = () => {
       setMesesParaCopiar([]);
       setMensagemFeedback({
         tipo: 'sucesso',
-        texto: `Orçamento e porcentagens copiados com sucesso para ${orcamentosParaSalvar.length} ${orcamentosParaSalvar.length === 1 ? 'mês' : 'meses'}!`
+        texto: `Orçamento e metas copiados com sucesso para ${orcamentosParaSalvar.length} ${orcamentosParaSalvar.length === 1 ? 'mês' : 'meses'}!`
       });
       setTimeout(() => setMensagemFeedback(null), 4000);
     } catch (error) {
@@ -631,7 +1069,9 @@ const Orcamento = () => {
       <div className="flex flex-col gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Programação do Orçamento</h1>
-          <p className="text-gray-600 dark:text-slate-400 mt-1 text-sm md:text-base">Configure seu orçamento mensal de acordo com suas metas</p>
+          <p className="text-gray-600 dark:text-slate-400 mt-1 text-sm md:text-base">
+            Configure as metas principais das categorias e distribua entre suas subcategorias
+          </p>
         </div>
         <div className="flex flex-wrap items-start gap-3">
           <CurrencySelector />
@@ -668,8 +1108,9 @@ const Orcamento = () => {
           <button
             onClick={salvarOrcamento}
             disabled={loading}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-white transition shadow-lg flex-1 sm:flex-none justify-center ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-white transition shadow-lg flex-1 sm:flex-none justify-center font-bold ${
+              loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
             {loading ? (
               <><RefreshCw className="w-5 h-5 animate-spin" />Salvando...</>
@@ -679,20 +1120,38 @@ const Orcamento = () => {
           </button>
         </div>
       </div>
+
       {/* MENSAGEM DE FEEDBACK */}
       {mensagemFeedback && (
-        <div className={`border-2 rounded-lg p-4 flex items-center gap-3 ${mensagemFeedback.tipo === 'sucesso'
-          ? 'bg-green-50 border-green-500 text-green-800'
-          : 'bg-red-50 border-red-500 text-red-800'
-          }`}>
-          {mensagemFeedback.tipo === 'sucesso' ? (
-            <CheckCircle className="w-6 h-6" />
-          ) : (
-            <XCircle className="w-6 h-6" />
+        <div className={`border-2 rounded-xl p-4 flex items-center justify-between gap-3 ${
+          mensagemFeedback.tipo === 'sucesso'
+            ? 'bg-green-50 dark:bg-green-950/40 border-green-500 text-green-800 dark:text-green-200'
+            : 'bg-red-50 dark:bg-red-950/40 border-red-500 text-red-800 dark:text-red-200'
+        }`}>
+          <div className="flex items-center gap-3">
+            {mensagemFeedback.tipo === 'sucesso' ? (
+              <CheckCircle className="w-6 h-6 shrink-0" />
+            ) : (
+              <XCircle className="w-6 h-6 shrink-0" />
+            )}
+            <p className="font-semibold text-sm">{mensagemFeedback.texto}</p>
+          </div>
+          {mensagemFeedback.tipo === 'erro' && categoriasComSubcategoriasEstouradas.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                categoriasComSubcategoriasEstouradas.forEach(item => {
+                  reajustarTetoCategoriaParaSubcategorias(item.idx);
+                });
+              }}
+              className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shrink-0 transition shadow-sm"
+            >
+              Igualar Teto da Categoria Automaticamente
+            </button>
           )}
-          <p className="font-semibold">{mensagemFeedback.texto}</p>
         </div>
       )}
+
       {/* GRID: RENDA E GRÁFICO */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SEÇÃO DE RENDA */}
@@ -704,7 +1163,6 @@ const Orcamento = () => {
             <h2 className="text-xl font-bold text-custom-main">Configuração de Renda</h2>
           </div>
           <div className="space-y-4">
-            {/* RENDA PREVISTA */}
             <div>
               <label className="block text-sm font-semibold text-custom-main opacity-80 mb-2">
                 Renda Prevista
@@ -722,7 +1180,6 @@ const Orcamento = () => {
                 />
               </div>
             </div>
-            {/* DÍVIDAS */}
             <div>
               <label className="block text-sm font-semibold text-custom-main opacity-80 mb-2">
                 Dívidas (a serem abatidas da renda)
@@ -740,7 +1197,6 @@ const Orcamento = () => {
                 />
               </div>
             </div>
-            {/* RENDA REAL */}
             <div className="bg-custom-primary/30 dark:bg-amber-900/10 p-4 rounded-custom border border-custom-color flex items-center justify-between">
               <span className="text-lg font-semibold text-custom-main opacity-90 flex items-center">
                 <span>Renda Real Disponível:</span>
@@ -750,6 +1206,7 @@ const Orcamento = () => {
             </div>
           </div>
         </div>
+
         {/* GRÁFICO DE DISTRIBUIÇÃO */}
         <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color flex flex-col items-center justify-center transition-custom">
           <div className="flex items-center gap-3 mb-6">
@@ -774,7 +1231,7 @@ const Orcamento = () => {
                     <Cell key={`cell-${index}`} fill={entry.cor} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }} formatter={(value, name, props) => [`${value.toFixed(2)}%`, name]} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)', borderRadius: 'var(--border-radius)', border: '1px solid var(--border-color)' }} formatter={(value, name) => [`${value.toFixed(2)}%`, name]} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -800,7 +1257,8 @@ const Orcamento = () => {
           )}
         </div>
       </div>
-      {/* TABELA DE CATEGORIAS */}
+
+      {/* TABELA DE CATEGORIAS E SUBCATEGORIAS */}
       <div className="bg-custom-card p-6 rounded-custom shadow-custom border border-custom-color transition-custom">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
@@ -808,18 +1266,78 @@ const Orcamento = () => {
               <Target className="w-6 h-6 text-custom-gold" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-custom-main">Metas por Categoria</h2>
-              <p className="text-xs text-gray-500 dark:text-slate-400">Escolha definir cada meta em valor monetário (R$) ou percentual (%) da renda</p>
+              <h2 className="text-xl font-bold text-custom-main">Metas por Categoria e Subcategoria</h2>
+              <p className="text-xs text-gray-500 dark:text-slate-400">
+                Clique em qualquer categoria para expandir suas subcategorias e distribuir a meta (em R$ ou % até 100% da categoria)
+              </p>
             </div>
           </div>
-          <button
-            onClick={() => setModalCopiarAberto(true)}
-            className="flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition self-start sm:self-auto"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            Copiar Metas para Outros Meses
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setModalNovaCategoria(true)}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Nova Categoria
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const todasAbertas = categorias.every(c => categoriasExpandidas[c.nome]);
+                const novoMapa = {};
+                categorias.forEach(c => {
+                  novoMapa[c.nome] = !todasAbertas;
+                });
+                setCategoriasExpandidas(novoMapa);
+              }}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-slate-200 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              {categorias.every(c => categoriasExpandidas[c.nome]) ? 'Recolher Subcategorias' : 'Expandir Subcategorias'}
+            </button>
+            <button
+              onClick={() => setModalCopiarAberto(true)}
+              className="flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Copiar p/ Outros Meses
+            </button>
+          </div>
         </div>
+
+        {/* ALERTA GLOBAL SE ALGUMA SUBCATEGORIA ESTOURAR O TETO DA CATEGORIA PAI */}
+        {categoriasComSubcategoriasEstouradas.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border-2 border-red-400 dark:border-red-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-red-800 dark:text-red-200 text-sm">
+                  Atenção: Soma das Subcategorias ultrapassou a Meta Principal!
+                </p>
+                <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                  As subcategorias devem somar no máximo 100% do valor configurado para a categoria principal. Verifique:{' '}
+                  <strong>
+                    {categoriasComSubcategoriasEstouradas
+                      .map(i => `${i.cat.nome} (Excedeu ${formatarMoeda(Math.abs(i.resumo.diferencaValorSub))} / ${Math.abs(i.resumo.diferencaPercentualSub).toFixed(1)}%)`)
+                      .join(' • ')}
+                  </strong>
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                categoriasComSubcategoriasEstouradas.forEach(item => {
+                  reajustarTetoCategoriaParaSubcategorias(item.idx);
+                });
+              }}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shrink-0 transition shadow-sm"
+            >
+              Ajustar Teto da Categoria Automaticamente
+            </button>
+          </div>
+        )}
 
         {/* RESUMO DE ALOCAÇÃO DO ORÇAMENTO (VALOR E PERCENTUAL) */}
         {realDisponivel > 0 && (
@@ -851,10 +1369,10 @@ const Orcamento = () => {
                   {diferencaValor > 0.01 ? 'Falta Configurar' : diferencaValor < -0.01 ? 'Ultrapassou da Renda' : 'Status da Alocação'}
                 </span>
                 <p className={`text-base sm:text-lg font-bold ${
-                  diferencaValor > 0.01 
-                    ? 'text-amber-500' 
-                    : diferencaValor < -0.01 
-                      ? 'text-red-500' 
+                  diferencaValor > 0.01
+                    ? 'text-amber-500'
+                    : diferencaValor < -0.01
+                      ? 'text-red-500'
                       : 'text-green-600 dark:text-green-400'
                 }`}>
                   {diferencaValor > 0.01 ? (
@@ -874,7 +1392,6 @@ const Orcamento = () => {
               </div>
             </div>
 
-            {/* Barra visual de alocação */}
             <div className="mt-3 w-full bg-gray-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
@@ -891,9 +1408,9 @@ const Orcamento = () => {
           <table className="min-w-full bg-white dark:bg-slate-900 rounded-xl overflow-hidden">
             <thead>
               <tr className="bg-gray-100 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 dark:text-slate-300">Categoria</th>
+                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 dark:text-slate-300">Categoria / Subcategorias</th>
                 <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 dark:text-slate-300">Modo</th>
-                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 dark:text-slate-300">Meta do Mês</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 dark:text-slate-300">Meta Principal</th>
                 <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-slate-300">Planejado</th>
                 <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-slate-300">Gasto Atual</th>
                 <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 dark:text-slate-300">Disponível</th>
@@ -904,71 +1421,321 @@ const Orcamento = () => {
                 const valorCat = calcularValorCategoria(categoria);
                 const dispCat = calcularDisponivel(categoria);
                 const isValor = categoria.tipoMeta === 'valor';
+                const isExpanded = Boolean(categoriasExpandidas[categoria.nome]);
+                const resumoSub = calcularResumoSubcategorias(categoria);
+                const qtdSubs = (categoria.subcategorias || []).length;
 
                 return (
-                  <tr key={index} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: categoria.cor }} />
-                        <span className="font-semibold text-gray-900 dark:text-white">{categoria.nome}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <div className="inline-flex bg-gray-100 dark:bg-slate-800 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700">
-                        <button
-                          type="button"
-                          onClick={() => alternarTipoMeta(index, 'valor')}
-                          className={`px-2.5 py-1 text-xs font-bold rounded-md transition ${isValor ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
-                        >
-                          R$
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => alternarTipoMeta(index, 'percentual')}
-                          className={`px-2.5 py-1 text-xs font-bold rounded-md transition ${!isValor ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
-                        >
-                          %
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
-                            {isValor ? 'R$' : '%'}
-                          </span>
-                          <input
-                            type="number"
-                            step={isValor ? '0.01' : '0.1'}
-                            min="0"
-                            max={!isValor ? '100' : undefined}
-                            value={isValor ? (categoria.valorPlanejado !== undefined ? categoria.valorPlanejado : '') : (categoria.percentual !== undefined ? categoria.percentual : '')}
-                            onChange={(e) => isValor ? atualizarValorPlanejado(index, e.target.value) : atualizarPercentual(index, e.target.value)}
-                            placeholder="0,00"
-                            className="w-28 pl-7 pr-2 py-1.5 border-2 border-gray-200 dark:border-slate-600 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-slate-800 dark:text-white"
-                          />
+                  <React.Fragment key={categoria.nome || index}>
+                    <tr className={`border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition ${
+                      resumoSub.ultrapassou ? 'bg-red-50/40 dark:bg-red-950/20' : ''
+                    }`}>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandirCategoria(categoria.nome)}
+                            className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 transition"
+                            title={isExpanded ? 'Recolher subcategorias' : 'Expandir e definir metas das subcategorias'}
+                          >
+                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                          <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: categoria.cor }} />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                onClick={() => toggleExpandirCategoria(categoria.nome)}
+                                className="font-semibold text-gray-900 dark:text-white cursor-pointer hover:underline"
+                              >
+                                {categoria.nome}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandirCategoria(categoria.nome)}
+                                className={`text-[11px] px-2 py-0.5 rounded-full font-bold border transition ${
+                                  resumoSub.ultrapassou
+                                    ? 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700'
+                                    : resumoSub.somaValorSub > 0
+                                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                                      : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 border-gray-200 dark:border-slate-700'
+                                }`}
+                              >
+                                {qtdSubs} sub{qtdSubs === 1 ? '' : 's'}
+                                {resumoSub.somaValorSub > 0 && ` • ${resumoSub.percentualEfetivo.toFixed(0)}% alocado`}
+                                {resumoSub.ultrapassou && ' ⚠️ Excedeu'}
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-400 dark:text-slate-500 font-medium">
-                          {isValor 
-                            ? `(${categoria.percentual || 0}%)` 
-                            : `(${formatarMoeda(valorCat)})`}
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => alternarTipoMeta(index, isValor ? 'percentual' : 'valor')}
+                          title="Clique para alternar entre Valor (R$) e Porcentagem (%)"
+                          className="min-w-[42px] h-9 px-3 rounded-lg bg-custom-card border border-custom-color text-xs font-bold text-amber-400 hover:border-custom-gold hover:bg-custom-primary/40 transition cursor-pointer inline-flex items-center justify-center shadow-xs"
+                        >
+                          {isValor ? 'R$' : '%'}
+                        </button>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                              {isValor ? 'R$' : '%'}
+                            </span>
+                            <input
+                              type="number"
+                              step={isValor ? '0.01' : '0.1'}
+                              min="0"
+                              max={!isValor ? '100' : undefined}
+                              value={isValor ? (categoria.valorPlanejado !== undefined ? categoria.valorPlanejado : '') : (categoria.percentual !== undefined ? categoria.percentual : '')}
+                              onChange={(e) => isValor ? atualizarValorPlanejado(index, e.target.value) : atualizarPercentual(index, e.target.value)}
+                              placeholder="0,00"
+                              className="w-28 pl-7 pr-2 py-1.5 border-2 border-gray-200 dark:border-slate-600 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white dark:bg-slate-800 dark:text-white"
+                            />
+                          </div>
+                          <span className="text-xs text-gray-400 dark:text-slate-500 font-medium">
+                            {isValor
+                              ? `(${categoria.percentual || 0}%)`
+                              : `(${formatarMoeda(valorCat)})`}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span className="text-base font-bold text-gray-900 dark:text-white">{formatarMoeda(valorCat)}</span>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span className="text-base font-bold text-gray-900 dark:text-white">{formatarMoeda(categoria.gastoAtual || 0)}</span>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span className={`text-base font-bold ${dispCat >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {formatarMoeda(dispCat)}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-gray-900 dark:text-white">{formatarMoeda(valorCat)}</span>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <span className="text-base font-bold text-gray-900 dark:text-white">{formatarMoeda(categoria.gastoAtual || 0)}</span>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <span className={`text-base font-bold ${dispCat >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {formatarMoeda(dispCat)}
-                      </span>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+
+                    {/* PAINEL EXPANSÍVEL DE SUBCATEGORIAS (DESKTOP) */}
+                    {isExpanded && (
+                      <tr className="bg-slate-50/90 dark:bg-slate-800/40 border-b-2 border-indigo-100 dark:border-slate-700">
+                        <td colSpan={6} className="px-6 py-4">
+                          <div className="space-y-3 pl-4 border-l-4" style={{ borderLeftColor: categoria.cor }}>
+                            {/* Cabeçalho de Alocação Interna da Categoria */}
+                            <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-gray-200 dark:border-slate-700">
+                              <div className="flex items-center gap-2">
+                                <Layers className="w-4 h-4" style={{ color: categoria.cor }} />
+                                <span className="text-xs font-bold text-gray-800 dark:text-white">
+                                  Distribuição de Subcategorias em {categoria.nome}
+                                </span>
+                                <span className="text-xs text-gray-500 dark:text-slate-400">
+                                  (Teto Principal: <strong>{formatarMoeda(valorCat)}</strong> = 100%)
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-4 text-xs">
+                                <div>
+                                  <span className="text-gray-500 dark:text-slate-400">Soma das Subcategorias: </span>
+                                  <strong className={resumoSub.ultrapassou ? 'text-red-600 dark:text-red-400' : 'text-indigo-600 dark:text-indigo-400'}>
+                                    {formatarMoeda(resumoSub.somaValorSub)} ({resumoSub.percentualEfetivo.toFixed(1)}%)
+                                  </strong>
+                                </div>
+                                <div>
+                                  {resumoSub.ultrapassou ? (
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 font-bold">
+                                      <AlertCircle className="w-3.5 h-3.5" />
+                                      Ultrapassou {formatarMoeda(Math.abs(resumoSub.diferencaValorSub))} (+{Math.abs(resumoSub.diferencaPercentualSub).toFixed(1)}%)
+                                    </span>
+                                  ) : resumoSub.diferencaValorSub > 0.01 ? (
+                                    <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                                      Livre p/ distribuir: {formatarMoeda(resumoSub.diferencaValorSub)} ({Math.max(0, resumoSub.diferencaPercentualSub).toFixed(1)}%)
+                                    </span>
+                                  ) : (
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                                      ✓ 100% da Categoria Distribuída
+                                    </span>
+                                  )}
+                                </div>
+                                {resumoSub.ultrapassou && (
+                                  <button
+                                    type="button"
+                                    onClick={() => reajustarTetoCategoriaParaSubcategorias(index)}
+                                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-xs transition shadow-sm"
+                                  >
+                                    Ajustar Teto p/ {formatarMoeda(resumoSub.somaValorSub)}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Barra de Progresso Interna da Categoria */}
+                            <div className="w-full bg-gray-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-300 ${
+                                  resumoSub.ultrapassou
+                                    ? 'bg-red-500'
+                                    : Math.abs(resumoSub.percentualEfetivo - 100) < 0.5
+                                      ? 'bg-emerald-500'
+                                      : 'bg-indigo-500'
+                                }`}
+                                style={{ width: `${Math.min(resumoSub.percentualEfetivo, 100)}%` }}
+                              />
+                            </div>
+
+                            {/* Lista de Subcategorias */}
+                            {(categoria.subcategorias || []).length === 0 ? (
+                              <p className="text-xs text-gray-500 italic py-2">
+                                Nenhuma subcategoria cadastrada. Adicione uma abaixo!
+                              </p>
+                            ) : (
+                              <div className="divide-y divide-gray-200/70 dark:divide-slate-700/70 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+                                {(categoria.subcategorias || []).map((subNome) => {
+                                  const subDados = calcularDadosSubcategoria(categoria, subNome);
+                                  const isSubValor = subDados.tipoMeta === 'valor';
+
+                                  return (
+                                    <div
+                                      key={subNome}
+                                      className="grid grid-cols-12 items-center px-4 py-2.5 text-xs hover:bg-gray-50 dark:hover:bg-slate-800/60 transition"
+                                    >
+                                      <div className="col-span-4 flex items-center gap-2 font-semibold text-gray-800 dark:text-slate-200">
+                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: categoria.cor }} />
+                                        <span>{subNome}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => removerSubcategoriaNoOrcamento(index, subNome)}
+                                          className="text-gray-400 hover:text-red-500 transition ml-1"
+                                          title="Remover subcategoria"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+
+                                      <div className="col-span-2 flex justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => alternarTipoMetaSubcategoria(index, subNome, isSubValor ? 'percentual' : 'valor')}
+                                          title="Clique para alternar entre Valor (R$) e Porcentagem (%)"
+                                          className="min-w-[38px] h-7 px-2.5 rounded-lg bg-custom-card border border-custom-color text-[11px] font-bold text-amber-400 hover:border-custom-gold hover:bg-custom-primary/40 transition cursor-pointer inline-flex items-center justify-center shadow-xs"
+                                        >
+                                          {isSubValor ? 'R$' : '%'}
+                                        </button>
+                                      </div>
+
+                                      <div className="col-span-2 flex items-center justify-center gap-1.5">
+                                        <div className="relative">
+                                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">
+                                            {isSubValor ? 'R$' : '%'}
+                                          </span>
+                                          <input
+                                            type="number"
+                                            step={isSubValor ? '0.01' : '0.1'}
+                                            min="0"
+                                            value={
+                                              isSubValor
+                                                ? (subDados.valorPlanejado || '')
+                                                : (subDados.percentual || '')
+                                            }
+                                            onChange={(e) => atualizarMetaSubcategoria(index, subNome, e.target.value)}
+                                            placeholder="0"
+                                            className="w-24 pl-6 pr-2 py-1 border border-gray-300 dark:border-slate-600 rounded-md text-center font-bold text-xs bg-white dark:bg-slate-800 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                          />
+                                        </div>
+                                        <span className="text-[11px] text-gray-400">
+                                          {isSubValor
+                                            ? `(${subDados.percentual.toFixed(1)}%)`
+                                            : `(${formatarMoeda(subDados.valorPlanejado)})`}
+                                        </span>
+                                      </div>
+
+                                      <div className="col-span-1 text-right font-semibold text-gray-700 dark:text-slate-300">
+                                        {formatarMoeda(subDados.valorPlanejado)}
+                                      </div>
+
+                                      <div className="col-span-1 text-right font-semibold text-gray-700 dark:text-slate-300">
+                                        {formatarMoeda(subDados.gastoAtual)}
+                                      </div>
+
+                                      <div className={`col-span-2 text-right font-bold ${
+                                        subDados.disponivel >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                                      }`}>
+                                        {formatarMoeda(subDados.disponivel)}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Adicionar Nova Subcategoria Inline com Meta */}
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder={`+ Nova subcategoria em ${categoria.nome}...`}
+                                value={novaSubInline[categoria.nome]?.nome || ''}
+                                onChange={(e) =>
+                                  setNovaSubInline(prev => ({
+                                    ...prev,
+                                    [categoria.nome]: {
+                                      ...(prev[categoria.nome] || { tipoMeta: 'percentual', valor: '' }),
+                                      nome: e.target.value
+                                    }
+                                  }))
+                                }
+                                className="flex-1 min-w-[200px] px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setNovaSubInline(prev => {
+                                    const atual = prev[categoria.nome] || { nome: '', tipoMeta: 'percentual', valor: '' };
+                                    return {
+                                      ...prev,
+                                      [categoria.nome]: {
+                                        ...atual,
+                                        tipoMeta: atual.tipoMeta === 'valor' ? 'percentual' : 'valor'
+                                      }
+                                    };
+                                  })
+                                }
+                                title="Clique para alternar entre Valor (R$) e Porcentagem (%)"
+                                className="min-w-[38px] h-8 px-2.5 rounded-lg bg-custom-card border border-custom-color text-xs font-bold text-amber-400 hover:border-custom-gold hover:bg-custom-primary/40 transition cursor-pointer inline-flex items-center justify-center shadow-xs"
+                              >
+                                {(novaSubInline[categoria.nome]?.tipoMeta || 'percentual') === 'valor' ? 'R$' : '%'}
+                              </button>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="Meta (opcional)"
+                                value={novaSubInline[categoria.nome]?.valor || ''}
+                                onChange={(e) =>
+                                  setNovaSubInline(prev => ({
+                                    ...prev,
+                                    [categoria.nome]: {
+                                      ...(prev[categoria.nome] || { nome: '', tipoMeta: 'percentual' }),
+                                      valor: e.target.value
+                                    }
+                                  }))
+                                }
+                                className="w-32 px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => adicionarSubcategoriaNoOrcamento(index)}
+                                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1 transition"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                Adicionar Subcategoria
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
+
               {/* LINHA DE TOTAL */}
               <tr className="bg-indigo-50/50 dark:bg-slate-800/80 border-t-2 border-indigo-200 dark:border-slate-700">
                 <td className="px-4 py-4"><span className="font-bold text-gray-900 dark:text-white text-base">TOTAL</span></td>
@@ -1009,10 +1776,12 @@ const Orcamento = () => {
             const valorCat = calcularValorCategoria(categoria);
             const dispCat = calcularDisponivel(categoria);
             const isValor = categoria.tipoMeta === 'valor';
+            const isExpanded = Boolean(categoriasExpandidas[categoria.nome]);
+            const resumoSub = calcularResumoSubcategorias(categoria);
 
             return (
               <div
-                key={index}
+                key={categoria.nome || index}
                 className="bg-gray-50 dark:bg-slate-800 rounded-xl border-l-4 p-4 space-y-3"
                 style={{ borderLeftColor: categoria.cor }}
               >
@@ -1021,26 +1790,25 @@ const Orcamento = () => {
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: categoria.cor }} />
                     <span className="font-bold text-gray-900 dark:text-white">{categoria.nome}</span>
                   </div>
-                  {/* Switcher R$ / % */}
-                  <div className="flex bg-white dark:bg-slate-700 p-0.5 rounded-lg border border-gray-200 dark:border-slate-600">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => alternarTipoMeta(index, 'valor')}
-                      className={`px-2 py-0.5 text-xs font-bold rounded ${isValor ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-slate-300'}`}
+                      onClick={() => alternarTipoMeta(index, isValor ? 'percentual' : 'valor')}
+                      title="Clique para alternar entre Valor (R$) e Porcentagem (%)"
+                      className="min-w-[38px] h-8 px-2.5 rounded-lg bg-custom-card border border-custom-color text-xs font-bold text-amber-400 hover:border-custom-gold hover:bg-custom-primary/40 transition cursor-pointer inline-flex items-center justify-center shadow-xs"
                     >
-                      R$
+                      {isValor ? 'R$' : '%'}
                     </button>
                     <button
                       type="button"
-                      onClick={() => alternarTipoMeta(index, 'percentual')}
-                      className={`px-2 py-0.5 text-xs font-bold rounded ${!isValor ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-slate-300'}`}
+                      onClick={() => toggleExpandirCategoria(categoria.nome)}
+                      className="p-1.5 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-600"
                     >
-                      %
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                {/* Input de meta — touch-friendly */}
                 <div className="flex items-center gap-3 bg-white dark:bg-slate-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-slate-600">
                   <label className="text-xs font-semibold text-gray-500 dark:text-slate-400 flex-shrink-0">
                     {isValor ? 'Meta (R$):' : 'Meta (%):'}
@@ -1076,53 +1844,82 @@ const Orcamento = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Subcategorias Mobile */}
+                {isExpanded && (
+                  <div className="pt-3 border-t border-gray-200 dark:border-slate-700 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-gray-700 dark:text-slate-300">
+                        Subcategorias ({resumoSub.percentualEfetivo.toFixed(0)}%)
+                      </span>
+                      <span className={resumoSub.ultrapassou ? 'text-red-600 font-bold' : 'text-indigo-600 font-semibold'}>
+                        {formatarMoeda(resumoSub.somaValorSub)} / {formatarMoeda(valorCat)}
+                      </span>
+                    </div>
+
+                    {resumoSub.ultrapassou && (
+                      <div className="p-2 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 rounded-lg text-xs flex items-center justify-between gap-2">
+                        <span>Excedeu em {formatarMoeda(Math.abs(resumoSub.diferencaValorSub))}!</span>
+                        <button
+                          type="button"
+                          onClick={() => reajustarTetoCategoriaParaSubcategorias(index)}
+                          className="px-2 py-1 bg-red-600 text-white rounded font-bold text-[11px]"
+                        >
+                          Igualar Teto
+                        </button>
+                      </div>
+                    )}
+
+                    {(categoria.subcategorias || []).map(subNome => {
+                      const subDados = calcularDadosSubcategoria(categoria, subNome);
+                      const isSubValor = subDados.tipoMeta === 'valor';
+                      return (
+                        <div key={subNome} className="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-700 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-800 dark:text-slate-200">{subNome}</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => alternarTipoMetaSubcategoria(index, subNome, isSubValor ? 'percentual' : 'valor')}
+                                title="Clique para alternar entre Valor (R$) e Porcentagem (%)"
+                                className="min-w-[34px] h-6 px-2 rounded bg-custom-card border border-custom-color text-[10px] font-bold text-amber-400 hover:border-custom-gold transition cursor-pointer inline-flex items-center justify-center"
+                              >
+                                {isSubValor ? 'R$' : '%'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removerSubcategoriaNoOrcamento(index, subNome)}
+                                className="text-gray-400 hover:text-red-500 p-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={isSubValor ? (subDados.valorPlanejado || '') : (subDados.percentual || '')}
+                              onChange={(e) => atualizarMetaSubcategoria(index, subNome, e.target.value)}
+                              placeholder={isSubValor ? 'R$ 0,00' : '0%'}
+                              className="w-24 px-2 py-1 text-xs font-bold border border-gray-300 dark:border-slate-600 rounded bg-gray-50 dark:bg-slate-800 dark:text-white"
+                            />
+                            <span className="text-[11px] text-gray-500">
+                              Plan: {formatarMoeda(subDados.valorPlanejado)} ({subDados.percentual.toFixed(0)}%)
+                            </span>
+                            <span className="text-[11px] ml-auto font-semibold text-gray-600 dark:text-slate-400">
+                              Gasto: {formatarMoeda(subDados.gastoAtual)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
-
-          {/* Totais no mobile */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800 space-y-3">
-            <div className="grid grid-cols-2 gap-2 text-center">
-              <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Configurado</p>
-                <p className="text-base font-bold text-blue-600 dark:text-blue-400">{formatarMoeda(totalPlanejado)}</p>
-                <p className={`text-xs font-bold ${percentualValido ? 'text-green-600 dark:text-green-400' : 'text-amber-500'}`}>
-                  {totalPercentual.toFixed(1)}%
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">
-                  {diferencaValor > 0.01 ? 'Falta Configurar' : diferencaValor < -0.01 ? 'Ultrapassou' : 'Alocação'}
-                </p>
-                <p className={`text-base font-bold ${diferencaValor > 0.01 ? 'text-amber-500' : diferencaValor < -0.01 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
-                  {todasEmValor ? (
-                    diferencaValor > 0.01 ? formatarMoeda(diferencaValor) : diferencaValor < -0.01 ? formatarMoeda(Math.abs(diferencaValor)) : '100% Configurado'
-                  ) : todasEmPercentual ? (
-                    diferencaPercentual > 0.05 ? `${diferencaPercentual.toFixed(1)}%` : diferencaPercentual < -0.05 ? `${Math.abs(diferencaPercentual).toFixed(1)}%` : '100%'
-                  ) : (
-                    formatarMoeda(Math.abs(diferencaValor))
-                  )}
-                </p>
-                {modoMisto && (
-                  <p className={`text-xs font-bold ${diferencaPercentual > 0.01 ? 'text-amber-500' : diferencaPercentual < -0.01 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
-                    {diferencaValor > 0.01 || diferencaValor < -0.01 ? `${Math.abs(diferencaPercentual).toFixed(1)}%` : '100%'}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-center pt-2 border-t border-blue-200/60 dark:border-blue-800/60">
-              <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Gasto Atual</p>
-                <p className="text-sm font-bold text-gray-800 dark:text-white">{formatarMoeda(totalGastoAtual)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Disponível Total</p>
-                <p className={`text-sm font-bold ${totalDisponivel >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                  {formatarMoeda(totalDisponivel)}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ALERTA SE PERCENTUAL ULTRAPASSAR 100% */}
@@ -1169,11 +1966,118 @@ const Orcamento = () => {
         ))}
       </div>
 
+      {/* MODAL: NOVA CATEGORIA DIRETO NO ORÇAMENTO */}
+      {modalNovaCategoria && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Plus className="w-5 h-5 text-emerald-500" />
+                Nova Categoria e Meta
+              </h3>
+              <button
+                type="button"
+                onClick={() => setModalNovaCategoria(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={criarNovaCategoriaNoOrcamento} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase mb-1">
+                  Nome da Categoria *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Saúde, Pets, Casa..."
+                  value={formNovaCategoria.nome}
+                  onChange={(e) => setFormNovaCategoria({ ...formNovaCategoria, nome: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase mb-1">
+                    Cor
+                  </label>
+                  <input
+                    type="color"
+                    value={formNovaCategoria.cor}
+                    onChange={(e) => setFormNovaCategoria({ ...formNovaCategoria, cor: e.target.value })}
+                    className="w-full h-10 rounded-xl cursor-pointer border border-gray-300 dark:border-slate-700 bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase mb-1">
+                    Tipo de Meta
+                  </label>
+                  <select
+                    value={formNovaCategoria.tipoMeta}
+                    onChange={(e) => setFormNovaCategoria({ ...formNovaCategoria, tipoMeta: e.target.value })}
+                    className="w-full h-10 px-3 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-gray-900 dark:text-white"
+                  >
+                    <option value="percentual">% da Renda</option>
+                    <option value="valor">Valor Fixo (R$)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase mb-1">
+                  Meta Principal da Categoria ({formNovaCategoria.tipoMeta === 'valor' ? 'R$' : '%'})
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder={formNovaCategoria.tipoMeta === 'valor' ? 'Ex: 500.00' : 'Ex: 10'}
+                  value={formNovaCategoria.valorMeta}
+                  onChange={(e) => setFormNovaCategoria({ ...formNovaCategoria, valorMeta: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase mb-1">
+                  Primeira Subcategoria (opcional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Consultas, Farmácia..."
+                  value={formNovaCategoria.primeiraSubcategoria}
+                  onChange={(e) => setFormNovaCategoria({ ...formNovaCategoria, primeiraSubcategoria: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setModalNovaCategoria(false)}
+                  className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-slate-400 rounded-xl"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition"
+                >
+                  Criar Categoria
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* MODAL DE REPLICAÇÃO DE METAS PARA OUTROS MESES */}
       {modalCopiarAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-800 w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
-            {/* Cabeçalho do Modal */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/50">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl">
@@ -1194,9 +2098,7 @@ const Orcamento = () => {
               </button>
             </div>
 
-            {/* Corpo do Modal */}
             <div className="p-6 overflow-y-auto space-y-5 flex-1">
-              {/* Botões de Atalho */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Seleção Rápida
@@ -1233,7 +2135,6 @@ const Orcamento = () => {
                 </div>
               </div>
 
-              {/* Grade de Meses */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Selecione os Meses de Destino ({mesesParaCopiar.length} selecionado{mesesParaCopiar.length === 1 ? '' : 's'})
@@ -1269,7 +2170,6 @@ const Orcamento = () => {
                 </div>
               </div>
 
-              {/* Opção Adicional: Copiar Renda */}
               <div className="bg-gray-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-gray-800 dark:text-white">Copiar Renda e Dívidas</p>
@@ -1283,7 +2183,6 @@ const Orcamento = () => {
                 />
               </div>
 
-              {/* Opção Adicional: Preservar Renda Existente */}
               <div className="bg-gray-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-gray-800 dark:text-white">Preservar Renda Existente no Destino</p>
@@ -1298,7 +2197,6 @@ const Orcamento = () => {
               </div>
             </div>
 
-            {/* Rodapé do Modal */}
             <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/50">
               <button
                 type="button"
