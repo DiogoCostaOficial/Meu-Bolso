@@ -82,7 +82,8 @@ async function generateManualVideoWithGemini({ topicId = 'orcamento', language =
   const targetLanguageLabel = LANGUAGE_LABELS[language] || LANGUAGE_LABELS['pt-BR'];
 
   const rootDir = path.resolve(__dirname, '../..');
-  const manualPath = path.join(rootDir, 'MANUAL_DE_USO.md');
+  const manualDocsPath = path.join(rootDir, 'docs', 'MANUAL_DE_USO.md');
+  const manualPath = fs.existsSync(manualDocsPath) ? manualDocsPath : path.join(rootDir, 'MANUAL_DE_USO.md');
   const manualContent = fs.existsSync(manualPath)
     ? fs.readFileSync(manualPath, 'utf8')
     : 'Manual de Uso do Sistema Meu Bolso.';

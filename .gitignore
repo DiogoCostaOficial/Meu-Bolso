@@ -97,6 +97,13 @@ guia_migracao.html
 # Assets não estruturados / locais
 logo/
 
+# IDEs e notas de prompt locais
+.trae/
+
+# Documentos de estudo e rascunhos locais
+BACKLOG_PM_PO.md
+fin-video-manual.md
+
 # Antigravity Kit (Mantido estritamente local na máquina)
 .agent/
 
