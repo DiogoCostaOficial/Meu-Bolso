@@ -527,6 +527,23 @@ const Receitas = () => {
                   required
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  <DollarSign className="inline w-4 h-4 mr-1" />
+                  Valor *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  style={{ fontSize: '16px' }}
+                  value={novaReceita.valor}
+                  onChange={(e) => setNovaReceita({ ...novaReceita, valor: e.target.value })}
+                  required
+                />
+              </div>
               {!editando && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
@@ -549,23 +566,6 @@ const Receitas = () => {
                   </p>
                 </div>
               )}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  <DollarSign className="inline w-4 h-4 mr-1" />
-                  Valor *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
-                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                  style={{ fontSize: '16px' }}
-                  value={novaReceita.valor}
-                  onChange={(e) => setNovaReceita({ ...novaReceita, valor: e.target.value })}
-                  required
-                />
-              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   <Calendar className="inline w-4 h-4 mr-1" />
