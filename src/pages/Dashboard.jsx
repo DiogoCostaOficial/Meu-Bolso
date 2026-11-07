@@ -6,7 +6,7 @@ import { useCurrency } from '../contexts/CurrencyContext';
 import { useLayoutVariant } from '../contexts/LayoutVariantContext';
 import { useLevel } from '../contexts/LevelContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import CurrencySelector from '../components/CurrencySelector';
 import TransferenciaInternaModal from '../components/TransferenciaInternaModal';
 import { toast } from 'sonner';
@@ -31,6 +31,7 @@ const isResgateReserva = (desc = '') => /retirad[ao]\s+(da\s+)?reserva/i.test(St
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const { theme } = useTheme();
   const { formatCurrency } = useCurrency();
   const { showLesson, updateFinancialData } = useEdu();
@@ -103,6 +104,13 @@ const Dashboard = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('importar') === '1') {
+      setMostrarImportador(true);
+    }
+  }, [location.search]);
 
   const gerarListaAnos = () => {
     const anoAtual = new Date().getFullYear();

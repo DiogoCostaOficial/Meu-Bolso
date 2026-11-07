@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Minus, Lightbulb, GraduationCap, Send, RotateCcw, Maximize2, Minimize2, Film } from 'lucide-react';
+import { X, Minus, Lightbulb, GraduationCap, Send, RotateCcw, Maximize2, Minimize2, Film, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import { useEdu } from '../contexts/EduContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -80,14 +80,86 @@ const EduMascot = () => {
     const [isVideoOpen, setIsVideoOpen] = useState(false);
     const [videoTopicId, setVideoTopicId] = useState(null);
 
-    // Acessibilidade: Escala de fonte (0 a 3, padrão 1 = maior e mais legível) e Expansão da Janela
+    // Acessibilidade: Escala de fonte (0 a 3, padrão 2 = Grande e super legível) e Expansão da Janela
     const [fontScale, setFontScale] = useState(() => {
         try {
             const saved = parseInt(localStorage.getItem('fin_font_scale'), 10);
             if (!isNaN(saved) && saved >= 0 && saved <= 3) return saved;
         } catch {}
-        return 1;
+        return 2;
     });
+
+    // Slide passo a passo do FIN (0: Raio-X das Contas Agora, 1: Dica da Tela, 2: Quiz & Perguntas)
+    const [finSlide, setFinSlide] = useState(0);
+    const [analiseReal, setAnaliseReal] = useState({
+        carregando: false,
+        baseRenda: 0,
+        despesasMes: 0,
+        gastoCartaoMes: 0,
+        percentualUsado: 0
+    });
+
+    // Sempre que o FIN abrir, carrega os números reais do usuário no mês atual para dar um conselho personalizado
+    useEffect(() => {
+        if (!isVisible) return;
+        let ativo = true;
+        setFinSlide(0);
+        setAnaliseReal((prev) => ({ ...prev, carregando: true }));
+
+        api.get('/user/dados')
+            .then((response) => {
+                if (!ativo) return;
+                const dados = response.data?.dados || {};
+                const mesAtual = new Date().toISOString().slice(0, 7);
+
+                const receitas = Array.isArray(dados.receitas) ? dados.receitas : [];
+                const despesas = Array.isArray(dados.despesas) ? dados.despesas : [];
+                const orcamentos = Array.isArray(dados.orcamentos) ? dados.orcamentos : [];
+
+                const receitasMes = receitas
+                    .filter((r) => String(r.data || '').startsWith(mesAtual))
+                    .reduce((acc, r) => acc + (parseFloat(r.valor) || 0), 0);
+
+                const orcMes = orcamentos.find((o) => o.mes === mesAtual) || orcamentos[orcamentos.length - 1];
+                const rendaPrevista = parseFloat(orcMes?.rendaPrevista || orcMes?.rendaReal || 0) || 0;
+                const baseRenda = receitasMes > 0 ? receitasMes : rendaPrevista;
+
+                const despesasDoMes = despesas.filter((d) => {
+                    const dataRef = d.data || d.dataVencimento || '';
+                    return String(dataRef).startsWith(mesAtual);
+                });
+
+                const despesasMes = despesasDoMes.reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0);
+
+                const isFormaAVista = (nome = '') =>
+                    /^(dinheiro|pix|d[eé]bito|ticket|vale|alimenta|refei)/i.test(String(nome).trim());
+
+                const gastoCartaoMes = despesasDoMes.reduce((acc, d) => {
+                    if (d?.cartao && !isFormaAVista(d.cartao)) {
+                        return acc + (parseFloat(d.valor) || 0);
+                    }
+                    return acc;
+                }, 0);
+
+                const percentualUsado = baseRenda > 0 ? (despesasMes / baseRenda) * 100 : (despesasMes > 0 ? 100 : 0);
+
+                setAnaliseReal({
+                    carregando: false,
+                    baseRenda,
+                    despesasMes,
+                    gastoCartaoMes,
+                    percentualUsado
+                });
+            })
+            .catch(() => {
+                if (!ativo) return;
+                setAnaliseReal((prev) => ({ ...prev, carregando: false }));
+            });
+
+        return () => {
+            ativo = false;
+        };
+    }, [isVisible, location.pathname]);
 
     const [isExpanded, setIsExpanded] = useState(() => {
         try {
@@ -773,138 +845,218 @@ const EduMascot = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="space-y-3.5">
-                                <p className={`${currentFont.body} opacity-95 leading-relaxed`}>
-                                    {content.explanation}
-                                </p>
+                            <div className="space-y-4">
+                                {/* Indicador de Slide Passo a Passo do FIN (Estilo Guia Simples) */}
+                                <div className="flex items-center justify-between bg-custom-primary/30 px-3 py-1.5 rounded-xl border border-custom-color/60">
+                                    <span className="text-xs font-extrabold uppercase tracking-wider text-amber-500">
+                                        {finSlide === 0 && 'PARTE 1 DE 3 • SUAS CONTAS HOJE'}
+                                        {finSlide === 1 && 'PARTE 2 DE 3 • EXPLICAÇÃO SIMPLES'}
+                                        {finSlide === 2 && 'PARTE 3 DE 3 • QUIZ E DÚVIDAS'}
+                                    </span>
+                                    <div className="flex items-center gap-1.5">
+                                        {[0, 1, 2].map((idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => setFinSlide(idx)}
+                                                className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                                                    finSlide === idx ? 'w-7 bg-amber-400' : 'w-2.5 bg-gray-400/50 hover:bg-gray-400'
+                                                }`}
+                                                title={`Ir para Parte ${idx + 1}`}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
 
-                                {content.analogy && (
-                                    <div className="bg-amber-500/10 dark:bg-amber-900/15 p-3.5 rounded-xl border border-amber-500/25">
-                                        <p className={`${currentFont.secondary} italic opacity-95 leading-relaxed`}>
-                                            "{content.analogy}"
-                                        </p>
+                                {/* PARTE 1: ANÁLISE AUTOMÁTICA DAS CONTAS DO MÊS (LINGUAGEM DE CRIANÇA 8-10 ANOS) */}
+                                {finSlide === 0 && (
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                                                <span className="text-[11px] font-extrabold uppercase text-emerald-500 block">
+                                                    Sua Renda
+                                                </span>
+                                                <span className="text-sm sm:text-base font-black text-custom-main">
+                                                    {formatCurrency(analiseReal.baseRenda)}
+                                                </span>
+                                            </div>
+                                            <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30">
+                                                <span className="text-[11px] font-extrabold uppercase text-rose-500 block">
+                                                    Já Gastou
+                                                </span>
+                                                <span className="text-sm sm:text-base font-black text-custom-main">
+                                                    {formatCurrency(analiseReal.despesasMes)}
+                                                </span>
+                                            </div>
+                                            <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40">
+                                                <span className="text-[11px] font-extrabold uppercase text-amber-500 block">
+                                                    No Cartão
+                                                </span>
+                                                <span className="text-sm sm:text-base font-black text-custom-main">
+                                                    {formatCurrency(analiseReal.gastoCartaoMes)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Conselho Principal tipo Professor Infantil */}
+                                        <div className={`p-4 rounded-2xl border-2 leading-relaxed ${
+                                            analiseReal.percentualUsado >= 85
+                                                ? 'bg-rose-500/15 border-rose-500/50'
+                                                : analiseReal.percentualUsado >= 65
+                                                ? 'bg-amber-500/15 border-amber-500/50'
+                                                : 'bg-emerald-500/15 border-emerald-500/50'
+                                        }`}>
+                                            <p className={`font-extrabold ${currentFont.title} text-custom-main mb-1.5`}>
+                                                {analiseReal.percentualUsado >= 85
+                                                    ? `🚨 Hora de segurar a mão, ${vocativo}!`
+                                                    : analiseReal.percentualUsado >= 65
+                                                    ? `⚠️ Chegando perto do limite do mês, ${vocativo}!`
+                                                    : `🌟 Muito bem, ${vocativo}! Suas moedinhas estão seguras!`}
+                                            </p>
+                                            <p className={`${currentFont.body} text-custom-main opacity-95 leading-relaxed`}>
+                                                {analiseReal.baseRenda > 0 ? (
+                                                    analiseReal.percentualUsado >= 85 ? (
+                                                        `Você já usou ${analiseReal.percentualUsado.toFixed(0)}% do seu dinheiro deste mês! Dá uma segurada nas compras agora para não faltar moedinhas no final do mês.`
+                                                    ) : analiseReal.percentualUsado >= 65 ? (
+                                                        `Você já gastou ${analiseReal.percentualUsado.toFixed(0)}% do que ganha. Daqui até o fim do mês, compre só o que for realmente necessário!`
+                                                    ) : (
+                                                        `Você usou ${analiseReal.percentualUsado.toFixed(0)}% da sua renda até agora. Continue cuidando bem do seu cofrinho!`
+                                                    )
+                                                ) : (
+                                                    `Cadastre sua Renda lá no Orçamento para eu contar suas moedinhas e te avisar quando estiver perto do limite!`
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        {/* Lembrete Fixo de Cartão = Dívida Futura */}
+                                        <div className="p-3.5 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 flex items-start gap-3">
+                                            <CreditCard className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" />
+                                            <p className={`${currentFont.secondary} text-custom-main leading-relaxed`}>
+                                                <strong>Não se esqueça: o Cartão de Crédito é uma DÍVIDA FUTURA!</strong>{' '}
+                                                {analiseReal.gastoCartaoMes > 0
+                                                    ? `Você já tem ${formatCurrency(analiseReal.gastoCartaoMes)} no cartão este mês — esse dinheiro vai sair do seu próximo salário!`
+                                                    : 'Quando você passa o cartão, não é dinheiro grátis: é uma conta que vai cobrar do seu próximo salário!'}
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
 
-                                {content.analysis && (
-                                    <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/30">
-                                        <p className={`font-bold text-emerald-500 ${currentFont.secondary} mb-1`}>
-                                            {content.analysis.status}
-                                        </p>
-                                        <p className={`${currentFont.secondary} opacity-95 mb-2 leading-relaxed`}>
-                                            {content.analysis.analogy}
-                                        </p>
-                                        {content.analysis.explanation && (
-                                            <p className={`${currentFont.secondary} text-emerald-500 font-bold italic border-t border-emerald-500/20 pt-2 mt-2`}>
-                                                "{content.analysis.explanation}"
+                                {/* PARTE 2: EXPLICAÇÃO SIMPLES DA TELA ATUAL */}
+                                {finSlide === 1 && (
+                                    <div className="space-y-4">
+                                        <div className="p-4 rounded-2xl bg-custom-primary/25 border border-custom-color">
+                                            <p className="text-xs font-extrabold uppercase tracking-wider text-amber-500 mb-1.5">
+                                                COMO USAR ESTA TELA (BEM SIMPLES):
                                             </p>
+                                            <p className={`${currentFont.body} text-custom-main leading-relaxed font-medium`}>
+                                                {content.explanation}
+                                            </p>
+                                        </div>
+
+                                        {content.analogy && (
+                                            <div className="bg-amber-500/10 dark:bg-amber-900/15 p-4 rounded-2xl border border-amber-500/30">
+                                                <p className={`${currentFont.secondary} italic opacity-95 leading-relaxed`}>
+                                                    "{content.analogy}"
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {content.cta && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigate(content.cta.path);
+                                                    hideMascot();
+                                                }}
+                                                className={`w-full py-3 px-4 bg-custom-gold text-black rounded-xl hover:opacity-95 transition font-extrabold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-2`}
+                                            >
+                                                {content.cta.label}
+                                            </button>
                                         )}
                                     </div>
                                 )}
 
-                                {content.tips && content.tips.length > 0 ? (
-                                    <div className="space-y-2.5 bg-custom-primary/20 p-3.5 rounded-xl border border-custom-color">
-                                        {content.tips.map((tipItem, idx) => (
-                                            <div key={idx} className={`flex items-start gap-2.5 ${currentFont.secondary} opacity-95 leading-relaxed`}>
-                                                <Lightbulb className="w-4 h-4 text-amber-400 flex-shrink-0 mt-1" />
-                                                <p>{tipItem}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : content.analysis?.tip ? (
-                                    <div className={`flex items-start gap-2.5 ${currentFont.secondary} opacity-95 leading-relaxed bg-custom-primary/20 p-3.5 rounded-xl border border-custom-color`}>
-                                        <Lightbulb className="w-4 h-4 text-amber-400 flex-shrink-0 mt-1" />
-                                        <p>{content.analysis.tip}</p>
-                                    </div>
-                                ) : null}
+                                {/* PARTE 3: QUIZ "POSSO GASTAR?", VÍDEO E PERGUNTAS */}
+                                {finSlide === 2 && (
+                                    <div className="space-y-3.5">
+                                        <p className={`${currentFont.body} font-bold text-custom-main`}>
+                                            Quer saber se pode comprar alguma coisa hoje sem se endividar?
+                                        </p>
 
-                                <div className="flex flex-col sm:flex-row gap-2">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={openQuiz}
+                                                className={`py-3 px-4 bg-custom-gold text-black rounded-xl hover:opacity-95 transition font-extrabold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-2`}
+                                            >
+                                                <span>🎮 Quiz: Posso Gastar?</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => openVideoManual(location.pathname)}
+                                                className={`py-3 px-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/40 rounded-xl transition font-extrabold ${currentFont.secondary} cursor-pointer flex items-center justify-center gap-2`}
+                                            >
+                                                <Film className="w-4 h-4" />
+                                                <span>🎬 Vídeo desta Tela</span>
+                                            </button>
+                                        </div>
+
+                                        <form onSubmit={handleAskQuestion} className="pt-2 space-y-2">
+                                            <label className={`block font-bold ${currentFont.secondary} text-amber-500`}>
+                                                Ou faça uma pergunta simples para o Professor FIN:
+                                            </label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={userQuestion}
+                                                    onChange={(e) => setUserQuestion(e.target.value)}
+                                                    placeholder="Ex: Por que cartão é dívida?"
+                                                    className={`flex-1 px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-custom-color rounded-xl ${currentFont.input} text-custom-main focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    className="px-4 py-2.5 bg-custom-gold text-black rounded-xl hover:opacity-95 transition font-bold cursor-pointer"
+                                                    title="Enviar pergunta"
+                                                >
+                                                    <Send className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                )}
+
+                                {/* BOTÕES GRANDES DE NAVEGAÇÃO ENTRE AS PARTES DO FIN */}
+                                <div className="pt-3 border-t border-custom-color/50 flex items-center justify-between gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => openVideoManual(location.pathname)}
-                                        className={`flex-1 py-2.5 px-3.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/40 rounded-xl transition font-extrabold ${currentFont.secondary} cursor-pointer flex items-center justify-center gap-1.5`}
+                                        onClick={() => setFinSlide((prev) => Math.max(0, prev - 1))}
+                                        disabled={finSlide === 0}
+                                        className={`px-3.5 py-2 rounded-xl border border-custom-color font-bold ${currentFont.chip} flex items-center gap-1 transition cursor-pointer disabled:opacity-35 disabled:pointer-events-none hover:bg-custom-primary/40`}
                                     >
-                                        <Film className="w-4 h-4" />
-                                        <span>🎬 Ver Vídeo Explicativo</span>
+                                        <ChevronLeft className="w-4 h-4" />
+                                        <span>Anterior</span>
                                     </button>
-                                    {content.cta && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                navigate(content.cta.path);
-                                                hideMascot();
-                                            }}
-                                            className={`flex-1 py-2.5 px-3.5 bg-custom-gold text-black rounded-xl hover:opacity-95 transition font-bold ${currentFont.secondary} cursor-pointer shadow-md flex items-center justify-center gap-1.5`}
-                                        >
-                                            {content.cta.label}
-                                        </button>
-                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={openQuiz}
+                                        className={`px-3 py-2 rounded-xl bg-amber-500/15 text-amber-500 border border-amber-500/30 font-extrabold ${currentFont.chip} hover:bg-amber-500/25 transition cursor-pointer`}
+                                    >
+                                        🍬 Posso Gastar?
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setFinSlide((prev) => (prev < 2 ? prev + 1 : 0))}
+                                        className={`px-4 py-2 rounded-xl bg-custom-gold text-black font-extrabold ${currentFont.chip} flex items-center gap-1 transition cursor-pointer shadow-sm hover:opacity-95`}
+                                    >
+                                        <span>{finSlide < 2 ? 'Próxima Dica' : 'Ver Contas'}</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         )}
                     </div>
-
-                    {/* Atalhos Rápidos do FIN (Quiz + Vídeos do Manual + Sabedoria) */}
-                    <div className="mt-3 pt-2.5 border-t border-custom-color/40 flex flex-wrap gap-1.5 flex-shrink-0">
-                        <button
-                            type="button"
-                            onClick={openQuiz}
-                            className={`px-3.5 py-1.5 ${currentFont.chip} font-bold rounded-full bg-custom-gold text-black hover:opacity-90 transition cursor-pointer shadow-sm`}
-                            title="Brinque no Quiz antes de gastar: diga quanto e onde quer gastar e veja se cabe na sua meta!"
-                        >
-                            🎮 Quiz: Posso Gastar?
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => openVideoManual(location.pathname)}
-                            className={`px-3.5 py-1.5 ${currentFont.chip} font-bold rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/40 transition cursor-pointer shadow-sm flex items-center gap-1`}
-                            title="Assista a um vídeo curto do FIN explicando como usar esta tela e todos os capítulos do Manual!"
-                        >
-                            <Film className="w-3.5 h-3.5" />
-                            <span>🎬 Vídeos do Manual</span>
-                        </button>
-                        {[
-                            { label: "🏷️ Dar nome ao dinheiro", query: "O que é dar nome ao dinheiro?" },
-                            { label: "🤔 Necessidade vs Desejo", query: "Qual a diferença entre necessidade e desejo?" },
-                            { label: "⛄ Bola de neve", query: "Como funciona a bola de neve dos juros?" }
-                        ].map((chip) => (
-                            <button
-                                key={chip.label}
-                                type="button"
-                                onClick={() => {
-                                    setIsQuizOpen(false);
-                                    setIsVideoOpen(false);
-                                    setQuizResult(null);
-                                    const response = askFinAboutSystem(chip.query, { primeiroNome, vocativo, language, t });
-                                    setChatbotResponse({
-                                        question: translateFinParagraph(chip.query, language, t),
-                                        answer: response
-                                    });
-                                }}
-                                className={`px-3 py-1.5 ${currentFont.chip} font-semibold rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 transition cursor-pointer`}
-                            >
-                                {chip.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Caixa de Pergunta ao FIN */}
-                    <form onSubmit={handleAskQuestion} className="mt-2.5 flex gap-2 flex-shrink-0">
-                        <input
-                            type="text"
-                            value={userQuestion}
-                            onChange={(e) => setUserQuestion(e.target.value)}
-                            placeholder="Pergunte algo ao FIN (ex: Para que serve Renda Real?)..."
-                            className={`flex-1 px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-custom-color rounded-lg ${currentFont.input} text-custom-main focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
-                        />
-                        <button
-                            type="submit"
-                            className="px-3.5 py-2.5 bg-custom-gold text-black rounded-lg hover:opacity-95 transition font-bold cursor-pointer"
-                            title="Enviar pergunta"
-                        >
-                            <Send className="w-4 h-4" />
-                        </button>
-                    </form>
                 </div>
             )}
 

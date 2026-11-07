@@ -463,11 +463,19 @@ const Cartoes = () => {
             </div>
 
             {lista.length > 0 ? (
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[760px] md:min-w-0 md:table-fixed border-collapse">
+                <div className="w-full overflow-x-auto md:overflow-x-hidden">
+                    <table className="w-full table-fixed border-collapse" style={{ tableLayout: 'fixed', width: '100%' }}>
+                        <colgroup>
+                            <col style={{ width: '15%' }} />
+                            {meses.map((mes) => (
+                                <col key={`col-${mes}`} style={{ width: '6.2%' }} />
+                            ))}
+                            <col style={{ width: '8.2%' }} />
+                            <col style={{ width: '2.4%' }} />
+                        </colgroup>
                         <thead>
                             <tr className="bg-custom-primary/30 dark:bg-slate-800/40 border-b border-custom-color text-custom-main">
-                                <th className="w-[175px] xl:w-[195px] px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-custom-main sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color">
+                                <th className="px-2.5 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-custom-main bg-custom-card dark:bg-slate-900 border-r border-custom-color truncate">
                                     {labelColuna}
                                 </th>
                                 {meses.map((mes, idx) => {
@@ -477,7 +485,7 @@ const Cartoes = () => {
                                             key={mes}
                                             data-no-field-help="true"
                                             title={t(mes)}
-                                            className={`px-1 py-2.5 text-center text-[11px] font-bold whitespace-nowrap transition-colors ${
+                                            className={`px-0.5 py-2.5 text-center text-[11px] font-bold whitespace-nowrap transition-colors ${
                                                 isMesAtual
                                                     ? 'bg-custom-gold/15 text-custom-gold border-b-2 border-custom-gold'
                                                     : 'text-custom-main'
@@ -489,11 +497,11 @@ const Cartoes = () => {
                                 })}
                                 <th
                                     data-no-field-help="true"
-                                    className="w-[96px] xl:w-[112px] px-2 py-2.5 text-right text-[11px] font-bold text-custom-main bg-custom-primary/40 dark:bg-slate-800/60 border-l border-custom-color whitespace-nowrap"
+                                    className="px-1.5 py-2.5 text-right text-[10px] xl:text-[11px] font-bold text-custom-main bg-custom-primary/40 dark:bg-slate-800/60 border-l border-custom-color whitespace-nowrap"
                                 >
                                     TOTAL ANUAL
                                 </th>
-                                <th className="w-[28px] px-1 py-2.5" data-no-field-help="true"></th>
+                                <th className="px-0.5 py-2.5" data-no-field-help="true"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-custom-color bg-transparent">
@@ -501,7 +509,7 @@ const Cartoes = () => {
                                 const isFixo = Boolean(cartao.fixo || String(cartao.nome || '').trim().toLowerCase() === 'dinheiro');
                                 return (
                                 <tr key={cartao.id} className="hover:bg-custom-primary/10 dark:hover:bg-slate-800/30 transition group text-custom-main">
-                                    <td className="px-2.5 py-2 sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color align-middle">
+                                    <td className="px-2 py-2 bg-custom-card dark:bg-slate-900 border-r border-custom-color align-middle overflow-hidden">
                                         {isFixo ? (
                                             <div className="space-y-1 px-1">
                                                 <div className="flex items-center justify-between gap-1.5">
@@ -557,7 +565,7 @@ const Cartoes = () => {
                                         return (
                                             <td
                                                 key={index}
-                                                className={`px-1 py-1.5 align-middle ${
+                                                className={`px-0.5 py-1.5 align-middle ${
                                                     isMesAtual ? 'bg-custom-gold/5' : ''
                                                 }`}
                                             >
@@ -567,7 +575,7 @@ const Cartoes = () => {
                                                         step="0.01"
                                                         value={valorMostrado}
                                                         onChange={(e) => atualizarValor(cartao.id, index, e.target.value)}
-                                                        className={`w-full min-w-0 px-1 py-1 text-center border rounded text-[11px] xl:text-xs tabular-nums transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                                                        className={`w-full min-w-0 px-0.5 py-1 text-center border rounded text-[11px] xl:text-xs tabular-nums transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                                                             temOverride
                                                                 ? 'border-amber-400 bg-amber-50/30 text-amber-900 dark:text-amber-300 font-semibold'
                                                                 : valorAuto > 0
@@ -607,14 +615,14 @@ const Cartoes = () => {
                                             </td>
                                         );
                                     })}
-                                    <td className="px-2 py-2 text-right font-bold text-[11px] xl:text-xs tabular-nums whitespace-nowrap text-custom-main bg-custom-primary/20 dark:bg-slate-800/35 border-l border-r border-custom-color align-middle">
+                                    <td className="px-1.5 py-2 text-right font-bold text-[10px] xl:text-xs tabular-nums whitespace-nowrap text-custom-main bg-custom-primary/20 dark:bg-slate-800/35 border-l border-r border-custom-color align-middle">
                                         {formatCurrency(calcularTotalCartao(cartao))}
                                     </td>
-                                    <td className="px-1 py-2 text-center align-middle">
+                                    <td className="px-0.5 py-2 text-center align-middle">
                                         {!isFixo && (
                                             <button
                                                 onClick={() => removerCartao(cartao.id)}
-                                                className="p-1 text-gray-400 hover:text-red-500 transition opacity-60 group-hover:opacity-100 cursor-pointer"
+                                                className="p-0.5 text-gray-400 hover:text-red-500 transition opacity-60 group-hover:opacity-100 cursor-pointer"
                                                 title="Remover item"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -627,7 +635,7 @@ const Cartoes = () => {
 
                             {/* Linha de Totais Exclusiva do Grupo */}
                             <tr className="bg-custom-primary/40 dark:bg-slate-800/50 font-bold border-t-2 border-custom-color text-custom-main">
-                                <td className="px-2.5 py-2.5 text-[10px] xl:text-[11px] font-extrabold uppercase tracking-tight text-custom-main sticky left-0 bg-custom-card dark:bg-slate-900 z-10 shadow-sm border-r border-custom-color leading-tight">
+                                <td className="px-2 py-2.5 text-[10px] xl:text-[11px] font-extrabold uppercase tracking-tight text-custom-main bg-custom-card dark:bg-slate-900 border-r border-custom-color leading-tight">
                                     {labelRodape}
                                 </td>
                                 {meses.map((_, index) => {
@@ -644,7 +652,7 @@ const Cartoes = () => {
                                         </td>
                                     );
                                 })}
-                                <td className={`px-2 py-2.5 text-right text-xs xl:text-sm font-extrabold tabular-nums whitespace-nowrap border-l border-custom-color ${isCredito ? 'text-custom-gold' : 'text-emerald-500'}`}>
+                                <td className={`px-1.5 py-2.5 text-right text-[11px] xl:text-xs font-extrabold tabular-nums whitespace-nowrap border-l border-custom-color ${isCredito ? 'text-custom-gold' : 'text-emerald-500'}`}>
                                     {formatCurrency(calcularTotalGrupoGeral(lista))}
                                 </td>
                                 <td></td>

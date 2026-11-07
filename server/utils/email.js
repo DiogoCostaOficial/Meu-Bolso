@@ -292,7 +292,48 @@ const enviarEmailBoasVindas = async (email, nome) => {
   }
 };
 
+const enviarSugestaoContato = async ({ nomeUsuario, emailUsuario, assunto, mensagem }) => {
+  const destinatario = 'financasfacil10@gmail.com';
+  const assuntoFinal = assunto && String(assunto).trim()
+    ? `[Sugestão Meu Bolso] ${String(assunto).trim()}`
+    : `[Sugestão Meu Bolso] Mensagem de ${nomeUsuario || emailUsuario || 'Usuário'}`;
+
+  const textoSeguro = String(mensagem || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER || destinatario,
+    to: destinatario,
+    replyTo: emailUsuario || undefined,
+    subject: assuntoFinal,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
+        <h2 style="color: #fbbf24; margin-top: 0;">💡 Nova Sugestão / Contato — Meu Bolso</h2>
+        <p style="margin: 6px 0;"><strong>Nome:</strong> ${nomeUsuario || 'Não informado'}</p>
+        <p style="margin: 6px 0;"><strong>E-mail do Usuário:</strong> ${emailUsuario || 'Não informado'}</p>
+        <p style="margin: 6px 0;"><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+        <hr style="border: 0; border-top: 1px solid #334155; margin: 16px 0;" />
+        <div style="background: #1e293b; padding: 16px; border-radius: 12px; color: #e2e8f0; line-height: 1.6;">
+          ${textoSeguro}
+        </div>
+      </div>
+    `
+  };
+
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return { success: false, code: 'SMTP_NOT_CONFIGURED', error: 'Servidor SMTP não configurado.' };
+    }
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Sugestão enviada para ${destinatario} por ${emailUsuario}`);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Erro ao enviar sugestão:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   enviarCodigoOTP,
-  enviarEmailBoasVindas
+  enviarEmailBoasVindas,
+  enviarSugestaoContato
 };

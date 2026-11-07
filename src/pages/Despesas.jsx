@@ -1185,6 +1185,33 @@ const Despesas = () => {
                         </optgroup>
                       )}
                     </select>
+
+                    {/* Alerta Educativo de Conscientização sobre Cartão = Dívida Futura */}
+                    {formulario.cartao && (() => {
+                      const cartaoSelecionadoObj = cartoes.find(c => c.nome === formulario.cartao);
+                      const isCartaoCreditoSelecionado = Boolean(
+                        cartaoSelecionadoObj && (cartaoSelecionadoObj.diaVencimento || cartaoSelecionadoObj.valores?._diaVencimento)
+                      );
+                      return isCartaoCreditoSelecionado ? (
+                        <div className="mt-2.5 p-3.5 rounded-xl bg-amber-500/15 border-2 border-amber-500/50 text-amber-900 dark:text-amber-200 text-sm leading-relaxed shadow-xs">
+                          <p className="font-extrabold flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
+                            <span>⚠️ Atenção: Passar no Cartão é uma Dívida Futura!</span>
+                          </p>
+                          <p className="mt-1 text-xs sm:text-sm">
+                            Ao usar o cartão <strong>{formulario.cartao}</strong>, você está fazendo uma dívida para pagar depois. Esse valor vai cobrar do seu próximo salário quando a fatura fechar!
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-2.5 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-900 dark:text-emerald-200 text-xs sm:text-sm leading-relaxed">
+                          <p className="font-bold text-emerald-700 dark:text-emerald-300">
+                            ⚡ Pagamento à Vista (Não gera dívida futura):
+                          </p>
+                          <p className="mt-0.5">
+                            Esse valor já sai na hora e você não fica devendo nada na fatura do mês que vem!
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                   {/* NOVO: Campo para Data compra retroativo (opcional) */}
                   <div>

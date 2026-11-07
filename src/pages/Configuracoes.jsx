@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../components/theme-provider';
 import { useLayoutVariant } from '../contexts/LayoutVariantContext';
-import { userService, authService } from '../services/api';
+import api, { userService, authService } from '../services/api';
+import { toast } from 'sonner';
 import {
   User,
   Lock,
@@ -85,12 +86,58 @@ const categoriasDefault = [
 
 const Configuracoes = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, updateUser, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const { layoutVariant, setLayoutVariant } = useLayoutVariant();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('perfil'); // 'perfil' | 'categorias' | 'seguranca'
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [sugestaoMensagem, setSugestaoMensagem] = useState('');
+  const [enviandoSugestao, setEnviandoSugestao] = useState(false);
+
+  const handleEnviarSugestao = async (e) => {
+    e.preventDefault();
+    const texto = sugestaoMensagem.trim();
+    if (!texto) {
+      toast.error('Escreva sua sugestão antes de enviar.');
+      return;
+    }
+    setEnviandoSugestao(true);
+    try {
+      const resp = await api.post('/user/sugestao', {
+        assunto: `Sugestão de ${profileData.nome || user?.nome || 'Usuário'}`,
+        mensagem: texto,
+        nome: profileData.nome || user?.nome,
+        email: profileData.email || user?.email
+      });
+      if (resp.data?.sucesso) {
+        toast.success('Sugestão enviada com sucesso para financasfacil10@gmail.com!');
+        setSugestaoMensagem('');
+      } else {
+        const subject = encodeURIComponent(`Sugestão Meu Bolso - ${profileData.nome || user?.nome || 'Usuário'}`);
+        const body = encodeURIComponent(texto);
+        window.open(`mailto:financasfacil10@gmail.com?subject=${subject}&body=${body}`, '_blank');
+        toast.success('Abrindo seu aplicativo de e-mail para enviar para financasfacil10@gmail.com');
+        setSugestaoMensagem('');
+      }
+    } catch {
+      const subject = encodeURIComponent(`Sugestão Meu Bolso - ${profileData.nome || user?.nome || 'Usuário'}`);
+      const body = encodeURIComponent(texto);
+      window.open(`mailto:financasfacil10@gmail.com?subject=${subject}&body=${body}`, '_blank');
+      toast.success('Abrindo seu aplicativo de e-mail para enviar para financasfacil10@gmail.com');
+    } finally {
+      setEnviandoSugestao(false);
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['perfil', 'niveis', 'categorias', 'seguranca'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
 
   // Exclusão de conta
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
@@ -314,29 +361,41 @@ const Configuracoes = () => {
           </p>
         </div>
 
-        {/* NAVEGAÇÃO HORIZONTAL DE ABAS (Elimina a coluna lateral desperdiçada) */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-custom-primary/60 rounded-xl border border-custom-color self-start md:self-auto">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  setMessage({ type: '', text: '' });
-                }}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-custom-gold text-black shadow-sm'
-                    : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-card'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+        {/* NAVEGAÇÃO HORIZONTAL DE ABAS + BOTÃO REVER GUIA INICIAL */}
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-welcome-guide'))}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-400 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            title="Rever a apresentação inicial com a ordem recomendada de configuração do sistema"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Rever Guia Inicial</span>
+          </button>
+
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-custom-primary/60 rounded-xl border border-custom-color">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setMessage({ type: '', text: '' });
+                  }}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-custom-gold text-black shadow-sm'
+                      : 'text-custom-main opacity-70 hover:opacity-100 hover:bg-custom-card'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -517,6 +576,47 @@ const Configuracoes = () => {
               </div>
             </div>
           </form>
+
+          {/* BLOCO DE CONTATO PARA ENVIAR SUGESTÕES PARA financasfacil10@gmail.com */}
+          <div className="mt-6 pt-6 border-t border-custom-color">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div>
+                <h3 className="text-sm font-bold text-custom-main flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-custom-gold" />
+                  <span>Enviar Sugestões e Melhorias</span>
+                </h3>
+                <p className="text-xs text-custom-main opacity-75 mt-0.5">
+                  Tem alguma ideia ou sugestão para o sistema? Envie diretamente para{' '}
+                  <a
+                    href="mailto:financasfacil10@gmail.com?subject=Sugest%C3%A3o%20Meu%20Bolso"
+                    className="text-amber-400 font-bold hover:underline"
+                  >
+                    financasfacil10@gmail.com
+                  </a>
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleEnviarSugestao} className="space-y-3">
+              <textarea
+                rows={3}
+                value={sugestaoMensagem}
+                onChange={(e) => setSugestaoMensagem(e.target.value)}
+                placeholder="Escreva aqui sua sugestão, dúvida ou ideia de melhoria para o Meu Bolso..."
+                className="w-full bg-custom-primary/50 border border-custom-color rounded-xl px-4 py-3 text-xs sm:text-sm text-custom-main placeholder-custom-main/40 focus:outline-none focus:border-custom-gold transition-colors"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={enviandoSugestao}
+                  className="px-5 py-2.5 rounded-xl bg-custom-gold text-black font-bold text-xs hover:bg-yellow-400 disabled:opacity-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>{enviandoSugestao ? 'Enviando...' : 'Enviar Sugestão para financasfacil10@gmail.com'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

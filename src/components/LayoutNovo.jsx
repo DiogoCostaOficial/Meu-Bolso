@@ -13,6 +13,7 @@ import { GlobalFieldHelpEnhancer } from './FieldHelpTooltip';
 import { useLanguage } from '../contexts/LanguageContext';
 import NivelExperienciaModal from './NivelExperienciaModal';
 import OnboardingInicianteModal from './OnboardingInicianteModal';
+import WelcomeGuideModal from './WelcomeGuideModal';
 import {
   LayoutDashboard,
   Wallet,
@@ -123,6 +124,7 @@ const LayoutNovo = ({ children }) => {
         <GlobalFieldHelpEnhancer />
         <NivelExperienciaModal />
         <OnboardingInicianteModal />
+        <WelcomeGuideModal />
 
         {/* Sidebar Desktop */}
         <aside className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-custom-card border-r border-custom-color fixed h-full z-10 transition-all duration-300 ease-in-out`}>
@@ -446,8 +448,17 @@ const LayoutNovo = ({ children }) => {
           }}
         >
           <div className="p-4 md:p-8">
-            {/* Barra superior global com Ajuda (Videoaulas), Seletor de Nível e Idioma */}
-            <div className="flex items-center justify-end gap-2.5 mb-4">
+            {/* Barra superior global com Guia Inicial, Vídeo-Aula, Seletor de Nível e Idioma */}
+            <div className="flex flex-wrap items-center justify-end gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-welcome-guide'))}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs bg-custom-card text-custom-main border-custom-gold/40 hover:border-custom-gold hover:bg-custom-gold/10"
+                title="Abrir o Guia Inicial de Boas-Vindas e Ordem de Configuração"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-custom-gold shrink-0" />
+                <span>{t('Guia Inicial')}</span>
+              </button>
               <PageTutorialVideo />
               <button
                 type="button"

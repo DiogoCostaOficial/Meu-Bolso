@@ -2010,6 +2010,107 @@ const [dadosCustoVida, setDadosCustoVida] = useState(null);
         </div>
       </div>
 
+      {/* Painel Educativo Simples (Linguagem Fácil para Iniciantes: Controle de Gastos e Saída das Dívidas) */}
+      {(() => {
+        const isFormaImediata = (nome = '') => /^(dinheiro|pix|d[eé]bito|ticket|vale|alimenta|refei)/i.test(String(nome).trim());
+        const totalCartaoFatura = (despesasPeriodo || []).reduce((acc, d) => {
+          if (d?.cartao && !isFormaImediata(d.cartao)) {
+            return acc + (parseFloat(d.valor) || 0);
+          }
+          return acc;
+        }, 0);
+        const percentualGastoRenda = totalReceitas > 0 ? (totalDespesas / totalReceitas) * 100 : (totalDespesas > 0 ? 100 : 0);
+
+        return (
+          <div className="bg-custom-card p-5 md:p-6 rounded-2xl shadow-custom border-2 border-amber-500/40 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-custom-color pb-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/assets/fin_coin_boy.png"
+                  alt="Professor FIN"
+                  className="w-11 h-11 rounded-full border-2 border-amber-400 bg-white object-cover shrink-0"
+                />
+                <div>
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-500 block">
+                    EXPLICAÇÃO SIMPLES DO PROFESSOR FIN
+                  </span>
+                  <h3 className="text-lg md:text-xl font-extrabold text-custom-main">
+                    Como estão suas contas e como fugir das dívidas
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => showLesson('relatorios')}
+                className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-extrabold text-sm transition cursor-pointer self-start sm:self-auto shadow-xs"
+              >
+                🪙 Abrir Ajuda Passo a Passo do FIN
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Card 1: Semáforo de Gastos */}
+              <div className={`p-4 rounded-xl border-2 ${
+                percentualGastoRenda >= 90
+                  ? 'bg-rose-500/10 border-rose-500/50'
+                  : percentualGastoRenda >= 70
+                  ? 'bg-amber-500/10 border-amber-500/50'
+                  : 'bg-emerald-500/10 border-emerald-500/50'
+              }`}>
+                <p className="text-xs font-extrabold uppercase tracking-wider opacity-80 text-custom-main">
+                  1. TERMÔMETRO DO SEU MÊS
+                </p>
+                <p className="text-base md:text-lg font-extrabold text-custom-main mt-1">
+                  {percentualGastoRenda >= 90
+                    ? '🚨 Hora de segurar o freio!'
+                    : percentualGastoRenda >= 70
+                    ? '⚠️ Atenção: chegando perto do limite!'
+                    : '🌟 Parabéns! Gastos sob controle!'}
+                </p>
+                <p className="text-sm text-custom-main opacity-90 mt-1.5 leading-relaxed">
+                  {totalReceitas > 0 ? (
+                    <>
+                      Você já comprometeu <strong>{percentualGastoRenda.toFixed(0)}%</strong> do que ganhou no período.{' '}
+                      {percentualGastoRenda >= 85
+                        ? 'Evite fazer qualquer compra nova agora para não faltar dinheiro!'
+                        : 'Continue acompanhando para fazer sobrar dinheiro no fim do mês.'}
+                    </>
+                  ) : (
+                    'Cadastre sua Receita ou Orçamento para o FIN calcular quanto do seu limite mensal já foi usado.'
+                  )}
+                </p>
+              </div>
+
+              {/* Card 2: Conscientização sobre Cartão = Dívida Futura */}
+              <div className="p-4 rounded-xl border-2 bg-amber-500/10 border-amber-500/50">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-amber-500">
+                  2. CUIDADO COM O CARTÃO DE CRÉDITO
+                </p>
+                <p className="text-base md:text-lg font-extrabold text-custom-main mt-1">
+                  💳 No Cartão: {formatarMoeda(totalCartaoFatura)}
+                </p>
+                <p className="text-sm text-custom-main opacity-90 mt-1.5 leading-relaxed">
+                  <strong>Nunca esqueça: passar no cartão é fazer uma dívida futura!</strong> Esse valor vai cobrar do seu próximo salário quando a fatura chegar.
+                </p>
+              </div>
+
+              {/* Card 3: Como Sair das Dívidas */}
+              <div className="p-4 rounded-xl border-2 bg-sky-500/10 border-sky-500/40">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-sky-400">
+                  3. PASSO A PASSO PARA SAIR DAS DÍVIDAS
+                </p>
+                <p className="text-base md:text-lg font-extrabold text-custom-main mt-1">
+                  🌱 Regra fácil para o seu bolso
+                </p>
+                <p className="text-sm text-custom-main opacity-90 mt-1.5 leading-relaxed">
+                  Olhe o gráfico <strong>Acompanhamento de Orçamento</strong> abaixo: se a barra vermelha (Gasto) passar da azul (Planejado), pare de gastar naquela categoria até o mês acabar!
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
             {/* Seletor de Categoria de Relatórios (Essenciais vs Avançados PRO) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-custom-card p-2 rounded-2xl border border-custom-color shadow-custom">
         <div className="flex items-center gap-1.5 overflow-x-auto p-1">

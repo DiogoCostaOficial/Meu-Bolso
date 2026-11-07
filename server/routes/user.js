@@ -5,6 +5,7 @@ const lgpdController = require('../controllers/lgpdController');
 const { verificarToken } = require('../middleware/auth');
 const { generateManualVideoWithGemini, listExistingManualVideos } = require('../utils/geminiVideoGenerator');
 const { synthesizeFullNarrationMp3 } = require('../utils/finChildTts');
+const { enviarSugestaoContato } = require('../utils/email');
 
 const multer = require('multer');
 const path = require('path');
@@ -90,6 +91,48 @@ router.post('/fin-video/tts', verificarToken, async (req, res) => {
         return res.status(500).json({
             sucesso: false,
             erro: err.message || 'Erro ao sintetizar voz neural do FIN.'
+        });
+    }
+});
+
+// Rota para envio de sugestões/contato diretamente para financasfacil10@gmail.com
+router.post('/sugestao', verificarToken, async (req, res) => {
+    try {
+        const { assunto, mensagem } = req.body || {};
+        if (!mensagem || !String(mensagem).trim()) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: 'Por favor, escreva sua sugestão ou mensagem.'
+            });
+        }
+        const nomeUsuario = req.usuario?.nome || req.body?.nome || 'Usuário';
+        const emailUsuario = req.usuario?.email || req.body?.email || '';
+
+        const resultado = await enviarSugestaoContato({
+            nomeUsuario,
+            emailUsuario,
+            assunto,
+            mensagem
+        });
+
+        if (resultado.success) {
+            return res.json({
+                sucesso: true,
+                mensagem: 'Sua sugestão foi enviada com sucesso para financasfacil10@gmail.com!'
+            });
+        }
+
+        return res.json({
+            sucesso: false,
+            fallbackMailto: true,
+            erro: resultado.error || 'Não foi possível enviar automaticamente pelo servidor.'
+        });
+    } catch (err) {
+        console.error('Erro na rota de sugestão:', err);
+        return res.status(500).json({
+            sucesso: false,
+            fallbackMailto: true,
+            erro: err.message
         });
     }
 });
