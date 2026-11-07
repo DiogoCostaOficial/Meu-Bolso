@@ -75,8 +75,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Documentos compilados e binários
+# Documentos compilados, vídeos e binários de estudo
 *.pdf
+Video/
+Capa_Case_PM_PO_Meu_Bolso.jpg
 
 # Backups e arquivos antigos
 backup-*/
