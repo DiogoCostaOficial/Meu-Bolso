@@ -14,8 +14,10 @@ export default function AceiteModal() {
     if (!user) return;
     let ativo = true;
     lgpdService.status().then((r) => {
-      if (ativo && r && r.success && r.aceitouVersaoVigente === false) setPendente(true);
-    });
+      if (!ativo || !r || !r.success) return;
+      const data = r.data || r.dados || r;
+      if (data.aceitouVersaoVigente === false) setPendente(true);
+    }).catch(() => {});
     return () => {
       ativo = false;
     };

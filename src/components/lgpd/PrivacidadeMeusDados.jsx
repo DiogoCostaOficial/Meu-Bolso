@@ -11,21 +11,45 @@ export default function PrivacidadeMeusDados() {
   const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState('');
 
-  const carregar = () => lgpdService.status().then((r) => r && r.success && setStatus(r));
+  const carregar = () => {
+    lgpdService.status()
+      .then((r) => {
+        if (r && r.success) {
+          const payload = r.data || r.dados || r;
+          setStatus(payload);
+        }
+      })
+      .catch((err) => {
+        console.warn('Erro ao carregar status LGPD:', err);
+      });
+  };
+
   useEffect(() => {
     carregar();
   }, []);
 
   const alternar = async (finalidade, concedido) => {
-    const r = await lgpdService.definirConsentimento(finalidade, concedido);
-    setMsg(r && r.success ? r.message : 'Não foi possível atualizar o consentimento.');
-    carregar();
+    try {
+      const r = await lgpdService.definirConsentimento(finalidade, concedido);
+      setMsg(r && r.success ? r.message : 'Não foi possível atualizar o consentimento.');
+      carregar();
+    } catch {
+      setMsg('Não foi possível atualizar o consentimento.');
+    }
   };
 
   const baixar = async () => {
-    const ok = await lgpdService.baixarMeusDados();
-    setMsg(ok ? 'Arquivo gerado. Verifique seus downloads.' : 'Não foi possível exportar seus dados.');
+    try {
+      const ok = await lgpdService.baixarMeusDados();
+      setMsg(ok ? 'Arquivo gerado. Verifique seus downloads.' : 'Não foi possível exportar seus dados.');
+    } catch {
+      setMsg('Não foi possível exportar seus dados.');
+    }
   };
+
+  const listaOpcionais = Array.isArray(status?.opcionais)
+    ? status.opcionais
+    : (Array.isArray(status?.data?.opcionais) ? status.data.opcionais : []);
 
   return (
     <section aria-labelledby="privacidade-titulo" className="bg-custom-card rounded-2xl p-6 shadow-custom text-custom-main space-y-4">
@@ -36,9 +60,14 @@ export default function PrivacidadeMeusDados() {
         <Link to="/termos" className="text-custom-gold hover:underline">Termos de Uso</Link>
       </p>
 
-      {status && status.opcionais.map((o) => (
+      {listaOpcionais.length > 0 && listaOpcionais.map((o) => (
         <label key={o.finalidade} className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" className="h-4 w-4 accent-yellow-500" checked={o.concedido} onChange={(e) => alternar(o.finalidade, e.target.checked)} />
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-yellow-500"
+            checked={Boolean(o.concedido)}
+            onChange={(e) => alternar(o.finalidade, e.target.checked)}
+          />
           {ROTULOS[o.finalidade] || o.finalidade}
         </label>
       ))}
