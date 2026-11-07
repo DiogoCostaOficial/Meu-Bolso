@@ -106,6 +106,7 @@ fin-video-manual.md
 
 # Antigravity Kit (Mantido estritamente local na máquina)
 .agent/
+.agents/
 
 # Certificados SSL
 *.pem
